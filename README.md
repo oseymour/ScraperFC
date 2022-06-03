@@ -6,10 +6,15 @@ Data can be scraped from the following sources:
 * [FBRef](https://fbref.com/en/)
     * Match and seasonal data for players and teams
 * [Understat](https://understat.com/)
+    * Match and seasonal data for players and teams
 * [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
+    * Several FiveThirtyEight metrics on a match level (SPI, win probabilities, xG, NSxG, and more)
 * [ClubELO](http://clubelo.com/)
+    * ELO scores for teams on a specific date
 * [Capology](https://www.capology.com/)
+    * Player salary data
 * [Transfermarkt](https://www.transfermarkt.us/)
+    * Market value, transfer history, market value history, and more
 
 For documentation, head over to the [GitHub's wiki page](https://github.com/oseymour/ScraperFC/wiki)
 
