@@ -4,6 +4,7 @@ To install ScraperFC, run ```pip install ScraperFC``` from the command line.
 
 Data can be scraped from the following sources:
 * [FBRef](https://fbref.com/en/)
+        * Match and seasonal data for players and teams
 * [Understat](https://understat.com/)
 * [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
 * [ClubELO](http://clubelo.com/)
