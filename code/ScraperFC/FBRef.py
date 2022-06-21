@@ -22,6 +22,7 @@ class FBRef:
         options = Options()
         options.headless = True
         options.add_argument("window-size=1400,600")
+        options.add_argument("user-agent=Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36")
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
       
     ################################################################################    
