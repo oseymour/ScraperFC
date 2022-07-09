@@ -148,9 +148,11 @@ class TransfermarktPlayer():
         }
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.content, 'html.parser')
+        
         """ Name """
         data_header_el = soup.find("h1", {"class": "data-header__headline-wrapper"})
         self.name = data_header_el.getText().split('\n')[-1].strip()
+        
         """ Value """
         try:
             self.value = soup.find("a", {"class": "data-header__market-value-wrapper"}).text.split(" ")[0]
@@ -158,16 +160,19 @@ class TransfermarktPlayer():
         except AttributeError:
             self.value = None
             self.value_last_updated = None
+            
         """ DOB and age """
         dob_el = soup.find("span", {"itemprop": "birthDate"})
         self.dob = ' '.join(dob_el.getText().strip().split(' ')[:3])
         self.age = int(dob_el.getText().strip().split(' ')[-1].replace('(','').replace(')',''))
+        
         """ Height """
         height_el = soup.find("span", {"itemprop": "height"})
         try:
             self.height_meters = float(height_el.getText().replace("m", "").replace(",", "."))
         except AttributeError:
             self.height_meters = None
+       
         """ Citizenship """
         nationality_el = soup.find("span", {"itemprop": "nationality"})
         self.nationality = nationality_el.getText().replace("\n","").strip()
@@ -175,12 +180,14 @@ class TransfermarktPlayer():
         flag_els = [flag_el for el in citizenship_els\
             for flag_el in el.find_all("img", {"class": "flaggenrahmen"})]
         self.citizenship = list(set([el["title"] for el in flag_els]))
+        
         """ Position """
         self.position = soup.find("dd", {"class": "detail-position__position"}).getText()
         try:
             self.other_positions = [el.getText() for el in soup.find("div", {"class": "detail-position__position"}).find_all("dd")]
         except AttributeError:
             self.other_positions = None
+        
         """ Team & Contract """
         try:
             self.team = soup.find("span", {"class": "data-header__club"}).find("a")["title"]
@@ -196,16 +203,18 @@ class TransfermarktPlayer():
             self.contract_expires = [el.text.split(": ")[-1] \
                 for el in soup.find_all("span", {"class": "data-header__label"}) \
                 if "expires" in el.text.lower()][0]
+        
         """ Market value history """
         try:
             script = [s for s in soup.find_all("script", {"type": "text/javascript"}) \
-                if "var chart = new Highcharts.Chart" in str(s)][0]
+                      if "var chart = new Highcharts.Chart" in str(s)][0]
             values = [int(s.split(",")[0]) for s in str(script).split("y':")[2:-2]]
             dates = [s.split("datum_mw':")[-1].split(",'x")[0].replace("\\x20"," ").replace("'", "") \
-                 for s in str(script).split("y':")[2:-2]]
+                     for s in str(script).split("y':")[2:-2]]
             self.market_value_history = pd.DataFrame({"date": dates, "value": values})
         except IndexError:
             self.market_value_history = None
+        
         """ Transfer History """
         rows = soup.find_all("div", {"class": "tm-player-transfer-history-grid"})
         self.transfer_history = pd.DataFrame(columns=["Season", "Date", "Left", "Joined", "MV", "Fee"])
@@ -218,11 +227,11 @@ class TransfermarktPlayer():
             if reached_prev_transfers:
                 new_row = pd.Series({
                     "Season": fields[0],
-                    "Date": fields[1],
-                    "Left": fields[2],
+                    "Date":   fields[1],
+                    "Left":   fields[2],
                     "Joined": fields[3],
-                    "MV": fields[4],
-                    "Fee": fields[5]
+                    "MV":     fields[4],
+                    "Fee":    fields[5]
                 })
                 self.transfer_history = self.transfer_history.append(new_row, ignore_index=True)
             if "Transfer history" in fields:

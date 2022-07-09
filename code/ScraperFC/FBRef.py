@@ -5,6 +5,9 @@ import pandas as pd
 from ScraperFC.shared_functions import check_season
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 from urllib.request import urlopen
@@ -21,6 +24,10 @@ class FBRef:
     def __init__(self):
         options = Options()
         options.headless = True
+        options.add_argument(
+            "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"+\
+            " (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36"
+        )
         options.add_argument("window-size=1400,600")
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
       
@@ -31,39 +38,51 @@ class FBRef:
 
     ################################################################################
     def get_season_link(self, year, league):
-        if league == 'EPL':
-            url = 'https://fbref.com/en/comps/9/history/Premier-League-Seasons'
-            if year >= 2008:
-                finder = 'Premier-League-Stats'
-            else:
-                finder = 'Premiership-Stats'
-        elif league == 'La Liga':
-            url = 'https://fbref.com/en/comps/12/history/La-Liga-Seasons'
-            finder = 'La-Liga-Stats'
-        elif league == "Bundesliga":
-            url = "https://fbref.com/en/comps/20/history/Bundesliga-Seasons"
-            finder = "Bundesliga-Stats"
-        elif league == "Serie A":
-            url = "https://fbref.com/en/comps/11/history/Serie-A-Seasons"
-            finder = "Serie-A-Stats"
-        elif league == "Ligue 1":
-            url = "https://fbref.com/en/comps/13/history/Ligue-1-Seasons"
-            if year >= 2003:
-                finder = 'Ligue-1'
-            else:
-                finder = 'Division-1'
-        elif league == "MLS":
-            url = "https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons"
-            finder = "Major-League-Soccer-Stats"
-        else:
-            print('ERROR: League not found. Options are \"EPL\", \"La Liga\", '+
-                  '\"Bundesliga\", \"Serie A\", \"Ligue 1\"')
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
             return -1
-        self.driver.get(url)
+        
+        # urls are to league's seasons history page
+        # finders are used later to make sure we're getting the right season URL
+        urls_finders = {
+            "EPL": {
+                "url": "https://fbref.com/en/comps/9/history/Premier-League-Seasons",
+                "finder": "Premier-League-Stats"
+            },
+            "La Liga": {
+                "url": "https://fbref.com/en/comps/12/history/La-Liga-Seasons",
+                "finder": "La-Liga-Stats"
+            },
+            "Bundesliga": {
+                "url": "https://fbref.com/en/comps/20/history/Bundesliga-Seasons",
+                "finder": "Bundesliga-Stats"
+            },
+            "Serie A": {
+                "url": "https://fbref.com/en/comps/11/history/Serie-A-Seasons",
+                "finder": "Serie-A-Stats"
+            },
+            "Ligue 1": {
+                "url": "https://fbref.com/en/comps/13/history/Ligue-1-Seasons",
+                "finder": "Ligue-1" if year>=2003 else "Division-1"
+            },
+            "MLS": {
+                "url": "https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons",
+                "finder": "Major-League-Soccer-Stats"
+            },
+        }
+        url = urls_finders[league]["url"]
+        finder = urls_finders[league]["finder"]
+        
+        self.driver.get(url) # go to league's seasons page
+        
+        # Generate season string to find right element
         if league != "MLS":
             season = str(year-1)+'-'+str(year)
         else:
             season = str(year)
+           
+        # Get url to season
         for element in self.driver.find_elements_by_link_text(season):
             if finder in element.get_attribute('href'):
                 return element.get_attribute('href')
