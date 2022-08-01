@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 from ScraperFC.shared_functions import *
 from IPython.display import clear_output
@@ -30,7 +31,7 @@ class SofaScore:
         self.driver.get(url)
 
         # Click button for right season
-        for el in self.driver.find_elements_by_tag_name("li"):
+        for el in self.driver.find_elements(By.TAG_NAME, "li"):
             if str(year) in el.get_attribute("outerHTML"):
                 button = el
                 break
@@ -39,7 +40,7 @@ class SofaScore:
 
         # Get links to the teams in the tables
         team_links = list()
-        for el in self.driver.find_elements_by_tag_name("a"):
+        for el in self.driver.find_elements(By.TAG_NAME, "a"):
             href = el.get_attribute("href")
             if href and ("team" in href):
                 team_links.append(href)
@@ -50,7 +51,7 @@ class SofaScore:
 
             # Click to season stats for the chosen season
             buttons = list()
-            for el in self.driver.find_elements_by_tag_name("li"):
+            for el in self.driver.find_elements(By.TAG_NAME, "li"):
                 time.sleep(0.1)
                 if str(year) in el.get_attribute("outerHTML"):
                     buttons.append(el)
@@ -59,7 +60,7 @@ class SofaScore:
             matches = None
             team_stats = {
                 "Team name": team_link.split("/")[-2].replace("-"," "),
-                "Avg. rating": self.driver.find_element_by_xpath("/html/body/div[1]/main/div/div[2]/div[1]/div[2]/div/div[4]/div/div[2]/div[2]").text,
+                "Avg. rating": self.driver.find_element(By.XPATH, "/html/body/div[1]/main/div/div[2]/div[1]/div[2]/div/div[4]/div/div[2]/div[2]").text,
                 "Matches": matches,
                 "GF": None,
                 "GA": None,

@@ -109,8 +109,6 @@ def get_proxy():
     
     try:
         driver.get("https://sslproxies.org/")
-        # on some machines the xpath is "//table[@class='table table-striped table-bordered dataTable']"???
-        # table = driver.find_element_by_xpath("//table[@class='table table-striped table-bordered']")
         table = driver.find_elements_by_tag_name("table")[0]
         df = pd.read_html(table.get_attribute("outerHTML"))[0]
         df = df.iloc[np.where(~np.isnan(df["Port"]))[0],:] # ignore nans

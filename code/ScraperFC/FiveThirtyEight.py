@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.by import By
 import os
 import pandas as pd
 import numpy as np
@@ -24,10 +25,8 @@ class FiveThirtyEight:
         self.driver.quit()
         
         
-    def up_season(self,string):
-        integer = int(string)
-        up1 = integer + 1
-        return str(up1)
+    def up_season(self, string):
+        return str(int(string) + 1)
         
         
     def scrape_matches(self, year, league, save=False):
@@ -38,7 +37,7 @@ class FiveThirtyEight:
         self.driver.get(url)
         
         # find and click download button
-        for element in self.driver.find_elements_by_class_name("download-link"):
+        for element in self.driver.find_elements(By.CLASS_NAME, "download-link"):
             if element.get_attribute("dataset-name") == "soccer-spi":
                 element.click()
                 
