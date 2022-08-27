@@ -11,72 +11,59 @@ import numpy as np
 def check_season(year, league, source):
     valid = {
         'All': {},
-        'FBRef': {
-            'EPL': 1993,
-            'La Liga': 1989,
-            'Bundesliga': 1989,
-            'Serie A': 1989,
-            'Ligue 1': 1996,
-            'MLS': 1996
-        },
-        'Understat': {
-            'EPL': 2015,
-            'La Liga': 2015,
-            'Bundesliga': 2015,
-            'Serie A': 2015,
-            'Ligue 1': 2015
-        },
-        'FiveThirtyEight': {
-            'EPL': 2017,
-            'La Liga': 2017,
-            'Bundesliga': 2017,
-            'Serie A': 2017,
-            'Ligue 1': 2017
-        },
-        'SofaScore': {
-            'USL League One': 2019
-        },
-        'Capology': {
-            'Bundesliga': 2014,
-            '2.Bundesliga': 2020,
-            'EPL': 2014,
-            'EFL Championship': 2014,
-            'Serie A': 2010,
-            'Serie B': 2020,
-            'La Liga': 2014,
-            'La Liga 2': 2020,
-            'Ligue 1': 2014,
-            'Ligue 2': 2020,
-            'Eredivisie': 2014,
-            'Primeira Liga': 2014,
-            'Scottish PL': 2020,
-            'Super Lig': 2014,
-            'Belgian 1st Division': 2014
-        },
-        'Transfermarkt': {
-            'EPL': 1993,
-            'EFL Championship': 2005,
-            'EFL1': 2005,
-            'EFL2': 2005,
-            'Bundesliga': 1964,
-            '2.Bundesliga': 1982,
-            'Serie A': 1930,
-            'Serie B': 1930,
-            'La Liga': 1929,
-            'La Liga 2': 1929,
-            'Ligue 1': 1970,
-            'Ligue 2': 1993,
-            'Eredivisie': 1955,
-            'Scottish PL': 2004,
-            'Super Lig': 1960,
-            'Jupiler Pro League': 1987,
-            'Liga Nos': 1994,
-            'Russian Premier League': 2011,
-            'Brasileirao': 2001,
-            'Argentina Liga Profesional': 2015,
-            'MLS': 1996,
-        },
-    }
+        'FBRef': {'EPL': 1993,
+                  'La Liga': 1989,
+                  'Bundesliga': 1989,
+                  'Serie A': 1989,
+                  'Ligue 1': 1996,
+                  'MLS': 1996},
+        'Understat': {'EPL': 2015,
+                      'La Liga': 2015,
+                      'Bundesliga': 2015,
+                      'Serie A': 2015,
+                      'Ligue 1': 2015},
+        'FiveThirtyEight': {'EPL': 2017,
+                            'La Liga': 2017,
+                            'Bundesliga': 2017,
+                            'Serie A': 2017,
+                            'Ligue 1': 2017},
+        'SofaScore': {'USL League One': 2019},
+        'Capology': {'Bundesliga': 2014,
+                     '2.Bundesliga': 2020,
+                     'EPL': 2014,
+                     'EFL Championship': 2014,
+                     'Serie A': 2010,
+                     'Serie B': 2020,
+                     'La Liga': 2014,
+                     'La Liga 2': 2020,
+                     'Ligue 1': 2014,
+                     'Ligue 2': 2020,
+                     'Eredivisie': 2014,
+                     'Primeira Liga': 2014,
+                     'Scottish PL': 2020,
+                     'Super Lig': 2014,
+                     'Belgian 1st Division': 2014},
+        'Transfermarkt': {'EPL': 1993,
+                          'EFL Championship': 2005,
+                          'EFL1': 2005,
+                          'EFL2': 2005,
+                          'Bundesliga': 1964,
+                          '2.Bundesliga': 1982,
+                          'Serie A': 1930,
+                          'Serie B': 1930,
+                          'La Liga': 1929,
+                          'La Liga 2': 1929,
+                          'Ligue 1': 1970,
+                          'Ligue 2': 1993,
+                          'Eredivisie': 1955,
+                          'Scottish PL': 2004,
+                          'Super Lig': 1960,
+                          'Jupiler Pro League': 1987,
+                          'Liga Nos': 1994,
+                          'Russian Premier League': 2011,
+                          'Brasileirao': 2001,
+                          'Argentina Liga Profesional': 2015,
+                          'MLS': 1996,}}
     
     assert source in list(valid.keys())
     error = None
@@ -88,12 +75,12 @@ def check_season(year, league, source):
     
     # Make sure league is a valid string for the source
     if type(league)!=str or league not in list(valid[source].keys()):
-        error = 'League must be a string. Options are {}'.format(list(valid[source].keys()))
+        error = f'League must be a string. Options are {list(valid[source].keys())}'
         return error, False
     
     # Make sure the source has data from the requested league and year
     if year < valid[source][league]:
-        error = 'Year invalid for source {} and league {}. Must be {} or later.'.format(source, league, valid[source][league])
+        error = f'{year} invalid for source {source} and league {league}. Must be {valid[source][league]} or later.'
         return error, False
     
     return error, True

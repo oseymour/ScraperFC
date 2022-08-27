@@ -17,7 +17,7 @@ class Transfermarkt():
     ############################################################################
     def __init__(self):
         options = Options()
-        prefs = {'profile.managed_default_content_settings.images': 2} # don't load images to make faster
+        prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options) # create driver
 

@@ -21,7 +21,9 @@ class FBRef:
     ################################################################################
     def __init__(self): #, driver="chrome"):
         #assert driver in ["chrome", "firefox"]
-        
+ 
+        self.wait_time = 5
+
         #if driver == "chrome":
         from selenium.webdriver.chrome.service import Service as ChromeService
         options = Options()
@@ -48,7 +50,7 @@ class FBRef:
     ################################################################################
     def get(self, url):
         self.driver.get(url)
-        time.sleep(60)
+        time.sleep(self.wait_time)
 
     ################################################################################
     def get_season_link(self, year, league):
@@ -120,14 +122,12 @@ class FBRef:
         self.get(url)
         
         # Get links to all of the matches in that season
-        finders = {
-            "EPL": "-Premier-League",
-            "La Liga": "-La-Liga",
-            "Bundesliga": "-Bundesliga",
-            'Serie A': '-Serie-A',
-            'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
-            "MLS": "-Major-League-Soccer"
-        }
+        finders = {'EPL': '-Premier-League',
+                   'La Liga': '-La-Liga',
+                   'Bundesliga': '-Bundesliga',
+                   'Serie A': '-Serie-A',
+                   'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
+                   'MLS': '-Major-League-Soccer'}
         finder = finders[league]
         
         links = set()
@@ -147,7 +147,7 @@ class FBRef:
         # self.driver.get(season_url)
         self.get(season_url)
         team_ids = list()
-        for el in self.driver.find_elements(By.XPATH, '//{}[@data-stat="squad"]'.format(tag_name)):
+        for el in self.driver.find_elements(By.XPATH, f'//{tag_name}[@data-stat="team"]'):
             if el.text != '' and el.text != 'Squad':
                 team_id = el.find_element(By.TAG_NAME, 'a') \
                             .get_attribute('href') \
@@ -850,9 +850,10 @@ class FBRef:
         for link in tqdm(links):
             try:
                 match = self.scrape_match(link, year, league)
-                matches = matches.append(match, ignore_index=True)
-            except Exception as e:
-                failures.append([link, e])
+                matches = pd.concat([matches,match], ignore_index=True)
+            except Exception as E:
+                print(f'Failed scraping match {link}.')
+                raise E
             
         # sort df by match date
         matches = matches.sort_values(by='Date').reset_index(drop=True)
@@ -861,11 +862,11 @@ class FBRef:
         if len(failures) > 0:
             print('Unable to scrape match data from')
             for failure in failures:
-                print(failure, '\n')
+                print(failure)
         
         # save to CSV if requested by user
         if save:
-            filename = '{}_{}_FBRef_matches.csv'.format(season, league.replace(' ','_'))
+            filename = f'{season}_{league.replace(" ","_")}_FBRef_matches.csv'
             matches.to_csv(path_or_buf=filename, index=False)
             print('Matches dataframe saved to ' + filename)
             return filename
@@ -878,9 +879,20 @@ class FBRef:
         if not valid:
             print(err)
             return -1
-        df = pd.read_html(link)
+#         df = pd.read_html(link)
+#         time.sleep(self.wait_time)
+#         print(type(df[0].columns[0]), 
+#               df[0].columns[0])
+
+        response = requests.get(link)
+        time.sleep(self.wait_time)
+        soup = BeautifulSoup(response.content, "html.parser")
+        dom = etree.HTML(str(soup))
         
+        df = [pd.read_html(str(table))[0] for table in soup.find_all('table')]
         """
+        These are the tables on the match pages.
+        Tables present are dependent on the year.
         if year < 2016:
             0) cards
             1) home summary
@@ -896,16 +908,16 @@ class FBRef:
             5) away summary
             6) away gk
         else:
-            0) home lineup
-            1) away lineup
-            2) team stats (possession, pass acc, sot, saves)
-            3) home summary
-            4) home passing
-            5) home pass types
-            6) home def actions
-            7) home possession
-            8) home misc
-            9) home gk
+             0) home lineup
+             1) away lineup
+             2) team stats (possession, pass acc, sot, saves)
+             3) home summary
+             4) home passing
+             5) home pass types
+             6) home def actions
+             7) home possession
+             8) home misc
+             9) home gk
             10) away summary
             11) away passing
             12) away pass types
@@ -934,56 +946,20 @@ class FBRef:
         """
         Get matchweek
         """
-        # DEBUG 17 July 2022 httperror 429 too many requests, trying to get retry after value
-        try:
-            response = requests.get(link)
-        except HTTPError:
-            print("-")
-            print(response.reason)
-            print("-")
-            return -1
-        soup = BeautifulSoup(response.content, "html.parser")
-        dom = etree.HTML(str(soup))
-        if league == "MLS":
+        matchweek_el = dom.xpath('//*[@id="content"]/div[2]/div[3]/div[2]/text()')[0]
+        if league == 'MLS':
             # 17Jul2022 - MLS stopped putting matchweek number on match pages
             # Fix from @hedonistrh in issue #8
-            matchweek = dom.xpath('//*[@id="content"]/div[2]/div[3]/div[2]/text()')[0]\
-                           .replace(')','')\
-                           .replace('(', '')\
-                           .strip()
+            matchweek = matchweek_el.replace(')','').replace('(', '').strip()
         else:
-            matchweek = int(
-                dom.xpath('//*[@id="content"]/div[2]/div[3]/div[2]/text()')[0]\
-                   .split('Matchweek')[-1]\
-                   .replace(')','')\
-                   .strip()
-            )
+            matchweek = int(matchweek_el.split('Matchweek')[-1].replace(')','').strip())
 
         """
         Begin making match series
         """
-        match = pd.Series()
+        match = pd.Series(dtype=object)
         match['Date'] = str(date)
         match['Matchweek'] = matchweek
-        
-        """
-        Team summary stats and gk stats dataframes
-        """
-        if year < 2016:
-            home_summary_df = df[1]
-            home_gk_df      = df[2]
-            away_summary_df = df[3]
-            away_gk_df      = df[4]
-        elif year < 2018:
-            home_summary_df = df[3]
-            home_gk_df      = df[4]
-            away_summary_df = df[5]
-            away_gk_df      = df[6]
-        else:
-            home_summary_df = df[3]
-            home_gk_df      = df[9]
-            away_summary_df = df[10]
-            away_gk_df      = df[16]
             
         """
         Team Names
@@ -1009,6 +985,21 @@ class FBRef:
         """
         Goals, Assists, and GK stats
         """
+        if year < 2016:
+            home_summary_df = df[1]
+            home_gk_df      = df[2]
+            away_summary_df = df[3]
+            away_gk_df      = df[4]
+        elif year < 2018:
+            home_summary_df = df[3]
+            home_gk_df      = df[4]
+            away_summary_df = df[5]
+            away_gk_df      = df[6]
+        else:
+            home_summary_df = df[3]
+            home_gk_df      = df[9]
+            away_summary_df = df[10]
+            away_gk_df      = df[16]
         match['Home Goals'] = np.array(home_summary_df[('Performance','Gls')])[-1]
         match['Home Ast']   = np.array(home_summary_df[('Performance','Ast')])[-1]
         match['Away Goals'] = np.array(away_summary_df[('Performance','Gls')])[-1]
