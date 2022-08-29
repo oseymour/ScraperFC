@@ -1,0 +1,10 @@
+selenium
+webdriver-manager
+pandas
+numpy
+datetime
+ipython
+requests
+bs4
+lxml
+tqdm
