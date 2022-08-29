@@ -1,0 +1,14 @@
+FBRef
+=====
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Contents:
+   :glob:
+
+   *
+
+.. automodule:: ScraperFC.FBRef
+   :members:
+   :undoc-members:
+   :show-inheritance:
