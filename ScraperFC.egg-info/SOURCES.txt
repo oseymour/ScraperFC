@@ -1,0 +1,17 @@
+LICENSE
+README.md
+setup.py
+ScraperFC/Capology.py
+ScraperFC/ClubElo.py
+ScraperFC/FBRef.py
+ScraperFC/FiveThirtyEight.py
+ScraperFC/SofaScore.py
+ScraperFC/Transfermarkt.py
+ScraperFC/Understat.py
+ScraperFC/__init__.py
+ScraperFC/shared_functions.py
+ScraperFC.egg-info/PKG-INFO
+ScraperFC.egg-info/SOURCES.txt
+ScraperFC.egg-info/dependency_links.txt
+ScraperFC.egg-info/requires.txt
+ScraperFC.egg-info/top_level.txt

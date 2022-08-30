@@ -1,0 +1,35 @@
+Metadata-Version: 2.1
+Name: ScraperFC
+Version: 2.1.0
+Summary: Package for scraping soccer data from a variety of sources.
+Home-page: https://github.com/oseymour/ScraperFC
+Author: Owen Seymour
+Author-email: osmour043@gmail.com
+License: UNKNOWN
+Keywords: soccer,football,Premier League,Serie A,La Liga,Bundesliga,Ligue 1,web scraping,soccer data,soccer stats,football data,football stats,web scraping soccer stats,webscraping football stats,webscraping soccer data,webscraping football data
+Platform: UNKNOWN
+Classifier: Programming Language :: Python :: 3
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+License-File: LICENSE
+
+This is ScraperFC, a Python package that I hope will give more people access to soccer data. Gone are the days of downloading spreadsheets one-by-one, copy-pasting, or entering data into spreadsheets by hand. I try to make ScraperFC as easy-to-use as possible so that anybody with a bit of Python experience can use it.
+
+To install ScraperFC, run ```pip install ScraperFC``` from the command line.
+
+Data can be scraped from the following sources:
+* [FBRef](https://fbref.com/en/)
+* [Understat](https://understat.com/)
+* [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
+* [ClubELO](http://clubelo.com/)
+* [Capology](https://www.capology.com/)
+* [Transfermarkt](https://www.transfermarkt.us/)
+
+For documentation, head over to the [ReadTheDocs page](https://scraperfc.readthedocs.io).
+
+For usage examples, look at Examples.ipynb in the top level directory or some of my example analyses in the analytics_examples folder.
+
+I'd love to hear your feedback, bugs you find, or new features you want! You can reach me via email at osmour043@gmail.com or my Twitter handle is [@owen_seymour](https://twitter.com/owen_seymour).
+
+

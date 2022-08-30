@@ -1,0 +1,8 @@
+LICENSE
+README.md
+setup.py
+ScraperFC/ScraperFC.egg-info/PKG-INFO
+ScraperFC/ScraperFC.egg-info/SOURCES.txt
+ScraperFC/ScraperFC.egg-info/dependency_links.txt
+ScraperFC/ScraperFC.egg-info/requires.txt
+ScraperFC/ScraperFC.egg-info/top_level.txt

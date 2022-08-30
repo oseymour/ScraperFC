@@ -6,6 +6,7 @@ from ScraperFC.shared_functions import check_season
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 from tqdm import tqdm
 import requests
@@ -25,17 +26,28 @@ class Understat:
         
     ############################################################################   
     def close(self):
+        """ Closes and quits the Selenium WebDriver instance.
+        """
         self.driver.close()
         self.driver.quit()
         
         
     ############################################################################    
     def get_season_link(self, year, league):
-        """
-        Gets URL of the season.
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: string, url of the year and league passed in
+        """ Gets URL of the chosen league season.
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : str
+            URL to the Understat page of the chosen league season.
         """
         lg = league.replace(" ","_")
         url = f"https://understat.com/league/{lg}/{str(year-1)}"
@@ -44,11 +56,20 @@ class Understat:
         
     ############################################################################    
     def get_match_links(self, year, league):
-        """
-        Gets all of the match links for the league and year
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: set, match links
+        """ Gets all of the match links for the chosen league season
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : list
+            List of match links of the chosen league season
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -70,43 +91,67 @@ class Understat:
         for el in self.driver.find_elements(By.CLASS_NAME, "match-info"):
             links.add(el.get_attribute("href"))
                 
-        return links
+        return list(links)
     
     ############################################################################
     def get_team_links(self, year, league):
-        """
-        Gets all of the team links for the league and year
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: set, links to teams' pages for the year
+        """ Gets all of the team links for the chosen league season
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : list
+            List of team URL's from the chosen season.
         """
         team_links = set()
         self.driver.get(self.get_season_link(year, league))
-        for el in self.driver.find_elements(By.TAG_NAME, "a"):
-            href = el.get_attribute("href")
-            if href and "team" in href:
+        for el in self.driver.find_elements(By.TAG_NAME, 'a'):
+            href = el.get_attribute('href')
+            if href and 'team' in href:
                 team_links.add(href)
         return list(team_links)
     
     
     ############################################################################
     def remove_diff(self, string):
+        """ Removes the plus/minus from some stats like xG.
+
+        Args
+        ----
+        string : str
+            The string to remove the difference from
+
+        Returns
+        -------
+        : str
+            String passed in as arg with the difference removed
         """
-        Removes the plus/minus from some stats like xG
-        :param string: the string to remove the difference from
-        :return: the string with the difference removed
-        """
-        string = string.split("-")[0]
-        return float(string.split("+")[0])
+        string = string.split('-')[0]
+        return float(string.split('+')[0])
     
     
     ############################################################################
     def unhide_stats(self, columns):
-        """
-        Understat doesn't display all stats by default. Uses the stats currently 
-        shown in the table columns to unhide stats that aren't being displayed.
-        :param columns: the columns currently shown in the table being scraped
-        :return: None
+        """ Understat doesn't display all stats by default. 
+        
+        This functions uses the stats currently shown in the table columns to\
+        unhide stats that aren't being displayed.
+
+        Args
+        ----
+        columns : Pandas DataFrame.columns
+            The columns currently shown in the table being scraped
+
+        Returns
+        -------
+        None
         """
         # Show the options popup
         self.driver.find_elements(By.CLASS_NAME, "options-button")[0].click()
@@ -125,10 +170,17 @@ class Understat:
         
     ############################################################################   
     def scrape_match(self, link):
-        """
-        Scrapes a single match from Understat.
-        :param link: URL to the match
-        :return: Pandas series of match stats
+        """ Scrapes a single match from Understat.
+
+        Args
+        ----
+        link : str
+            URL to the match
+
+        Returns
+        -------
+        match : Pandas Series
+            The match stats
         """
         self.driver.get(link)
         
@@ -138,7 +190,7 @@ class Understat:
 
         match = pd.Series()
         
-        """ Match date and ID """
+        # Match date and ID
         for element in self.driver.find_elements(By.CLASS_NAME, "breadcrumb"):
             date = element.find_elements(By.TAG_NAME, "li")[2]
             date = date.text
@@ -147,14 +199,14 @@ class Understat:
         match['match id'] = link.split("/")[-1]
 
 
-        """ Team Names """
+        # Team Names
         progress_values = [el.get_attribute("innerHTML") \
                            for el in self.driver.find_elements(By.CLASS_NAME, "progress-value")]
         match['home team'] = progress_values[0]
         match['away team'] = progress_values[1]
 
 
-        """ Data from team stats table """
+        # Data from team stats table
         # Go to team stats table
         [el for el in self.driver.find_elements(By.TAG_NAME, "label") \
          if "Stats" in el.text][0].click()
@@ -183,7 +235,7 @@ class Understat:
             match[f"away {stat}"] = float(away)
 
 
-        """ Data from player stats tables """
+        #Data from player stats tables
         #### Show all hidden stats ####
         columns = pd.read_html(self.driver.find_element(By.TAG_NAME, "table")\
                                           .get_attribute("outerHTML"))[0].columns
@@ -224,12 +276,29 @@ class Understat:
         
     ############################################################################    
     def scrape_matches(self, year, league, save=False):
-        """
-        Scrapes all of the matches from the passed year and league
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :param save: boolean, if true the output is saved to a CSV
-        :return: Pandas DataFrame if not saved, filepath to CSV if saved
+        """ Scrapes all of the matches from the chosen league season. 
+        
+        Gathers all match links from the chosen league season and then call\
+            scrape_match() on each one.
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+        save : bool
+            OPTIONAL, default False. If True, saves the DataFrame of match stats\
+            to a CSV.
+
+        Returns
+        -------
+        matches : Pandas DataFrame
+            If save=False
+        filename : str
+            If save=True, the filename the DataFrame was saved to
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -245,7 +314,7 @@ class Understat:
         
         # save to CSV if requested by user
         if save:
-            filename = season+"_"+league+"_Understat_matches.csv"
+            filename = f'{season}_{league}_Understat_matches.csv'
             matches.to_csv(path_or_buf=filename, index=False)
             print('Matches dataframe saved to ' + filename)
             return filename
@@ -255,13 +324,23 @@ class Understat:
         
     ############################################################################    
     def scrape_league_table(self, year, league, normalize=False):
-        """
-        Scrapes the league table from the year passed in
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :param normalize: boolean, if true the output is normalized by the number
-                          of matches played
-        :return: Pandas DataFrame of the league table
+        """ Scrapes the league table for the chosen league season.
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+        normalize : bool 
+            OPTIONAL, default False. If True, normalizes stats to per90
+
+        Returns
+        -------
+        : Pandas DataFrame
+            The league table of the chosen league season.
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -269,13 +348,13 @@ class Understat:
         url = self.get_season_link(year, league) # link to the selected league/season
         self.driver.get(url)
         
-        """ Show all of the stats """
+        # Show all of the stats 
         # Get column names currently show in the table
         table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
         columns = pd.read_html(table)[0].columns
         self.unhide_stats(columns)
 
-        """ dataframe """
+        # dataframe 
         table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
         df = pd.read_html(table)[0]
         
@@ -296,14 +375,25 @@ class Understat:
     
     ############################################################################
     def scrape_home_away_tables(self, year, league, normalize=False):
-        """
-        Scrapes the home and away league tables from the year passed in
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :param normalize: boolean, if true the output is normalized by the number
-                          of matches played
-        :return: home - the home league table, Pandas DataFrame
-                 away - the away league table, Pandas DataFrame
+        """ Scrapes the home and away league tables for the chosen league season.
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+        normalize : bool 
+            OPTIONAL, default False. If True, normalizes stats to per90
+
+        Returns
+        -------
+        home : Pandas DataFrame
+            Home league table
+        away : Pandas DataFrame
+            Away league table
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -311,7 +401,7 @@ class Understat:
         url = self.get_season_link(year, league) # link to the selected league/season
         self.driver.get(url)
 
-        """ Show all of the stats """
+        # Show all of the stats
         # Get columns that are already shown
         labels = self.driver.find_elements(By.TAG_NAME, "label")
         [el for el in labels if el.text=='home'][0].click()
@@ -319,14 +409,14 @@ class Understat:
         columns = pd.read_html(table)[0].columns 
         self.unhide_stats(columns)
         
-        """ Home Table """
+        # Home Table
         labels = self.driver.find_elements(By.TAG_NAME, "label")
         [el for el in labels if el.text=='home'][0].click()
         table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute('outerHTML')
         home = pd.read_html(table)[0]
         
         
-        """ Away Table """
+        # Away Table
         [el for el in labels if el.text=='away'][0].click()
         table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute('outerHTML')
         away = pd.read_html(table)[0]
@@ -353,11 +443,22 @@ class Understat:
     
     ############################################################################
     def scrape_situations(self, year, league):
-        """
-        Scrapes the situations leading to shots for each team in the league and year
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: Pandas DataFrame
+        """ Scrapes the situations leading to shots for each team in the chosen\
+            league season.
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : Pandas DataFrame
+            DataFrame containing the situations
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -403,13 +504,23 @@ class Understat:
     
     ############################################################################
     def scrape_formations(self, year, league):
-        """
-        Scrapes the stats for each team in the year and league, broken down by 
-        formation used by the team.
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: dict, each team is a key and each team has their own dict for
-                 each formation used
+        """ Scrapes the stats for each team in the year and league, broken down\
+            by formation used by the team.
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : dict
+            Keys are each team. Values are more dicts with keys for each formation\
+            and values are stats for each formation.
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -454,11 +565,21 @@ class Understat:
     
     ############################################################################
     def scrape_game_states(self, year, league):
-        """
-        Scrapes the game states for each team in the year and league
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: Pandas DataFrame
+        """ Scrapes the game states for each team in the year and league
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : Pandas DataFrame
+            DataFrame containing the game states
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -518,11 +639,21 @@ class Understat:
     
     ############################################################################
     def scrape_timing(self, year, league):
-        """
-        Scrapes the timing of goals for each team in the year and league
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: Pandas DataFrame
+        """ Scrapes the timing of goals for each team in the year and league
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : Pandas DataFrame
+            DataFrame containing the timing stats
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -583,11 +714,21 @@ class Understat:
     
     ############################################################################
     def scrape_shot_zones(self, year, league):
-        """
-        Scrapes the shot zones for each team in the year and league
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: Pandas DataFrame
+        """ Scrapes the shot zones for each team in the year and league
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : Pandas DataFrame
+            DataFrame containing the shot zones data
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -648,11 +789,21 @@ class Understat:
     
     ############################################################################
     def scrape_attack_speeds(self, year, league):
-        """
-        Scrapes the attack speeds for each team in the year and league
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: Pandas DataFrame
+        """ Scrapes the attack speeds for each team in the year and league
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : Pandas DataFrame
+            DataFrame containing the attack speeds of each team
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -712,11 +863,21 @@ class Understat:
     
     ############################################################################
     def scrape_shot_results(self, year, league):
-        """
-        Scrapes the shot results for each team in the year and league
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :return: Pandas DataFrame
+        """ Scrapes the shot results for each team in the year and league
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+
+        Returns
+        -------
+        : Pandas DataFrame
+            DataFrame containing the shot results data
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -776,12 +937,26 @@ class Understat:
         
     ############################################################################
     def scrape_shot_xy(self, year, league, save=False):
-        """
-        Scrapes the info for every shot in the league and year.
-        :param year: int, calendary year the season ends in
-        :param league: string, the league to be scraped
-        :param save: boolean, if True output is saved to a JSON file
-        :return: Pandas DataFrame if not saved, filepath to JSON if saved
+        """ Scrapes the info for every shot in the league and year.
+
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+        save : bool
+            OPTIONAL, default if False. If True, shot XY's will be saved to a\
+            JSON file.
+
+        Returns
+        -------
+        : dict
+            If save=False.
+        filename : str
+            If save=True, filename of the JSON file that the dict was saved to.
         """
         if not check_season(year,league,'Understat'):
             return -1
@@ -790,9 +965,6 @@ class Understat:
         links = self.get_match_links(year, league)
         shots_data = dict()
         failures = list()
-        
-        sum_time_selenium = 0
-        sum_time_requests = 0
 
         for link in tqdm(links):
             

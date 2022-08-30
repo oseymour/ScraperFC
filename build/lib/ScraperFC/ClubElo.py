@@ -8,8 +8,22 @@ import time
 class ClubElo:        
         
     def scrape_team_on_date(self, team, date):
-        """
-        Date must be passed in YYYY-MM-DD format as a string
+        """ Scrapes a team's ELO score on a given date.
+
+        Args
+        ----
+        team : str
+            To get the appropriate team name, go to clubelo.com and find the\
+            team you're looking for. Copy and past the team's name as it\
+            appears in the URL.
+        date : str
+            Must be formatted as YYYY-MM-DD
+        Returns
+        -------
+        elo : int
+            ELO score of the given team on the given date
+        -1 : int
+            -1 if the team has no score on the given date
         """
         date = datetime.strptime(date, '%Y-%m-%d')
         

@@ -5,15 +5,15 @@ with open('README.md', 'r', encoding='utf-8') as f:
     
 setuptools.setup(
     name = 'ScraperFC',
-    version = '2.1.0',
+    version = '2.1.2',
     author = 'Owen Seymour',
     author_email = 'osmour043@gmail.com',
     description = 'Package for scraping soccer data from a variety of sources.',
     long_description = long_description,
     long_description_content_type = 'text/markdown',
     url = 'https://github.com/oseymour/ScraperFC',
-    package_dir = {'':'ScraperFC'},
-    packages = setuptools.find_packages(where='ScraperFC'),
+#     package_dir = {'':'./ScraperFC'},
+    packages = ['ScraperFC',], #setuptools.find_packages(include='ScraperFC'),
     keywords = [
         'soccer', 'football', 'Premier League', 'Serie A', 'La Liga', 
         'Bundesliga', 'Ligue 1', 'web scraping', 'soccer data', 

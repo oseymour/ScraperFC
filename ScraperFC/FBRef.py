@@ -40,8 +40,10 @@ class FBRef:
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
         options.add_argument('--log-level=3')
-        self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()),
-                                           options=options)
+        self.driver = webdriver.Chrome(
+            service=ChromeService(ChromeDriverManager().install()),
+            options=options
+        )
 #         elif driver == 'firefox':
 #             from selenium.webdriver.chrome.service import Service as FirefoxService
 #             self.driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))

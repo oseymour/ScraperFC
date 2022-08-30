@@ -14,7 +14,6 @@ class Capology():
 
     ############################################################################
     def __init__(self):
-    #---------------------------------------------------------------------------
         options = Options()
         options.add_argument('--headless')
         options.add_argument('window-size=700,600')
@@ -47,14 +46,31 @@ class Capology():
 
     ############################################################################
     def close(self):
-    #---------------------------------------------------------------------------
+        """ Closes and quits the Selenium WebDriver instance.
+        """
         self.driver.close()
         self.driver.quit()
 
     
     ############################################################################
     def scrape_salaries(self, year, league, currency):
-    #---------------------------------------------------------------------------
+        """ Scrapes player salaries for the given league season.
+        
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for each\
+            module.
+        currency : str
+            The currency for the returned salaries. Options are "eur" for Euro,\
+            "gbp" for British Pount, and "USD" for US Dollar
+        Returns
+        -------
+        : Pandas DataFrame
+            The salaries of all players in the given league season
+        """
         error, valid = check_season(year, league, 'Capology')
         if not valid:
             print(error)
@@ -64,7 +80,7 @@ class Capology():
             return -1
 
         
-        league_url = 'https://www.capology.com/{}/salaries/{}-{}'.format(self.leagues[league], year-1, year)
+        league_url = f'https://www.capology.com/{self.leagues[league]}/salaries/{year-1}-{year}'
 
         self.driver.get(league_url)
 
@@ -116,7 +132,23 @@ class Capology():
     
     ############################################################################
     def scrape_payrolls(self, year, league, currency):
-    #---------------------------------------------------------------------------
+        """ Scrapes team payrolls for the given league season.
+        
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for each\
+            module.
+        currency : str
+            The currency for the returned salaries. Options are "eur" for Euro,\
+            "gbp" for British Pount, and "USD" for US Dollar
+        Returns
+        -------
+        : Pandas DataFrame
+            The payrolls of all teams in the given league season
+        """
         error, valid = check_season(year, league, 'Capology')
         if not valid:
             print(error)
