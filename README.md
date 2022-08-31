@@ -10,7 +10,7 @@ Data can be scraped from the following sources:
 * [Capology](https://www.capology.com/)
 * [Transfermarkt](https://www.transfermarkt.us/)
 
-For documentation, head over to the [ReadTheDocs page](https://scraperfc.readthedocs.io).
+For documentation, head over to the [Read the Docs page](https://scraperfc.readthedocs.io).
 
 For usage examples, look at Examples.ipynb in the top level directory or some of my example analyses in the analytics_examples folder.
 
