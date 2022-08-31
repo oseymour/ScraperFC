@@ -1,8 +1,5 @@
-ScraperFC package
+ScraperFC modules
 =================
-
-Submodules
-----------
 
 Capology
 --------
