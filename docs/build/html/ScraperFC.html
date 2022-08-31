@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ScraperFC Modules &mdash; ScraperFC 2.0.3 documentation</title>
+  <title>ScraperFC package &mdash; ScraperFC 2.1.2 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -39,15 +39,16 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">ScraperFC Modules</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ScraperFC package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.Capology">Capology</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.ClubElo">ClubElo</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.FBRef">FBRef</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.FiveThirtyEight">FiveThirtyEight</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#sofascore">SofaScore</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.SofaScore">SofaScore</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.Transfermarkt">Transfermarkt</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.Understat">Understat</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.shared_functions">shared_functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.shared_functions">shared_functions module</a></li>
 </ul>
 </li>
 </ul>
@@ -66,7 +67,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>ScraperFC Modules</li>
+      <li>ScraperFC package</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/ScraperFC.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -76,8 +77,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="scraperfc-modules">
-<h1>ScraperFC Modules<a class="headerlink" href="#scraperfc-modules" title="Permalink to this heading"></a></h1>
+  <section id="scraperfc-package">
+<h1>ScraperFC package<a class="headerlink" href="#scraperfc-package" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
 <section id="module-ScraperFC.Capology">
 <span id="capology"></span><h2>Capology<a class="headerlink" href="#module-ScraperFC.Capology" title="Permalink to this heading"></a></h2>
 <dl class="py class">
@@ -318,6 +322,21 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>xpath</strong> (<em>str</em>) – XPath to the button to be pressed. This will be unique for each page            being scraped.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.requests_get">
+<span class="sig-name descname"><span class="pre">requests_get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.requests_get" title="Permalink to this definition"></a></dt>
+<dd><p>Custom requests.get function for the FBRef module</p>
+<p>Calls requests.get() until the status code is 200.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>Str</em>) – The URL to get</p>
 </dd>
 <dt class="field-even">Return type</dt>
 <dd class="field-even"><p>None</p>
@@ -729,13 +748,9 @@
 </dd></dl>
 
 </section>
-<section id="sofascore">
-<h2>SofaScore<a class="headerlink" href="#sofascore" title="Permalink to this heading"></a></h2>
-<div class="admonition warning">
-<p class="admonition-title">Warning</p>
-<p>Not implemented.</p>
-</div>
-<span class="target" id="module-ScraperFC.SofaScore"></span><dl class="py class">
+<section id="module-ScraperFC.SofaScore">
+<span id="sofascore"></span><h2>SofaScore<a class="headerlink" href="#module-ScraperFC.SofaScore" title="Permalink to this heading"></a></h2>
+<dl class="py class">
 <dt class="sig sig-object py" id="ScraperFC.SofaScore.SofaScore">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ScraperFC.SofaScore.</span></span><span class="sig-name descname"><span class="pre">SofaScore</span></span><a class="headerlink" href="#ScraperFC.SofaScore.SofaScore" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -1199,7 +1214,7 @@
 
 </section>
 <section id="module-ScraperFC.shared_functions">
-<span id="shared-functions"></span><h2>shared_functions<a class="headerlink" href="#module-ScraperFC.shared_functions" title="Permalink to this heading"></a></h2>
+<span id="shared-functions-module"></span><h2>shared_functions module<a class="headerlink" href="#module-ScraperFC.shared_functions" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="ScraperFC.shared_functions.check_season">
 <span class="sig-prename descclassname"><span class="pre">ScraperFC.shared_functions.</span></span><span class="sig-name descname"><span class="pre">check_season</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.shared_functions.check_season" title="Permalink to this definition"></a></dt>

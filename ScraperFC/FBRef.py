@@ -64,14 +64,40 @@ class FBRef:
         
         Args
         ----
-            url : str
-                The URL to get
+        url : str
+            The URL to get
         Returns
         -------
         None
         """
         self.driver.get(url)
         time.sleep(self.wait_time)
+        
+    ############################################################################
+    def requests_get(self, url):
+        """ Custom requests.get function for the FBRef module
+        
+        Calls requests.get() until the status code is 200.
+
+        Args
+        ----
+        url : Str
+            The URL to get
+        Returns
+        -------
+        None
+        """
+        got_link = False # Don't proceed until we've successfully retrieved the page
+        while not got_link:
+            response = requests.get(url)
+            time.sleep(5)
+            if response.status_code == 200:
+                # 200 - OK
+                # 403 - file not found
+                # 500 - server error
+                got_link = True
+        return response
+        
 
     ################################################################################
     def get_season_link(self, year, league):
@@ -1250,15 +1276,7 @@ class FBRef:
             available (e.g. formations, lineups, scores, player stats, etc.).\
             The fields that are available vary by competition and year.
         """
-        got_link = False # Don't proceed until we've successfully retrieved the page
-        while not got_link:
-            response = requests.get(link)
-            time.sleep(5)
-            if response.status_code == 200:
-                # 200 - OK
-                # 403 - file not found
-                # 500 - server error
-                got_link = True
+        response = self.requests_get(link)
         soup = BeautifulSoup(response.content, 'html.parser')
         
         #### Matchweek ####

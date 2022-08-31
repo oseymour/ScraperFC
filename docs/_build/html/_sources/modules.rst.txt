@@ -1,7 +1,0 @@
-ScraperFC
-=========
-
-.. toctree::
-   :maxdepth: 4
-
-   ScraperFC

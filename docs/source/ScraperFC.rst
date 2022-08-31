@@ -1,5 +1,8 @@
-ScraperFC Modules
+ScraperFC package
 =================
+
+Submodules
+----------
 
 Capology
 --------
@@ -10,7 +13,7 @@ Capology
    :show-inheritance:
 
 ClubElo
--------
+------------------------
 
 .. automodule:: ScraperFC.ClubElo
    :members:
@@ -18,7 +21,7 @@ ClubElo
    :show-inheritance:
 
 FBRef
------
+----------------------
 
 .. automodule:: ScraperFC.FBRef
    :members:
@@ -26,7 +29,7 @@ FBRef
    :show-inheritance:
 
 FiveThirtyEight
----------------
+--------------------------------
 
 .. automodule:: ScraperFC.FiveThirtyEight
    :members:
@@ -34,10 +37,7 @@ FiveThirtyEight
    :show-inheritance:
 
 SofaScore
----------
-.. warning::
-
-   Not implemented.
+--------------------------
 
 .. automodule:: ScraperFC.SofaScore
    :members:
@@ -45,7 +45,7 @@ SofaScore
    :show-inheritance:
 
 Transfermarkt
--------------
+------------------------------
 
 .. automodule:: ScraperFC.Transfermarkt
    :members:
@@ -53,17 +53,25 @@ Transfermarkt
    :show-inheritance:
 
 Understat
----------
+--------------------------
 
 .. automodule:: ScraperFC.Understat
    :members:
    :undoc-members:
    :show-inheritance:
 
-shared\_functions
------------------
+shared\_functions module
+----------------------------------
 
 .. automodule:: ScraperFC.shared_functions
    :members:
    :undoc-members:
    :show-inheritance:
+
+.. Module contents
+.. ---------------
+
+.. .. automodule:: ScraperFC
+..    :members:
+..    :undoc-members:
+..    :show-inheritance:
