@@ -1,7 +1,7 @@
 from IPython.display import clear_output
 import numpy as np
 import pandas as pd
-from ScraperFC.shared_functions import check_season
+from ScraperFC.shared_functions import check_season, xpath_soup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -10,7 +10,6 @@ from webdriver_manager.firefox import GeckoDriverManager
 from urllib.request import urlopen
 import requests
 from bs4 import BeautifulSoup
-# from lxml import etree
 from tqdm import tqdm
 import time
 import re
@@ -21,7 +20,7 @@ class FBRef:
     """ ScraperFC module for FBRef
     """
     
-    ################################################################################
+    ############################################################################
     def __init__(self): #, driver='chrome'):
         # assert driver in ['chrome', 'firefox']
  
@@ -32,8 +31,9 @@ class FBRef:
         options = Options()
         options.headless = True
         options.add_argument(
-            'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'+\
-            ' (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36'
+            'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+\
+            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 '+\
+            'Safari/537.36'
         )
         options.add_argument('window-size=1400,600')
         options.add_argument('--incognito')
@@ -47,20 +47,34 @@ class FBRef:
 #         elif driver == 'firefox':
 #             from selenium.webdriver.chrome.service import Service as FirefoxService
 #             self.driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
+
+        self.stats_categories = {
+            'standard': {'url': 'stats', 'html': 'standard',},
+            'goalkeeping': {'url': 'keepers', 'html': 'keeper',},
+            'advanced goalkeeping': {'url': 'keepersadv','html': 'keeper_adv',},
+            'shooting': {'url': 'shooting', 'html': 'shooting',},
+            'passing': {'url': 'passing', 'html': 'passing',},
+            'pass types': {'url': 'passing_types', 'html': 'passing_types',},
+            'goal and shot creation': {'url': 'gca', 'html': 'gca',},
+            'defensive': {'url': 'defense', 'html': 'defense',},
+            'possession':  {'url': 'possession', 'html': 'possession',},
+            'playing time': {'url': 'playingtime', 'html': 'playing_time',},
+            'misc': {'url': 'misc', 'html': 'misc',},
+        }
       
-    ################################################################################    
+    ############################################################################
     def close(self):
         """ Closes and quits the Selenium WebDriver instance.
         """
         self.driver.close()
         self.driver.quit()
 
-    ################################################################################
+    ############################################################################
     def get(self, url):
         """ Custom get function just for the FBRef module. 
         
-        Calls .get() from the Selenium WebDriver and then waits in order to avoid\
-        a Too Many Requests HTTPError from FBRef. 
+        Calls .get() from the Selenium WebDriver and then waits in order to\
+        avoid a Too Many Requests HTTPError from FBRef. 
         
         Args
         ----
@@ -85,10 +99,12 @@ class FBRef:
             The URL to get
         Returns
         -------
-        None
+        : requests.Response
+            The response
         """
-        got_link = False # Don't proceed until we've successfully retrieved the page
+        got_link = False 
         while not got_link:
+            # Don't proceed until we've successfully retrieved the page
             response = requests.get(url)
             time.sleep(5)
             if response.status_code == 200:
@@ -99,17 +115,18 @@ class FBRef:
         return response
         
 
-    ################################################################################
+    ############################################################################
     def get_season_link(self, year, league):
         """ Returns the URL for the chosen league season.
 
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
         league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
         Returns
         -------
         : str
@@ -125,1087 +142,275 @@ class FBRef:
         urls_finders = {
             'EPL': {
                 'url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
-                'finder': 'Premier-League-Stats'
+                'finder': 'Premier-League-Stats',
             },
             'La Liga': {
                 'url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
-                'finder': 'La-Liga-Stats'
+                'finder': 'La-Liga-Stats',
             },
             'Bundesliga': {
                 'url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
-                'finder': 'Bundesliga-Stats'
+                'finder': 'Bundesliga-Stats',
             },
             'Serie A': {
                 'url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
-                'finder': 'Serie-A-Stats'
+                'finder': 'Serie-A-Stats',
             },
             'Ligue 1': {
                 'url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
-                'finder': 'Ligue-1-Stats' if year>=2003 else 'Division-1-Stats'
+                'finder': 'Ligue-1-Stats' if year>=2003 else 'Division-1-Stats',
             },
             'MLS': {
                 'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
-                'finder': 'Major-League-Soccer-Stats'
+                'finder': 'Major-League-Soccer-Stats',
             },
         }
         url = urls_finders[league]['url']
         finder = urls_finders[league]['finder']
         
-        # self.driver.get(url) # go to league's seasons page
-        self.get(url)
+        # go to the league's history page
+        response = self.requests_get(url)
+        soup = BeautifulSoup(response.content, 'html.parser')
         
         # Generate season string to find right element
-        if league != 'MLS':
-            season = str(year-1)+'-'+str(year)
-        else:
-            season = str(year)
+        season = str(year-1)+'-'+str(year) if league!='MLS' else str(year)
            
         # Get url to season
-        for el in self.driver.find_elements(By.LINK_TEXT, season):
-            if finder in el.get_attribute('href'):
-                return el.get_attribute('href')
-            else:
-                print('ERROR: Season not found.')
-                return -1
+        for tag in soup.find_all('th', {'data-stat': 'year_id'}):
+            if tag.find('a') \
+                    and finder in tag.find('a')['href'] \
+                    and tag.getText()==season:
+                return 'https://fbref.com'+tag.find('a')['href']
+            
+        return -1 # if season URL is not found
     
-    ################################################################################
+    ############################################################################
     def get_match_links(self, year, league):
         """ Gets all match links for the chosen league season.
 
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
         league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
         Returns
         -------
         : list
             FBRef links to all matches for the chosen league season
         """
         print('Gathering match links.')
-        url = self.get_season_link(year, league)
+        season_link = self.get_season_link(year, league)
         
         # go to the scores and fixtures page
-        url = url.split('/')
-        first_half = '/'.join(url[:-1])
-        second_half = url[-1].split('-')
+        split = season_link.split('/')
+        first_half = '/'.join(split[:-1])
+        second_half = split[-1].split('-')
         second_half = '-'.join(second_half[:-1])+'-Score-and-Fixtures'
-        url = first_half+'/schedule/'+second_half
-        # self.driver.get(url)
-        self.get(url)
+        fixtures_url = first_half+'/schedule/'+second_half
+        
+        response = self.requests_get(fixtures_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
         
         # Get links to all of the matches in that season
-        finders = {'EPL': '-Premier-League',
-                   'La Liga': '-La-Liga',
-                   'Bundesliga': '-Bundesliga',
-                   'Serie A': '-Serie-A',
-                   'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
-                   'MLS': '-Major-League-Soccer'}
+        finders = {
+            'EPL': '-Premier-League',
+           'La Liga': '-La-Liga',
+           'Bundesliga': '-Bundesliga',
+           'Serie A': '-Serie-A',
+           'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
+           'MLS': '-Major-League-Soccer'
+        }
         finder = finders[league]
         
-        links = set()
-        # only get match links from the fixtures table
-        for table in self.driver.find_elements(By.TAG_NAME, 'table'):
-            if table.get_attribute('id')!='' and table.get_attribute('class')!='':
-                # find the match links
-                for element in tqdm(table.find_elements(By.TAG_NAME, 'a')):
-                    href = element.get_attribute('href')
-                    if (href) and ('/matches/' in href) and (href.endswith(finder)):
-                        links.add(href)
+        match_links = [
+            'https://fbref.com'+tag.find('a')['href'] 
+            for tag 
+            in soup.find_all('td', {'data-stat': 'score'}) 
+            if tag.find('a') 
+            and finder in tag.find('a')['href']
+        ]
         
-        return list(links)
-    
-    ################################################################################
-    def add_team_ids(self, df, insert_index, season_url, tag_name):
-        """ Add team ID's to a dataframe
+        return match_links
 
-        Args
-        ----
-        df : Pandas DataFrame
-            Dataframe of team stats
-        insert_index : int
-            Column index to insert the ID's into
-        season_url : str
-            FBRef URL to a league season
-        tag_name :str
-            HTML tag name to use for team ID search
-        Returns
-        ------- 
-        : Pandas DataFrame
-            The dataframe passed in as an arg, with the team ID's added as a new column
-        """
-        # self.driver.get(season_url)
-        self.get(season_url)
-        team_ids = list()
-        for el in self.driver.find_elements(By.XPATH, f'//{tag_name}[@data-stat="team"]'):
-            if el.text != '' and el.text != 'Squad':
-                team_id = el.find_element(By.TAG_NAME, 'a') \
-                            .get_attribute('href') \
-                            .split('/squads/')[-1] \
-                            .split('/')[0]
-                team_ids.append(team_id)
-        df.insert(insert_index, 'team_id', team_ids)
-        return df
-
-    ################################################################################
-    def add_player_ids_and_links(self, df, url):
-        """ Add player ID's and FBRef URL's to a dataframe
-        
-        Args
-        ----
-        df : Pandas DataFrame
-            Dataframe of player stats
-        url : str
-            FBRef URL to the player stats page being scraped to generate df
-        Returns
-        ------
-        : Pandas DataFrame
-            The dataframe passed as an arg, but with new columns with player ID's and\
-            player URL's
-        """
-        # self.driver.get(url)
-        self.get(url)
-        player_ids = list()
-        player_links = list()
-        for el in self.driver.find_elements(By.XPATH, '//td[@data-stat="player"]'):
-            if el.text != '' and el.text != 'Player':
-                player_id = el.find_element(By.TAG_NAME, 'a') \
-                    .get_attribute('href') \
-                    .split('/players/')[-1] \
-                    .split('/')[0]
-                player_ids.append(player_id)
-                player_links.append(el.find_element(By.TAG_NAME, 'a').get_attribute('href'))
-        df.insert(2, 'player_id', player_ids) # insert player IDs as new col in df
-        df.insert(2, 'player_link', player_links) # insert player links as new col in df
-        return df
-    
-    ################################################################################
-    def normalize_table(self, xpath):
-        """ Written to the press the "Toggle Per90 Stats" button on FBRef pages.\
-            Should be able to be used to press any button, however.
-        
-        Args
-        ----
-        xpath : str
-            XPath to the button to be pressed. This will be unique for each page\
-            being scraped.
-        Returns
-        ------- 
-        None
-        """
-        button = self.driver.find_element(By.XPATH, xpath)
-        self.driver.execute_script('arguments[0].click()',button)
-    
-    ################################################################################
-    def get_html_w_id(self, ID):
-        """ Returns the HTML of a Selenium WebElement based on a search of the \
-            element ID field
-        
-        Args
-        ----
-        ID : str
-            Element ID to use for search
-        Returns
-        -------
-        : str
-            HTML of the first WebElement matching the passed ID
-        """
-        return self.driver.find_element(By.ID, ID).get_attribute('outerHTML')
-
-    ################################################################################
-    def scrape_league_table(self, year, league, normalize=False):
+    ############################################################################
+    def scrape_league_table(self, year, league):
         """ Scrapes the league table of the chosen league season
 
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
         league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
         Returns
         -------
         : Pandas DataFrame
-            DataFrame of the scraped league table.
+            If league is not MLS, dataframe of the scraped league table
+        : tuple
+            If the league is MLS, a tuple of (west conference table, east \
+            conference table). Both tables are dataframes.
         """
         err, valid = check_season(year,league,'FBRef')
         if not valid:
             print(err)
             return -1
         print('Scraping {} {} league table'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        df = pd.read_html(url)
-        lg_tbl = df[0].copy()
-        #### Drop columns and normalize
-        if year >= 2018:
-            lg_tbl.drop(columns=['xGD/90'], inplace=True)
-        if normalize and year >= 2018:
-            lg_tbl.iloc[:,3:13] = lg_tbl.iloc[:,3:13].divide(lg_tbl['MP'], axis='rows')
-        elif normalize and year < 2018:
-            lg_tbl.iloc[:,3:10] = lg_tbl.iloc[:,3:10].divide(lg_tbl['MP'], axis='rows')
-        #### Scrape western conference if MLS
-        if league == 'MLS':
-            west_tbl = df[2].copy()
-            if year >= 2018:
-                west_tbl.drop(columns=['xGD/90'], inplace=True)
-            if normalize and year >= 2018:
-                west_tbl.iloc[:,3:13] = west_tbl.iloc[:,3:13].divide(west_tbl['MP'], axis='rows')
-            elif normalize and year < 2018:
-                west_tbl.iloc[:,3:10] = west_tbl.iloc[:,3:10].divide(west_tbl['MP'], axis='rows')
-            return (lg_tbl, west_tbl)
-        lg_tbl = self.add_team_ids(lg_tbl, 2, url, 'td') # Get team IDs
-        return lg_tbl
-    
-    ################################################################################
-    def scrape_standard(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef standard stats page of the chosen league season.
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        print('Scraping {} {} standard stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/stats/' + new[-1]
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_standard_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_standard')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(columns='Per 90 Minutes', level=0, inplace=True)
-            df.drop(columns='Matches', level=1, inplace=True)
-            # convert some column types from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            # add some calculated columns
-            df[('Performance','G+A')] = df[('Performance','Gls')] + df[('Performance','Ast')]
-            df[('Performance','G+A-PK')] = df[('Performance','G+A')] - df[('Performance','PK')]
-            if year >= 2018:
-                df[('Expected','xG+xA')] = df[('Expected','xG')] + df[('Expected','xA')]
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            drop_cols = squad.xs('Per 90 Minutes', axis=1, level=0, drop_level=False).columns
-            squad.drop(columns=drop_cols, inplace=True)
-            vs.drop(columns=drop_cols, inplace=True)
-            if normalize:
-                squad.iloc[:,8:] = squad.iloc[:,8:].divide(squad[('Playing Time','90s')], axis='rows')
-                vs.iloc[:,8:] = vs.iloc[:,8:].divide(vs[('Playing Time','90s')], axis='rows')
-            col = ('Performance','G+A')
-            squad[col] = squad[('Performance','Gls')] + squad[('Performance','Ast')]
-            vs[col] = vs[('Performance','Gls')] + vs[('Performance','Ast')]
-            col = ('Performance','G+A-PK')
-            squad[col] = squad[('Performance','G+A')] - squad[('Performance','PK')]
-            vs[col] = vs[('Performance','G+A')] - vs[('Performance','PK')]
-            if year >= 2018:
-                col = ('Expected','xG+xA')
-                squad[col] = squad[('Expected','xG')] + squad[('Expected','xA')]
-                vs[col] = vs[('Expected','xG')] + vs[('Expected','xA')]
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_gk(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef goalkeeper stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        elif league in['La Liga','Bundesliga','Ligue 1'] and year<2000:
-            print('Goalkeeping stats not available from',league,'before 1999/2000 season.')
-            return -1
-        elif league=='Serie A' and year<1999:
-            print('Goalkeeping stats not available from Serie A before 1998/99 season.')
-            return -1
-        print('Scraping {} {} goalkeeping stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/keepers/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_keeper_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_keeper')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(columns=('Performance','GA90'), inplace=True)
-            df.drop(columns='Matches', level=1, inplace=True)
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            squad.drop(columns=('Performance','GA90'), inplace=True)
-            vs.drop(columns=('Performance','GA90'), inplace=True)
-            if normalize:
-                keep_cols = [('Performance','Save%'), ('Performance','CS%'), ('Penalty Kicks','Save%')]
-                keep = squad[keep_cols]
-                squad.iloc[:,6:] = squad.iloc[:,6:].divide(squad[('Playing Time','90s')], axis='rows')
-                squad[keep_cols] = keep
-                keep = vs[keep_cols]
-                vs.iloc[:,6:] = vs.iloc[:,6:].divide(vs[('Playing Time','90s')], axis='rows')
-                vs[keep_cols] = keep
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_adv_gk(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef advanced goalkeeper stats page of the chosen league \
-            season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        elif year < 2018:
-            print('Advanced goalkeeping stats not available from before the 2017/18 season.')
-            return -1
-        print('Scraping {} {} advanced goalkeeping stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/keepersadv/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_keeper_adv_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_keeper_adv')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(columns=['Matches', '#OPA/90', '/90'], level=1, inplace=True)
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            squad.drop(columns=[('Expected','/90'), ('Sweeper','#OPA/90')], inplace=True)
-            vs.drop(columns=[('Expected','/90'), ('Sweeper','#OPA/90')], inplace=True)
-            if normalize:
-                keep_cols = [
-                    ('Launched','Cmp%'), ('Passes','Launch%'), ('Passes','AvgLen'),
-                    ('Goal Kicks','Launch%'), ('Goal Kicks', 'AvgLen'), 
-                    ('Crosses','Stp%'), ('Sweeper','AvgDist')
-                ]
-                keep = squad[keep_cols]
-                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                squad[keep_cols] = keep
-                keep = vs[keep_cols]
-                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-                vs[keep_cols] = keep
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_shooting(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef shooting stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        print('Scraping {} {} shooting stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/shooting/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_shooting_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_shooting')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(columns=[('Standard','Sh/90'),('Standard','SoT/90')], inplace=True)
-            df.drop(columns='Matches', level=1, inplace=True)
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            squad.drop(
-                columns=[('Standard','Sh/90'), ('Standard','SoT/90')], 
-                inplace=True
-            )
-            vs.drop(
-                columns=[('Standard','Sh/90'), ('Standard','SoT/90')],
-                inplace=True
-            )
-            if normalize:
-                keep_cols = [('Standard','SoT%'), ('Standard','Dist')]
-                keep = squad[keep_cols]
-                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                squad[keep_cols] = keep
-                keep = vs[keep_cols]
-                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-                vs[keep_cols] = keep
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_passing(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef passing stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        elif year < 2018:
-            print('Passing stats not available from before the 2017/18 season.')
-            return -1
-        print('Scraping {} {} passing stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/passing/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_passing_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_passing')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(
-                columns=[('Unnamed: 30_level_0','Matches')],
-                inplace=True
-            )
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            if normalize:
-                keep_cols = [('Total','Cmp%'), ('Short','Cmp%'), ('Medium','Cmp%'), ('Long','Cmp%')]
-                keep = squad[keep_cols]
-                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                squad[keep_cols] = keep
-                keep = vs[keep_cols]
-                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-                vs[keep_cols] = keep
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_passing_types(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef passing types stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        elif year < 2018:
-            print('Passing type stats not available from before the 2017/18 season.')
-            return -1
-        print('Scraping {} {} passing type stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/passing_types/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_passing_types_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_passing_types')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(
-                columns=[('Unnamed: 33_level_0','Matches')],
-                inplace=True
-            )
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            if normalize:
-                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-       
-    ################################################################################
-    def scrape_goal_shot_creation(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef goal and shot creation stats page of the chosen\
-            league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        elif year < 2018:
-            print('Goal and shot creation stats not available from before the 2017/18 season.')
-            return -1
-        print('Scraping {} {} goal and shot creation stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/gca/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_gca_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_gca')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            # df.drop(columns=[('SCA','SCA90'), ('GCA','GCA90')], inplace=True)
-            df.drop(columns=['SCA90', 'GCA90', 'Matches'], level=1, inplace=True)
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            squad.drop(columns=[('SCA','SCA90'), ('GCA','GCA90')], inplace=True)
-            vs.drop(columns=[('SCA','SCA90'), ('GCA','GCA90')], inplace=True)
-            if normalize:
-                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_defensive(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef defensive stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        elif year < 2018:
-            print('Defensive stats not available from before the 2017/18 season.')
-            return -1
-        print('Scraping {} {} defending stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/defense/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_defense_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_defense')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(
-                columns=[('Unnamed: 31_level_0','Matches')],
-                inplace=True
-            )
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            if normalize:
-                keep_cols = [('Vs Dribbles','Tkl%'), ('Pressures','%')]
-                keep = squad[keep_cols]
-                squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                squad[keep_cols] = keep
-                keep = vs[keep_cols]
-                vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-                vs[keep_cols] = keep
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_possession(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef possession stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        elif year < 2018:
-            print('Possession stats not available from before the 2017/18 season.')
-            return -1
-        print('Scraping {} {} possession stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/possession/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_possession_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_possession')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(
-                columns=[('Unnamed: 32_level_0','Matches')],
-                inplace=True
-            )
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            if normalize:
-                keep_cols = [('Dribbles','Succ%'),('Receiving','Rec%')]
-                keep = squad[keep_cols]
-                squad.iloc[:,4:] = squad.iloc[:,4:].divide(squad[('Unnamed: 3_level_0','90s')], axis='rows')
-                squad[keep_cols] = keep
-                keep = vs[keep_cols]
-                vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[('Unnamed: 3_level_0','90s')], axis='rows')
-                vs[keep_cols] = keep
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_playing_time(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef playing time stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        print('Scraping {} {} playing time stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/playingtime/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_playing_time_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_playing_time')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(columns=('Team Success','+/-90'), inplace=True)
-            df.drop(columns='Matches', level=1, inplace=True)
-            if year >= 2018:
-                df.drop(columns='xG+/-90', level=1, inplace=True)
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            squad.drop(columns=('Team Success','+/-90'), inplace=True)
-            vs.drop(columns=('Team Success','+/-90'), inplace=True)
-            if year >= 2018:
-                squad.drop(columns=('Team Success (xG)','xG+/-90'), inplace=True)
-                vs.drop(columns=('Team Success (xG)','xG+/-90'), inplace=True)
-            if normalize:
-                keep_cols = [
-                    ('Playing Time','Mn/MP'), ('Playing Time','Min%'),
-                    ('Playing Time','90s'), ('Starts','Mn/Start')
-                ]
-                keep = squad[keep_cols]
-                squad.iloc[:,4:] = squad.iloc[:,4:].divide(squad[('Playing Time','MP')], axis='rows')
-                squad[keep_cols] = keep
-                keep = vs[keep_cols]
-                vs.iloc[:,4:] = vs.iloc[:,4:].divide(vs[('Playing Time','MP')], axis='rows')
-                vs[keep_cols] = keep
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
-    
-    ################################################################################
-    def scrape_misc(self, year, league, normalize=False, player=False):
-        """ Scrapes the FBRef miscellaneous stats page of the chosen league season
-
-        Args
-        ----
-        year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-        league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
-        normalize : bool
-            OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player :bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
-        Returns
-        -------
-        : Pandas DataFrame
-            DataFrame of the scraped stats
-        """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
-        print('Scraping {} {} miscellaneous stats'.format(year, league))
-        season = str(year-1)+'-'+str(year)
-        url = self.get_season_link(year,league)
-        new = url.split('/')
-        new = '/'.join(new[:-1]) + '/misc/' + new[-1]
-        new = new.replace('https','http')
-        if player:
-            # self.driver.get(new)
-            self.get(new)
-            if normalize:
-                self.normalize_table('//*[@id=\'stats_misc_per_match_toggle\']')
-            # get html and scrape table
-            html = self.get_html_w_id('stats_misc')
-            df = pd.read_html(html)[0]
-            # drop duplicate header rows and link to match logs
-            df = df[df[('Unnamed: 0_level_0','Rk')]!='Rk'].reset_index(drop=True)
-            df.drop(columns='Matches', level=1, inplace=True)
-            # convert type from str to float
-            for col in list(df.columns.get_level_values(0)):
-                if 'Unnamed' not in col:
-                    df[col] = df[col].astype('float')
-            df = self.add_player_ids_and_links(df, new) # get player IDs
-            return df
-        else:
-            df = pd.read_html(new)
-            squad = df[0].copy()
-            vs = df[1].copy()
-            if normalize:
-                if year >= 2018:
-                    keep_cols = [('Aerial Duels','Won%')]
-                    keep = squad[keep_cols]
-                    squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                    squad[keep_cols] = keep
-                    keep = vs[keep_cols]
-                    vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-                    vs[keep_cols] = keep
-                else:
-                    squad.iloc[:,3:] = squad.iloc[:,3:].divide(squad[('Unnamed: 2_level_0','90s')], axis='rows')
-                    vs.iloc[:,3:] = vs.iloc[:,3:].divide(vs[('Unnamed: 2_level_0','90s')], axis='rows')
-            # Get team IDs
-            squad = self.add_team_ids(squad, 1, new, 'th') 
-            vs = self.add_team_ids(vs, 1, new, 'th')
-            return squad, vs
         
-    ################################################################################
-    def scrape_season(self, year, league, normalize=False, player=False):
-        """ Scrapes all of the FBRef stats pages for the chosen league season.
+        season_url = self.get_season_link(year, league)
+        response = self.requests_get(season_url)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        lg_table_html = soup.find_all('table', {'id': re.compile('overall')})
 
+        if league != 'MLS':
+            assert len(lg_table_html) == 1
+            lg_table_html = lg_table_html[0]
+            lg_table = pd.read_html(str(lg_table_html))[0]
+            return lg_table
+
+        else:
+            assert len(lg_table_html) == 2
+            east_table = pd.read_html(str(lg_table_html[0]))[0]
+            west_table = pd.read_html(str(lg_table_html[1]))[0]
+            return (east_table, west_table)
+        
+    ############################################################################
+    def scrape_stats(self, year, league, stat_category, normalize=False):
+        """ Scrapes a single stats category
+        
+        Adds team and player ID columns to the stats tables
+        
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
         league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+        stat_cateogry : str
+            The stat category to scrape.
         normalize : bool
             OPTIONAL, default is False. If True, will normalize all stats to Per90.
-        player : bool
-            OPTIONAL, default is False. If True, will scrape the player stats.\
-            If False, will scrape team stats.
+        Returns
+        -------
+        : tuple
+            tuple of 3 Pandas DataFrames, (squad_stats, opponent_stats,\
+            player_stats).
+        """
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return -1
+        
+        # Verify valid stat category
+        if stat_category not in self.stats_categories.keys():
+            raise Exception(f'"{stat_category}" is not a valid FBRef stats category. '+\
+                            f'Must be one of {list(self.stats_categories.keys())}.')
+        
+        # Get URL to stat category
+        season_url = self.get_season_link(year, league)
+        old_suffix = season_url.split('/')[-1]
+        new_suffix = f'{self.stats_categories[stat_category]["url"]}/{old_suffix}'
+        new_url = season_url.replace(old_suffix, new_suffix)
+
+        self.driver.get(new_url) # webdrive to link
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser') # get initial soup
+
+        # Normalize, if requested
+        if normalize:
+            # click all per90 toggles on the page
+            per90_toggles = soup.find_all('button', {'id': re.compile('per_match_toggle')})
+            for toggle in per90_toggles:
+                xpath = xpath_soup(toggle)
+                button_el = self.driver.find_element(By.XPATH, xpath)
+                self.driver.execute_script('arguments[0].click()', button_el)
+            # update the soup
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+        # Gather stats table tags
+        squad_stats_tag = soup.find('table', {'id': re.compile('for')})
+        opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
+        player_stats_tag = soup.find(
+            'table', 
+            {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')}
+        )
+        
+        # Get stats dataframes
+        squad_stats = pd.read_html(str(squad_stats_tag))[0] if squad_stats_tag is not None else None
+        opponent_stats = pd.read_html(str(opponent_stats_tag))[0] if opponent_stats_tag is not None else None
+        player_stats = pd.read_html(str(player_stats_tag))[0] if player_stats_tag is not None else None
+        
+        # Drop duplicate header rows in player stats table
+        if player_stats is not None:
+            keep_rows_mask = player_stats[('Unnamed: 0_level_0','Rk')] != 'Rk'
+            player_stats = player_stats[keep_rows_mask].reset_index(drop=True)
+        
+        # Add team ID's
+        if squad_stats is not None:
+            squad_stats['Team ID'] = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag 
+                in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+            ]
+        if opponent_stats is not None:
+            opponent_stats['Team ID'] = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag 
+                in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+            ]
+        
+        # Add player ID's
+        if player_stats is not None:
+            player_stats['Player ID'] = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag 
+                in player_stats_tag.find_all('td', {'data-stat': 'player'})
+            ]
+        
+        return squad_stats, opponent_stats, player_stats
+    
+    ############################################################################
+    def scrape_all_stats(self, year, league, normalize=False):
+        """ Scrapes all stat categories
+        
+        Runs scrape_stats() for each stats category on dumps the returned tuple\
+        of dataframes into a dict.
+        
+        Args
+        ----
+        year : int
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
+        league : str
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
+        normalize : bool
+            OPTIONAL, default is False. If True, will normalize all stats to Per90.
         Returns
         -------
         : dict
-            Dict of the scraped stats pages. Keys are names of the stats pages\
-            and values are Pandas DataFrames with the stats.
+            Keys are stat category names, values are tuples of 3 dataframes,\
+            (squad_stats, opponent_stats, player_stats)
         """
         err, valid = check_season(year,league,'FBRef')
         if not valid:
             print(err)
             return -1
-        if year >= 2018:
-            out = {
-                'League Table':         self.scrape_league_table(year,league,normalize),
-                'Standard':             self.scrape_standard(year,league,normalize,player),
-                'Goalkeeping':          self.scrape_gk(year,league,normalize,player),
-                'Advanced Goalkeeping': self.scrape_adv_gk(year,league,normalize,player),
-                'Shooting':             self.scrape_shooting(year,league,normalize,player),
-                'Passing':              self.scrape_passing(year,league,normalize,player),
-                'Pass Types':           self.scrape_passing_types(year,league,normalize,player),
-                'GCA':                  self.scrape_goal_shot_creation(year,league,normalize,player),
-                'Defensive':            self.scrape_defensive(year,league,normalize,player),
-                'Possession':           self.scrape_possession(year,league,normalize,player),
-                'Playing Time':         self.scrape_playing_time(year,league,normalize,player),
-                'Misc':                 self.scrape_misc(year,league,normalize,player)
-            }
-        else:
-            out = {
-                'League Table': self.scrape_league_table(year,league,normalize),
-                'Standard':     self.scrape_standard(year,league,normalize,player),
-                'Goalkeeping':  self.scrape_gk(year,league,normalize,player),
-                'Shooting':     self.scrape_shooting(year,league,normalize,player),
-                'Playing Time': self.scrape_playing_time(year,league,normalize,player),
-                'Misc':         self.scrape_misc(year,league,normalize,player)
-            }
-        return out
+        
+        return_package = dict()
+        for stat_category in tqdm(self.stats_categories):
+            stats = self.scrape_stats(year, league, stat_category, normalize)
+            return_package[stat_category] = stats
+            
+        return return_package
 
-    ################################################################################
+    ############################################################################
     def scrape_matches(self, year, league, save=False):
         """ Scrapes the FBRef standard stats page of the chosen league season.
             
@@ -1215,10 +420,11 @@ class FBRef:
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
         league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
         save : bool
             OPTIONAL, default is False. If True, will save the returned\
             DataFrame to a CSV file.
@@ -1261,7 +467,7 @@ class FBRef:
         else:
             return matches
         
-    ################################################################################    
+    ############################################################################
     def scrape_match(self, link):
         """ Scrapes an FBRef match page.
         
@@ -1300,9 +506,12 @@ class FBRef:
             )
 
         #### Team names and ids ####
-        team_els = [el.find('a') \
-                for el in soup.find('div', {'class': 'scorebox'}).find_all('strong') \
-                if el.find('a', href=True) is not None][:2]
+        team_els = [
+            el.find('a') \
+            for el 
+            in soup.find('div', {'class': 'scorebox'}).find_all('strong') \
+            if el.find('a', href=True) is not None
+        ][:2]
         home_team_name = team_els[0].getText()
         home_team_id   = team_els[0]['href'].split('/')[3]
         away_team_name = team_els[1].getText()
@@ -1312,45 +521,90 @@ class FBRef:
         scores = soup.find('div', {'class': 'scorebox'}).find_all('div', {'class': 'score'})
 
         #### Formations ####
-        lineups = [pd.read_html(str(el.find('table')))[0] \
-                   for el in soup.find_all('div', {'class': 'lineup'})]
+        lineup_tags = [tag.find('table') for tag in soup.find_all('div', {'class': 'lineup'})]
         
         #### Player stats ####
         # Use table ID's to find the appropriate table. More flexible than xpath
         player_stats = dict()
         for i, (team, team_id) in enumerate([('Home',home_team_id), ('Away',away_team_id)]):
 
-            summary = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_summary')})
-            assert len(summary) < 2
+            summary_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_summary')})
+            assert len(summary_tag) < 2
+            summary_df = pd.read_html(str(summary_tag[0]))[0] if len(summary_tag)==1 else None
 
-            gk = soup.find_all('table', {'id': re.compile(f'keeper_stats_{team_id}')})
-            assert len(gk) < 2
+            gk_tag = soup.find_all('table', {'id': re.compile(f'keeper_stats_{team_id}')})
+            assert len(gk_tag) < 2
+            gk_df = pd.read_html(str(gk_tag[0]))[0] if len(gk_tag)==1 else None
 
-            passing = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing$')})
-            assert len(passing) < 2
+            passing_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing$')})
+            assert len(passing_tag) < 2
+            passing_df = pd.read_html(str(passing_tag[0]))[0] if len(passing_tag)==1 else None
 
-            pass_types = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing_types')})
-            assert len(pass_types) < 2
+            pass_types_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing_types')})
+            assert len(pass_types_tag) < 2
+            pass_types_df = pd.read_html(str(pass_types_tag[0]))[0] if len(pass_types_tag)==1 else None
 
-            defense = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_defense')})
-            assert len(defense) < 2
+            defense_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_defense')})
+            assert len(defense_tag) < 2
+            defense_df = pd.read_html(str(defense_tag[0]))[0] if len(defense_tag)==1 else None
 
-            possession = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_possession')})
-            assert len(possession) < 2
+            possession_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_possession')})
+            assert len(possession_tag) < 2
+            possession_df = pd.read_html(str(possession_tag[0]))[0] if len(possession_tag)==1 else None
 
-            misc = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_misc')})
-            assert len(misc) < 2
+            misc_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_misc')})
+            assert len(misc_tag) < 2
+            misc_df = pd.read_html(str(misc_tag[0]))[0] if len(misc_tag)==1 else None
+            
+            lineup_df = pd.read_html(str(lineup_tags[i]))[0] if len(lineup_tags)!=0 else None
+            
+            #### Field player ID's for the stats tables ####
+            if summary_df is not None:
+                player_ids = [
+                    tag.find('a')['href'].split('/')[3]
+                    for tag 
+                    in summary_tag[0].find_all('th', {'data-stat': 'player'})
+                    if tag.find('a')
+                ] 
+                # Add empty string for the summary row at the bottom of the stats tables
+                player_ids = player_ids + ['',]
+                
+                summary_df['Player ID'] = player_ids
+                if passing_df is not None:
+                    passing_df['Player ID'] = player_ids
+                if pass_types_df is not None:
+                    pass_types_df['Player ID'] = player_ids
+                if defense_df is not None:
+                    defense_df['Player ID'] = player_ids
+                if possession_df is not None:
+                    possession_df['Player ID'] = player_ids
+                if misc_df is not None:
+                    misc_df['Player ID'] = player_ids
+            
+            #### GK ID's ####
+            if gk_df is not None:
+                gk_ids = [
+                    tag.find('a')['href'].split('/')[3]
+                    for tag 
+                    in gk_tag[0].find_all('th', {'data-stat': 'player'})
+                    if tag.find('a')
+                ]
+                
+                gk_df['Player ID'] = gk_ids
 
+            #### Build player stats dict ####
+            # This will be turned into a Series and then put into the match dataframe
             player_stats[team] = {
-                'Team Sheet': lineups[i] if len(lineups)!=0 else None,
-                'Summary': pd.read_html(str(summary[0]))[0] if len(summary)==1 else None,
-                'GK': pd.read_html(str(gk[0]))[0] if len(gk)==1 else None,
-                'Passing': pd.read_html(str(passing[0]))[0] if len(passing)==1 else None,
-                'Pass Types': pd.read_html(str(pass_types[0]))[0] if len(pass_types)==1 else None,
-                'Defense': pd.read_html(str(defense[0]))[0] if len(defense)==1 else None,
-                'Possession': pd.read_html(str(possession[0]))[0] if len(possession)==1 else None,
-                'Misc': pd.read_html(str(misc[0]))[0] if len(misc)==1 else None,
+                'Team Sheet': lineup_df,
+                'Summary': summary_df,
+                'GK': gk_df,
+                'Passing': passing_df,
+                'Pass Types': pass_types_df,
+                'Defense': defense_df,
+                'Possession': possession_df,
+                'Misc': misc_df,
             }
+            
 
         #### Shots ####
         both_shots = soup.find_all('table', {'id': 'shots_all'})
@@ -1375,11 +629,17 @@ class FBRef:
         #### Expected stats flag ####
         expected = 'Expected' in player_stats['Home']['Summary'].columns.get_level_values(0)
 
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Build match series ####
         match = pd.Series(dtype=object)
         match['Link'] = link
         match['Date'] = datetime.strptime(
-            str(soup.find('h1')).split('<br/>')[0].split('–')[-1].replace('</h1>','').strip(),
+            str(soup.find('h1'))
+                .split('<br/>')[0]
+                .split('–')[-1] # not a normal dash, 
+                .replace('</h1>','')
+                .split('(')[0]
+                .strip(),
             '%A %B %d, %Y'
         ).date()
         match['Matchweek'] = matchweek
@@ -1388,41 +648,23 @@ class FBRef:
         match['Home Team ID'] = home_team_id
         match['Away Team ID'] = away_team_id
         match['Home Formation'] = (
-            lineups[0].columns[0].split('(')[-1].replace(')','').strip() \
-            if len(lineups)>0 else None
+            player_stats['Home']['Team Sheet'].columns[0].split('(')[-1].replace(')','').strip()
+            if player_stats['Home']['Team Sheet'] is not None else None
         )
         match['Away Formation'] = (
-            lineups[1].columns[0].split('(')[-1].replace(')','').strip() 
-            if len(lineups)>0 else None
+            player_stats['Away']['Team Sheet'].columns[0].split('(')[-1].replace(')','').strip()
+            if player_stats['Away']['Team Sheet'] is not None else None
         )
         match['Home Goals'] = int(scores[0].getText()) if scores[0].getText().isdecimal() else None
         match['Away Goals'] = int(scores[1].getText()) if scores[1].getText().isdecimal() else None
         match['Home Ast'] = player_stats['Home']['Summary'][('Performance','Ast')].values[-1]
         match['Away Ast'] = player_stats['Away']['Summary'][('Performance','Ast')].values[-1]
-        match['Home xG']   = (
-            player_stats['Home']['Summary'][('Expected','xG')].values[-1] 
-            if expected else None
-        )
-        match['Away xG']   = (
-            player_stats['Away']['Summary'][('Expected','xG')].values[-1] 
-            if expected else None
-        )
-        match['Home npxG'] = (
-            player_stats['Home']['Summary'][('Expected','npxG')].values[-1] 
-            if expected else None
-        )
-        match['Away npxG'] = (
-            player_stats['Away']['Summary'][('Expected','npxG')].values[-1] 
-            if expected else None
-        )
-        match['Home xA']   = (
-            player_stats['Home']['Summary'][('Expected','xA')].values[-1] 
-            if expected else None
-        )
-        match['Away xA']   = (
-            player_stats['Away']['Summary'][('Expected','xA')].values[-1] 
-            if expected else None
-        )
+        match['Home xG'] = player_stats['Home']['Summary'][('Expected','xG')].values[-1] if expected else None
+        match['Away xG'] = player_stats['Away']['Summary'][('Expected','xG')].values[-1] if expected else None
+        match['Home npxG'] = player_stats['Home']['Summary'][('Expected','npxG')].values[-1] if expected else None
+        match['Away npxG'] = player_stats['Away']['Summary'][('Expected','npxG')].values[-1] if expected else None
+        match['Home xA']   = player_stats['Home']['Summary'][('Expected','xA')].values[-1] if expected else None
+        match['Away xA']   = player_stats['Away']['Summary'][('Expected','xA')].values[-1] if expected else None
         match['Home Player Stats'] = pd.Series(player_stats['Home'])
         match['Away Player Stats'] = pd.Series(player_stats['Away'])
         match['Shots'] = pd.Series({
@@ -1435,7 +677,7 @@ class FBRef:
         
         return match
     
-    ################################################################################
+    ############################################################################
     def scrape_complete_scouting_reports(self, year, league, goalkeepers=False):
         """ Scrapes the FBRef scouting reports for all players in the chosen league\
             season.
@@ -1443,10 +685,11 @@ class FBRef:
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
+            season)
         league : str
-            League. Look in shared_functions.py for the available leagues for each\
-            module.
+            League. Look in shared_functions.py for the available leagues for\
+            each module.
         goalkeepers : bool
             OPTIONAL, default is False. If True, will scrape reports for only\
             goalkeepers. If False, will scrape reports for only outfield players.
@@ -1487,7 +730,7 @@ class FBRef:
         
         return per90_df, percentiles_df
     
-    ################################################################################
+    ############################################################################
     def complete_report_from_player_link(self, player_link):
         """ Scrapes the FBRef scouting reports for a player.
         

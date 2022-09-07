@@ -1,5 +1,5 @@
 import sys
-sys.path.insert(0, './code/') # import local ScraperFC, not pypi installed version
+sys.path.insert(0, '..') # import local ScraperFC, not pypi installed version
 import ScraperFC as sfc
 import numpy as np
 import itertools
@@ -9,8 +9,20 @@ import pandas as pd
 
 leagues = ['EPL', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1', 'MLS']
 years = range(1988, 2024)
-iterator = list(itertools.product(leagues, years))
-iterator.remove(('MLS',2023))
+iterator = list(itertools.product(years, leagues))
+iterator.remove((2023,'MLS'))
+
+
+def get_random_league_season():
+    got_random = False
+    while not got_random:
+        random_idx = np.random.choice(len(iterator), size=1, replace=False)[0]
+        year, league = np.array(iterator)[random_idx]
+        year, league = int(year), str(league)
+        err, _ = sfc.shared_functions.check_season(year,league,'FBRef')
+        if not err:
+            got_random = True
+    return year, league
 
 
 ################################################################################
@@ -22,15 +34,8 @@ class TestFBRef:
 
         try:
             # Randomly pick year/league combos until a valid one
-            got_random = False
-            while not got_random:
-                random_idx = np.random.choice(len(iterator), size=1, replace=False)[0]
-                league, year = np.array(iterator)[random_idx]
-                league, year = str(league), int(year)
-                err, _ = sfc.shared_functions.check_season(year,league,'FBRef')
-                if not err:
-                    got_random = True
-
+            year, league = get_random_league_season()
+   
             match_links = scraper.get_match_links(year, league)
             link = list(match_links)[len(match_links)//2]
             print(link)
@@ -82,28 +87,21 @@ class TestFBRef:
 
         scraper.close()
 
-    ############################################################################
-    def test_scrape_matches(self):
-        scraper = sfc.FBRef()
+#     ############################################################################
+#     def test_scrape_matches(self):
+#         scraper = sfc.FBRef()
 
-        try:
-            # Randomly pick year/league combos until a valid one
-            got_random = False
-            while not got_random:
-                random_idx = np.random.choice(len(iterator), size=1, replace=False)[0]
-                league, year = np.array(iterator)[random_idx]
-                league, year = str(league), int(year)
-                err, _ = sfc.shared_functions.check_season(year,league,'FBRef')
-                if not err:
-                    got_random = True
+#         try:
+#             # Randomly pick year/league combos until a valid one
+#             year, league = get_random_league_season()
 
-            match_links = scraper.get_match_links(year, league)
-            matches = scraper.scrape_matches(year, league)
+#             match_links = scraper.get_match_links(year, league)
+#             matches = scraper.scrape_matches(year, league)
 
-            assert matches.shape[0] == len(match_links)
+#             assert matches.shape[0] == len(match_links)
 
-        except Exception as E:
-            scraper.close()
-            raise E
+#         except Exception as E:
+#             scraper.close()
+#             raise E
 
-        scraper.close()
+#         scraper.close()
