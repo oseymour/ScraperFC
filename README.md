@@ -1,4 +1,4 @@
-https://readthedocs.org/projects/scraperfc/badge/
+<img src='https://readthedocs.org/projects/nrc4d/badge/?version=latest' alt='Documentation Status' />
 
 This is ScraperFC, a Python package that I hope will give more people access to soccer data. Gone are the days of downloading spreadsheets one-by-one, copy-pasting, or entering data into spreadsheets by hand. I try to make ScraperFC as easy-to-use as possible so that anybody with a bit of Python experience can use it.
 
