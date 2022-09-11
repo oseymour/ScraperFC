@@ -1,4 +1,4 @@
-Documentation status: <a href=https://scraperfc.readthedocs.io/en/latest/>
+Documentation status: <a href=https://scraperfc.readthedocs.io/en/latest/ target=_blank>
   <img src='https://readthedocs.org/projects/nrc4d/badge/?version=latest' alt='Documentation Status' />
 </a>
 
