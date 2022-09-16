@@ -1,6 +1,11 @@
-Documentation status: <a href="https://scraperfc.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/nrc4d/badge/?version=latest" alt="documentation status badge"/></a>
-
-Downloads: <a href="[https://scraperfc.readthedocs.io/en/latest/](https://pypi.org/project/ScraperFC/)"><img src="https://static.pepy.tech/badge/scraperfc" alt="downloads badge"/></a>
+<p align="center">
+  <a href="https://scraperfc.readthedocs.io/en/latest/">
+    <img src="https://readthedocs.org/projects/nrc4d/badge/?version=latest" alt="documentation status badge"/>
+  </a>
+  <a href="[https://scraperfc.readthedocs.io/en/latest/](https://pypi.org/project/ScraperFC/)">
+    <img src="https://static.pepy.tech/badge/scraperfc" alt="downloads badge"/>
+  </a>
+ </p>
 
 https://static.pepy.tech/badge/scraperfc
 
