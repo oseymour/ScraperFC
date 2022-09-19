@@ -1,24 +1,27 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 import os
 import pandas as pd
 import numpy as np
 from IPython.display import clear_output
 from zipfile import ZipFile
-from ScraperFC.shared_functions import check_season
+from ScraperFC.shared_functions import check_season, xpath_soup
+import time
+from bs4 import BeautifulSoup
 
 class FiveThirtyEight:
     
     ############################################################################
     def __init__(self):
         options = Options()
-        options.headless = True
+#         options.headless = True
         prefs = {"download.default_directory" : os.getcwd()}
         options.add_experimental_option("prefs",prefs)
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-        clear_output()
         
     ############################################################################    
     def close(self):
@@ -63,28 +66,34 @@ class FiveThirtyEight:
         filename : str
             If save=True, filename of the CSV that the stats were saved to 
         """
-        if not check_season(year,'EPL','FiveThirtyEight'):
+        if not check_season(year,league,'FiveThirtyEight'):
             return -1
         
-        url = 'https://data.fivethirtyeight.com/#soccer-spi'
-        self.driver.get(url)
+        # Load URL
+        self.driver.get('https://data.fivethirtyeight.com/#soccer-spi')
         
-        # find and click download button
-        for element in self.driver.find_elements(By.CLASS_NAME, "download-link"):
-            if element.get_attribute("dataset-name") == "soccer-spi":
-                element.click()
+        # Wait for data index to be available
+        WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.ID, 'dataIndex')))
+
+        # Click download button
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        button_xpath = xpath_soup(soup.find('div', {'dataset-name': 'soccer-spi'}))
+        button = self.driver.find_element(By.XPATH, button_xpath)
+        self.driver.execute_script('arguments[0].click();', button)
                 
-        # wait for download to complete
+        # Wait for download to complete
         while not os.path.exists('soccer-spi.zip'):
-            pass
+            time.sleep(1)
         
-        # get data table
+        # Get data table
         with ZipFile('soccer-spi.zip') as zf:
             with zf.open('soccer-spi/spi_matches.csv') as f:
                 df = pd.read_csv(f)
-        os.remove('soccer-spi.zip') # delete downloaded folder
+                
+        # Delete downloaded folder
+        os.remove('soccer-spi.zip')
         
-        # pick the chosen league
+        # Pick the chosen league
         if league == "EPL":
             df = df[df['league'] == 'Barclays Premier League']
         elif league == "La Liga":
@@ -96,26 +105,13 @@ class FiveThirtyEight:
         elif league == "Ligue 1":
             df = df[df['league'] == 'French Ligue 1']
         
-        # add one to season column
+        # Add one to season column
         df['season'] = df['season'].apply(self.up_season)
         
-        # only keep the season requested
-        df = df[df['season']==str(year)]
+        # Only keep the season requested
+        df = df[df['season']==str(year)].reset_index(drop=True)
         
-        # only keep some cols
-        keep = ['date','team1','team2','score1','score2','xg1','xg2',
-                'nsxg1','nsxg2','adj_score1','adj_score2']
-        df = df[keep]
-        
-        # rename cols
-        cols = ['Date','Home Team','Away Team','Home Goals','Away Goals',
-                'FTE Home xG','FTE Away xG','FTE Home nsxG','FTE Away nsxG',
-                'Home Adj Score','Away Adj Score']
-        df.columns = cols
-        
-        df = df.reset_index(drop=True)
-        
-        # save to CSV if requested by user
+        # Save to CSV if requested by user
         if save:
             filename = f'{year}_{league}_FiveThirtyEight_matches.csv'
             df.to_csv(path_or_buf=filename, index=False)
