@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Installation" href="examples.html" /> 
+    <link rel="prev" title="FBRef Examples" href="fbref_examples.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,8 +39,8 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="examples.html">Installation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="examples.html#examples">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fbref_examples.html">FBRef Examples</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">ScraperFC modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.Capology">Capology</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.ClubElo">ClubElo</a></li>
@@ -190,11 +190,9 @@
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>cleaned_complete_report</strong> (<em>Pandas DataFrame</em>) – Complete report with a MultiIndex of stats categories and statistics.
-Columns for per90 and percentile values.</p></li>
-<li><p><strong>player_name</strong> (<em>str</em>)</p></li>
-<li><p><strong>player_pos</strong> (<em>str</em>)</p></li>
-<li><p><strong>minutes</strong> (<em>int</em>)</p></li>
+<li><p><strong>complete_report</strong> (<em>Pandas DataFrame</em>) – Complete report, with stat names, Per90, and percentile values</p></li>
+<li><p><strong>per90</strong> (<em>Pandas DataFrame</em>) – Just the Per90 stat</p></li>
+<li><p><strong>percentiles</strong> (<em>Pandas DataFrame</em>) – Just the percentile stats (versus layers in the otehr top 5 leagues)</p></li>
 </ul>
 </p>
 </dd>
@@ -1003,7 +1001,7 @@ Columns for per90 and percentile values.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="examples.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="fbref_examples.html" class="btn btn-neutral float-left" title="FBRef Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

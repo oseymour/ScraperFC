@@ -31,6 +31,8 @@ And here is the output.
 
 .. image:: ./images/fbref_league_table_example.png
 
+----------
+
 Match stats
 ***********
 
@@ -86,3 +88,10 @@ a shot in the match, they won't have a DataFrame in this Series.
 An example of a shot DataFrame is here.
 
 .. image:: ./images/fbref_match_shots_both.png
+
+**********
+
+Player Scout Reports
+********************
+
+COMING SOON

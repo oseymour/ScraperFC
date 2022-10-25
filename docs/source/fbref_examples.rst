@@ -1,7 +1,8 @@
+==============
 FBRef Examples
 ==============
 
-
+************
 League table
 ************
 
@@ -31,6 +32,9 @@ And here is the output.
 
 .. image:: ./images/fbref_league_table_example.png
 
+----------
+
+***********
 Match stats
 ***********
 
@@ -87,6 +91,9 @@ An example of a shot DataFrame is here.
 
 .. image:: ./images/fbref_match_shots_both.png
 
+----------
+
+********************
 Player Scout Reports
 ********************
 
