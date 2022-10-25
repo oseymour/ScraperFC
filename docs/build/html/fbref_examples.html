@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FBRef Examples &mdash; ScraperFC 2.1.2 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ScraperFC modules" href="ScraperFC.html" />
+    <link rel="prev" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> ScraperFC
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FBRef Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#league-table">League table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#match-stats">Match stats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#home-away-player-stats">Home/Away Player Stats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#shots">Shots</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ScraperFC.html">ScraperFC modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ScraperFC</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>FBRef Examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/fbref_examples.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="fbref-examples">
+<h1>FBRef Examples<a class="headerlink" href="#fbref-examples" title="Permalink to this heading"></a></h1>
+<section id="league-table">
+<h2>League table<a class="headerlink" href="#league-table" title="Permalink to this heading"></a></h2>
+<p>This example shows how to scrape the league table of the 2019-20 English
+Premier League season from FBRef.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ScraperFC</span> <span class="k">as</span> <span class="nn">sfc</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="c1"># Initialize the FBRef scraper</span>
+<span class="n">scraper</span> <span class="o">=</span> <span class="n">sfc</span><span class="o">.</span><span class="n">FBRef</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Scrape the table</span>
+    <span class="n">lg_table</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">scrape_league_table</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2020</span><span class="p">,</span> <span class="n">league</span><span class="o">=</span><span class="s1">&#39;EPL&#39;</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="c1"># Catch and print any exceptions. This allows us to still close the</span>
+    <span class="c1"># scraper below, even if an exception occurs.</span>
+    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+
+<span class="c1"># It&#39;s important to close the scraper when you&#39;re done with it. Otherwise,</span>
+<span class="c1"># you&#39;ll have a bunch of webdrivers open and running in the background.</span>
+<span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>And here is the output.</p>
+<img alt="_images/fbref_league_table_example.png" src="_images/fbref_league_table_example.png" />
+</section>
+<section id="match-stats">
+<h2>Match stats<a class="headerlink" href="#match-stats" title="Permalink to this heading"></a></h2>
+<p>In this code block, we’re scrpaing data from an FBRef match page. The example
+I’ve chosen is So’ton 2:5 Tottenham from 20 Sept, 2020.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ScraperFC</span> <span class="k">as</span> <span class="nn">sfc</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="c1"># Initialize the FBRef scraper</span>
+<span class="n">scraper</span> <span class="o">=</span> <span class="n">sfc</span><span class="o">.</span><span class="n">FBRef</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Scrape the match using the FBRef match link</span>
+    <span class="n">link</span> <span class="o">=</span> <span class="s1">&#39;https://fbref.com/en/matches/967efd56/Southampton-Tottenham-Hotspur-September-20-2020-Premier-League&#39;</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">scrape_match</span><span class="p">(</span><span class="n">link</span><span class="o">=</span><span class="n">link</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="c1"># Catch and print any exceptions.</span>
+    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+
+<span class="c1"># Again, make sure to close the scraper when you&#39;re done</span>
+<span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The output of <code class="docutils literal notranslate"><span class="pre">scrape_match()</span></code> can be a little confusing, but it contains a
+lot of information. There are 3 columns that are Pandas Series of Pandas
+DataFrames. These are <code class="docutils literal notranslate"><span class="pre">Home</span> <span class="pre">Player</span> <span class="pre">Stats</span></code>, <code class="docutils literal notranslate"><span class="pre">Away</span> <span class="pre">Player</span> <span class="pre">Stats</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">Shots</span></code>.</p>
+<section id="home-away-player-stats">
+<h3>Home/Away Player Stats<a class="headerlink" href="#home-away-player-stats" title="Permalink to this heading"></a></h3>
+<p>These Series can be accessed by calling
+<code class="docutils literal notranslate"><span class="pre">match['Home</span> <span class="pre">Player</span> <span class="pre">Stats'].values[0]</span></code> in a cell following the example above.
+The DataFrames that are part of this Series can be then be called.
+<code class="docutils literal notranslate"><span class="pre">match['Home</span> <span class="pre">Player</span> <span class="pre">Stats'].values[0]['Summary']</span></code> would return this
+DataFrame in this example.</p>
+<img alt="_images/fbref_match_home_player_summary.png" src="_images/fbref_match_home_player_summary.png" />
+<p>The home/away player stats that are available for each match will depend on the
+competition and year of the match. Not all matches will have xG, for example.
+To see which DataFrames are available, run
+<code class="docutils literal notranslate"><span class="pre">match['Home</span> <span class="pre">Player</span> <span class="pre">Stats'].values[0].keys()</span></code> or
+<code class="docutils literal notranslate"><span class="pre">match['Away</span> <span class="pre">Player</span> <span class="pre">Stats'].values[0].keys()</span></code>.</p>
+</section>
+<section id="shots">
+<h3>Shots<a class="headerlink" href="#shots" title="Permalink to this heading"></a></h3>
+<p>The Shots Series is similar to the Home/Away Player Stats Series. <cite>If</cite> there is
+shot data available for a match on FBRef, this Series will contain 3 DataFrames,
+<code class="docutils literal notranslate"><span class="pre">Both</span></code>, <code class="docutils literal notranslate"><span class="pre">Home</span></code>, <code class="docutils literal notranslate"><span class="pre">Away</span></code>. In the case where a home or away team doesn’t have
+a shot in the match, they won’t have a DataFrame in this Series.</p>
+<p>An example of a shot DataFrame is here.</p>
+<img alt="_images/fbref_match_shots_both.png" src="_images/fbref_match_shots_both.png" />
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ScraperFC.html" class="btn btn-neutral float-right" title="ScraperFC modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Owen Seymour.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -8,3 +8,4 @@ requests
 bs4
 lxml
 tqdm
+ScraperFC

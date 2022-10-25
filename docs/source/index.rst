@@ -10,7 +10,8 @@ Welcome to ScraperFC's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-   examples
+   installation
+   fbref_examples
    ScraperFC
 
 

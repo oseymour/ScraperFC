@@ -1,0 +1,5 @@
+./ScraperFC.egg-info
+./__pycache__
+./build/lib/ScraperFC
+*.ipynb_checkpoints
+*-checkpoint.ipynb

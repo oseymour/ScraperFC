@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Introduction" href="intro.html" /> 
+    <link rel="prev" title="Installation" href="examples.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -39,7 +39,8 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples.html#examples">Examples</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">ScraperFC modules</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.Capology">Capology</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.ClubElo">ClubElo</a></li>
@@ -48,7 +49,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.SofaScore">SofaScore</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.Transfermarkt">Transfermarkt</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.Understat">Understat</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.shared_functions">shared_functions module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-ScraperFC.shared_functions">shared_functions</a></li>
 </ul>
 </li>
 </ul>
@@ -174,48 +175,6 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>ScraperFC module for FBRef</p>
 <dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.add_player_ids_and_links">
-<span class="sig-name descname"><span class="pre">add_player_ids_and_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.add_player_ids_and_links" title="Permalink to this definition"></a></dt>
-<dd><p>Add player ID’s and FBRef URL’s to a dataframe</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>Pandas DataFrame</em>) – Dataframe of player stats</p></li>
-<li><p><strong>url</strong> (<em>str</em>) – FBRef URL to the player stats page being scraped to generate df</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The dataframe passed as an arg, but with new columns with player ID’s and            player URL’s</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.add_team_ids">
-<span class="sig-name descname"><span class="pre">add_team_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">insert_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">season_url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tag_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.add_team_ids" title="Permalink to this definition"></a></dt>
-<dd><p>Add team ID’s to a dataframe</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>df</strong> (<em>Pandas DataFrame</em>) – Dataframe of team stats</p></li>
-<li><p><strong>insert_index</strong> (<em>int</em>) – Column index to insert the ID’s into</p></li>
-<li><p><strong>season_url</strong> (<em>str</em>) – FBRef URL to a league season</p></li>
-<li><p><strong>tag_name</strong> (<em>str</em>) – HTML tag name to use for team ID search</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The dataframe passed in as an arg, with the team ID’s added as a new column</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.close">
 <span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.close" title="Permalink to this definition"></a></dt>
 <dd><p>Closes and quits the Selenium WebDriver instance.</p>
@@ -231,9 +190,11 @@
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>complete_report</strong> (<em>Pandas DataFrame</em>) – Complete report, with stat names, Per90, and percentile values</p></li>
-<li><p><strong>per90</strong> (<em>Pandas DataFrame</em>) – Just the Per90 stat</p></li>
-<li><p><strong>percentiles</strong> (<em>Pandas DataFrame</em>) – Just the percentile stats (versus layers in the otehr top 5 leagues)</p></li>
+<li><p><strong>cleaned_complete_report</strong> (<em>Pandas DataFrame</em>) – Complete report with a MultiIndex of stats categories and statistics.
+Columns for per90 and percentile values.</p></li>
+<li><p><strong>player_name</strong> (<em>str</em>)</p></li>
+<li><p><strong>player_pos</strong> (<em>str</em>)</p></li>
+<li><p><strong>minutes</strong> (<em>int</em>)</p></li>
 </ul>
 </p>
 </dd>
@@ -244,7 +205,7 @@
 <dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.get">
 <span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.get" title="Permalink to this definition"></a></dt>
 <dd><p>Custom get function just for the FBRef module.</p>
-<p>Calls .get() from the Selenium WebDriver and then waits in order to avoid        a Too Many Requests HTTPError from FBRef.</p>
+<p>Calls .get() from the Selenium WebDriver and then waits in order to        avoid a Too Many Requests HTTPError from FBRef.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – The URL to get</p>
@@ -256,31 +217,14 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.get_html_w_id">
-<span class="sig-name descname"><span class="pre">get_html_w_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ID</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.get_html_w_id" title="Permalink to this definition"></a></dt>
-<dd><p>Returns the HTML of a Selenium WebElement based on a search of the             element ID field</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>ID</strong> (<em>str</em>) – Element ID to use for search</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>HTML of the first WebElement matching the passed ID</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.get_match_links">
 <span class="sig-name descname"><span class="pre">get_match_links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.get_match_links" title="Permalink to this definition"></a></dt>
 <dd><p>Gets all match links for the chosen league season.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
+<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23            season)</p></li>
+<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for            each module.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -299,8 +243,8 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
+<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23            season)</p></li>
+<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for            each module.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -308,20 +252,6 @@
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.normalize_table">
-<span class="sig-name descname"><span class="pre">normalize_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xpath</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.normalize_table" title="Permalink to this definition"></a></dt>
-<dd><p>Written to the press the “Toggle Per90 Stats” button on FBRef pages.            Should be able to be used to press any button, however.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>xpath</strong> (<em>str</em>) – XPath to the button to be pressed. This will be unique for each page            being scraped.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None</p>
 </dd>
 </dl>
 </dd></dl>
@@ -335,30 +265,33 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><p><strong>url</strong> (<em>Str</em>) – The URL to get</p>
 </dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>None</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The response</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>requests.Response</p>
 </dd>
 </dl>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_adv_gk">
-<span class="sig-name descname"><span class="pre">scrape_adv_gk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_adv_gk" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef advanced goalkeeper stats page of the chosen league             season</p>
+<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_all_stats">
+<span class="sig-name descname"><span class="pre">scrape_all_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_all_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Scrapes all stat categories</p>
+<p>Runs scrape_stats() for each stats category on dumps the returned tuple        of dataframes into a dict.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
+<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23            season)</p></li>
+<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for            each module.</p></li>
 <li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
+<dd class="field-even"><p>Keys are stat category names, values are tuples of 3 dataframes,            (squad_stats, opponent_stats, player_stats)</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -370,8 +303,8 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
+<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23            season)</p></li>
+<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for            each module.</p></li>
 <li><p><strong>goalkeepers</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape reports for only            goalkeepers. If False, will scrape reports for only outfield players.</p></li>
 </ul>
 </dd>
@@ -386,88 +319,22 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_defensive">
-<span class="sig-name descname"><span class="pre">scrape_defensive</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_defensive" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef defensive stats page of the chosen league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_gk">
-<span class="sig-name descname"><span class="pre">scrape_gk</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_gk" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef goalkeeper stats page of the chosen league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_goal_shot_creation">
-<span class="sig-name descname"><span class="pre">scrape_goal_shot_creation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_goal_shot_creation" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef goal and shot creation stats page of the chosen            league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
 <dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_league_table">
-<span class="sig-name descname"><span class="pre">scrape_league_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_league_table" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">scrape_league_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_league_table" title="Permalink to this definition"></a></dt>
 <dd><p>Scrapes the league table of the chosen league season</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
+<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23            season)</p></li>
+<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for            each module.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped league table.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Pandas DataFrame</em> – If league is not MLS, dataframe of the scraped league table</p></li>
+<li><p><em>tuple</em> – If the league is MLS, a tuple of (west conference table, east             conference table). Both tables are dataframes.</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -497,8 +364,8 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
+<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23            season)</p></li>
+<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for            each module.</p></li>
 <li><p><strong>save</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will save the returned            DataFrame to a CSV file.</p></li>
 </ul>
 </dd>
@@ -513,177 +380,24 @@
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_misc">
-<span class="sig-name descname"><span class="pre">scrape_misc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_misc" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef miscellaneous stats page of the chosen league season</p>
+<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_stats">
+<span class="sig-name descname"><span class="pre">scrape_stats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stat_category</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_stats" title="Permalink to this definition"></a></dt>
+<dd><p>Scrapes a single stats category</p>
+<p>Adds team and player ID columns to the stats tables</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
+<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23            season)</p></li>
+<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for            each module.</p></li>
+<li><p><strong>stat_cateogry</strong> (<em>str</em>) – The stat category to scrape.</p></li>
 <li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
+<dd class="field-even"><p>tuple of 3 Pandas DataFrames, (squad_stats, opponent_stats,            player_stats).</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_passing">
-<span class="sig-name descname"><span class="pre">scrape_passing</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_passing" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef passing stats page of the chosen league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_passing_types">
-<span class="sig-name descname"><span class="pre">scrape_passing_types</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_passing_types" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef passing types stats page of the chosen league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_playing_time">
-<span class="sig-name descname"><span class="pre">scrape_playing_time</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_playing_time" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef playing time stats page of the chosen league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_possession">
-<span class="sig-name descname"><span class="pre">scrape_possession</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_possession" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef possession stats page of the chosen league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_season">
-<span class="sig-name descname"><span class="pre">scrape_season</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_season" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes all of the FBRef stats pages for the chosen league season.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Dict of the scraped stats pages. Keys are names of the stats pages            and values are Pandas DataFrames with the stats.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>dict</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_shooting">
-<span class="sig-name descname"><span class="pre">scrape_shooting</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_shooting" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef shooting stats page of the chosen league season</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="ScraperFC.FBRef.FBRef.scrape_standard">
-<span class="sig-name descname"><span class="pre">scrape_standard</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">normalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">player</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.FBRef.FBRef.scrape_standard" title="Permalink to this definition"></a></dt>
-<dd><p>Scrapes the FBRef standard stats page of the chosen league season.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>year</strong> (<em>int</em>) – Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)</p></li>
-<li><p><strong>league</strong> (<em>str</em>) – League. Look in shared_functions.py for the available leagues for each            module.</p></li>
-<li><p><strong>normalize</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will normalize all stats to Per90.</p></li>
-<li><p><strong>player</strong> (<em>bool</em>) – OPTIONAL, default is False. If True, will scrape the player stats.            If False, will scrape team stats.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>DataFrame of the scraped stats</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>Pandas DataFrame</p>
+<dd class="field-odd"><p>tuple</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1211,7 +925,7 @@
 
 </section>
 <section id="module-ScraperFC.shared_functions">
-<span id="shared-functions-module"></span><h2>shared_functions module<a class="headerlink" href="#module-ScraperFC.shared_functions" title="Permalink to this heading"></a></h2>
+<span id="shared-functions"></span><h2>shared_functions<a class="headerlink" href="#module-ScraperFC.shared_functions" title="Permalink to this heading"></a></h2>
 <dl class="py function">
 <dt class="sig sig-object py" id="ScraperFC.shared_functions.check_season">
 <span class="sig-prename descclassname"><span class="pre">ScraperFC.shared_functions.</span></span><span class="sig-name descname"><span class="pre">check_season</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">year</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">league</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#ScraperFC.shared_functions.check_season" title="Permalink to this definition"></a></dt>
@@ -1249,6 +963,39 @@
 </dl>
 </dd></dl>
 
+<dl class="py function">
+<dt class="sig sig-object py" id="ScraperFC.shared_functions.xpath_soup">
+<span class="sig-prename descclassname"><span class="pre">ScraperFC.shared_functions.</span></span><span class="sig-name descname"><span class="pre">xpath_soup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">bs4.element.Tag</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">bs4.element.NavigableString</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#ScraperFC.shared_functions.xpath_soup" title="Permalink to this definition"></a></dt>
+<dd><p>Generate xpath from BeautifulSoup4 element.</p>
+<p>I shamelessly stole this from <a class="reference external" href="https://gist.github.com/ergoithz/6cf043e3fdedd1b94fcf">https://gist.github.com/ergoithz/6cf043e3fdedd1b94fcf</a>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>element</strong> (<em>bs4.element.Tag</em><em> or </em><em>bs4.element.NavigableString</em>) – BeautifulSoup4 element.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>str</em> – xpath as string</p></li>
+<li><p><em>Usage</em></p></li>
+<li><p><em>—–</em></p></li>
+<li><p><em>&gt;&gt;&gt; import bs4</em></p></li>
+<li><p><em>&gt;&gt;&gt; html = (</em></p></li>
+<li><p><em>…     ‘&lt;html&gt;&lt;head&gt;&lt;title&gt;title&lt;/title&gt;&lt;/head&gt;’</em></p></li>
+<li><p><em>…     ‘&lt;body&gt;&lt;p&gt;p &lt;i&gt;1&lt;/i&gt;&lt;/p&gt;&lt;p&gt;p &lt;i&gt;2&lt;/i&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;’</em></p></li>
+<li><p><em>…     )</em></p></li>
+<li><p><em>&gt;&gt;&gt; soup = bs4.BeautifulSoup(html, ‘html.parser’)</em></p></li>
+<li><p><em>&gt;&gt;&gt; xpath_soup(soup.html.body.p.i)</em></p></li>
+<li><p><em>’/html/body/p[1]/i’</em></p></li>
+<li><p><em>&gt;&gt;&gt; import bs4</em></p></li>
+<li><p><em>&gt;&gt;&gt; xml = ‘&lt;doc&gt;&lt;elm/&gt;&lt;elm/&gt;&lt;/doc&gt;’</em></p></li>
+<li><p><em>&gt;&gt;&gt; soup = bs4.BeautifulSoup(xml, ‘lxml-xml’)</em></p></li>
+<li><p><em>&gt;&gt;&gt; xpath_soup(soup.doc.elm.next_sibling)</em></p></li>
+<li><p><em>’/doc/elm[2]’</em></p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 </section>
 
@@ -1256,7 +1003,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="intro.html" class="btn btn-neutral float-left" title="Introduction" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="examples.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
