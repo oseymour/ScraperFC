@@ -365,13 +365,15 @@ class FBRef:
                 in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
             ]
         
-        # Add player ID's
+        # Add player links and ID's
         if player_stats is not None:
-            player_stats['Player ID'] = [
-                tag.find('a')['href'].split('/')[3] 
+            player_links = [
+                'https://fbref.com' + tag.find('a')['href']
                 for tag 
                 in player_stats_tag.find_all('td', {'data-stat': 'player'})
             ]
+            player_stats['Player Link'] = player_links
+            player_stats['Player ID'] = [l.split('/')[-1] for l in player_links]
         
         return squad_stats, opponent_stats, player_stats
     
@@ -703,30 +705,35 @@ class FBRef:
         """
         # Get the player links
         if goalkeepers:
-            player_links = self.scrape_gk(year, league, player=True)['player_link']
+            player_links = self.scrape_stats(year, league, 'goalkeeping')[2]['Player Link'].values
         else:
-            player_links = self.scrape_standard(year, league, player=True)['player_link']
-        clear_output()
+            player_links = self.scrape_stats(year, league, 'standard')[2]['Player Link'].values
         
         # initialize dataframes
         per90_df = pd.DataFrame()
         percentiles_df = pd.DataFrame()
         
         # gather complete reports and append to dataframes
-        cnt = 0
-        for player_link in player_links:
-            cnt += 1
-            print('{}/{}'.format(cnt, len(player_links)), end='\r')
-            _, per90, percentiles = self.complete_report_from_player_link(player_link)
+        for player_link in tqdm(player_links):
+            report, name, pos, mins = self.complete_report_from_player_link(player_link)
+            # skip players without reports
+            if type(report) is int and report==-1:
+                continue
             
-            # skip goalkeers or players who don't have a complete report
-            if (type(per90) is int) or (type(percentiles) is int) \
-                    or not goalkeepers and per90['Position'].values[0]=='Goalkeepers':
+            # separate per90 and percentiles and add player name, position, and minutes
+            per90 = report['Per 90'].to_frame().T
+            percentile = report['Percentile'].to_frame().T
+            for col, val in [('Name',name), ('Position',pos), ('Minutes',mins)]:
+                per90[col] = val
+                percentile[col] = val
+            
+            # skip players who don't have a complete report or goalkeepers if scraping goalkeeper stats
+            if (type(report) is int) or (not goalkeepers and per90['Position'].values[0]=='Goalkeepers'):
                 continue
                 
             # append
-            per90_df = per90_df.append(per90, ignore_index=True)
-            percentiles_df = percentiles_df.append(percentiles, ignore_index=True)
+            per90_df = pd.concat([per90_df, per90], ignore_index=True)
+            percentiles_df = pd.concat([percentiles_df, percentile], ignore_index=True)
         
         return per90_df, percentiles_df
     
@@ -740,88 +747,65 @@ class FBRef:
             URL to an FBRef player page
         Returns
         -------
-        complete_report : Pandas DataFrame
-            Complete report, with stat names, Per90, and percentile values
-        per90 : Pandas DataFrame
-            Just the Per90 stat
-        percentiles : Pandas DataFrame
-            Just the percentile stats (versus layers in the otehr top 5 leagues)
+        cleaned_complete_report : Pandas DataFrame
+            Complete report with a MultiIndex of stats categories and statistics.
+            Columns for per90 and percentile values.
+        player_name : str
+        player_pos : str
+        minutes : int
         """
         # return -1 if the player has no scouting report
         player_link_html = urlopen(player_link).read().decode('utf8')
         if 'view complete scouting report' not in player_link_html.lower():
-            return -1, -1, -1
+            return -1, -1, -1, -1
 
-        # Get the link to the complete report
-        # self.driver.get(player_link)
-        self.get(player_link)
-        complete_report_button = self.driver.find_element(
-            By.XPATH, 
-            '/html/body/div[2]/div[6]/div[2]/div[1]/div/div/div[1]/div/ul/li[2]/a'
-        )
-        complete_report_link = complete_report_button.get_attribute('href')
-
-        
-        # self.driver.get(complete_report_link)
+        #### Get link to complete report ####
+        soup = BeautifulSoup(requests.get(player_link).content, 'lxml')
+        complete_report_link = soup\
+            .find('div', {'id': 'all_scout'})\
+            .find('div', {'class': 'section_heading_text'})\
+            .find('a', href=True)['href']
+        complete_report_link = 'https://fbref.com' + complete_report_link
         self.get(complete_report_link)
 
-        # Get the report table
-        complete_report = pd.read_html(complete_report_link)[0]
-        complete_report.columns = complete_report.columns.get_level_values(1)
-        complete_report = pd.concat([
-            pd.DataFrame(
-                data={
-                    'Statistic': ['Standard Stats','Statistic'], 
-                    'Per 90': ['Standard Stats','Per 90'], 
-                    'Percentile': ['Standard Stats', 'Percentile'],
-                }
-            ),
-            complete_report,
-        ])
-        complete_report.dropna(axis=0, inplace=True)
-        complete_report.reset_index(inplace=True, drop=True)
+        #### Load and prelim clean of complete report ####
+        soup = BeautifulSoup(requests.get(complete_report_link).content, 'lxml')
+        complete_report = pd.read_html(str(soup.find('table', {'id': re.compile(f'scout_full')})))[0] # load report
+        complete_report.columns = complete_report.columns.get_level_values(1) # drop top level column name
+        complete_report.dropna(axis=0, inplace=True) # drop nan rows
+        complete_report.reset_index(inplace=True, drop=True) # reset index
 
-        # Get the table section headers and stats to make a multiindex
-        header_idxs = [i for i in complete_report.index \
-                       if np.all(complete_report.iloc[i,:]==complete_report.iloc[i,0])]
-        header_idxs.append(complete_report.shape[0])
-        table_headers = list()
-        sub_stats = list()
-        for i in range(len(header_idxs)-1):
-            table_headers.append(complete_report.iloc[header_idxs[i],0])
-            table = complete_report.iloc[header_idxs[i]+2:header_idxs[i+1], :].T
-            sub_stats.append(list(table.iloc[0,:].values)) # sub stats are in first row
-        idx = pd.MultiIndex.from_tuples([(table_headers[i], sub_stats[i][j]) \
-                                         for i in range(len(table_headers)) \
-                                         for j in range(len(sub_stats[i]))])
+        # Row masks
+        header_row_mask = complete_report.eq(complete_report.iloc[:,0], axis=0).all(1) # rows with stats category header names
+
+        #### Create multiindex column names broken down by stats category ####
+        cleaned_complete_report = pd.DataFrame()
+        stats_categories = ('Standard',) + tuple(complete_report[header_row_mask]['Statistic'].values)
+        category_starts = [0,] + list(np.where(header_row_mask)[0]+2) # 2 to skip past category name row and col name row
+        category_ends = list(np.where(header_row_mask)[0]-1) + [complete_report.shape[0]-1]
+        for i in range(len(stats_categories)):
+            temp = complete_report.loc[category_starts[i]:category_ends[i],:]
+            temp.index = pd.MultiIndex.from_product([
+                (stats_categories[i],),
+                temp['Statistic'],
+            ])
+            cleaned_complete_report = pd.concat([cleaned_complete_report,temp])
+        # drop statistic name column, it's in the multiindex now
+        cleaned_complete_report.drop(columns='Statistic', inplace=True)
+        cleaned_complete_report['Per 90'] = cleaned_complete_report['Per 90'].str.rstrip('%').astype('float')
+        cleaned_complete_report['Percentile'] = cleaned_complete_report['Percentile'].astype(int)
         
-        # Initiate the dataframes
-        per90 = pd.DataFrame(data=-1*np.ones([1,len(idx)]), columns=idx)
-        percentiles = pd.DataFrame(data=-1*np.ones([1,len(idx)]), columns=idx)
-        
-        # Populate the dataframes
-        for i in range(len(header_idxs)-1):
-            table_header = complete_report.iloc[header_idxs[i],0]
-            table = complete_report.iloc[header_idxs[i]+2:header_idxs[i+1], :].T
-            table.columns = table.iloc[0,:]
-            table = table.reset_index(drop=True).drop(index=0)
-            for col in table.columns:
-                per90[(table_header,col)] = float(table.loc[1,col].replace('%',''))
-                percentiles[(table_header,col)] = int(table.loc[2,col])
-        
-        # add player names, positions, and minutes played
+        #### Get player names, positions, and minutes played ####
         player_name = ' '.join(complete_report_link.split('/')[-1].split('-')[:-2])
-        player_pos = self.driver.find_element(By.XPATH, '//*[@class="filter switcher"]/div/a').text.replace('vs. ', '')
-        minutes = int(self.driver.find_element(By.XPATH, '//*[@class="footer no_hide_long"]/div') \
-                .text \
-                .split(' minutes')[0] \
-                .split(' ')[-1])
-        per90['Player'] = player_name
-        per90['Position'] = player_pos
-        per90['Minutes'] = minutes
-        percentiles['Player'] = player_name
-        percentiles['Position'] = player_pos
-        percentiles['Minutes'] = minutes
+        player_pos = soup.find('div', {'id': 'all_scout'}).find('div', {'class': 'current'}).text.split('vs.')[-1].strip()
+        minutes = int(
+            soup.find('div', {'id': 'all_scout'})\
+                .find('div', {'class': 'footer no_hide_long'})\
+                .find('div')\
+                .text\
+                .split(' minutes')[0]\
+                .split(' ')[-1]
+        )
 
-        return complete_report, per90, percentiles
+        return cleaned_complete_report, player_name, player_pos, minutes
         

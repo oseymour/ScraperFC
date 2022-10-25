@@ -18,7 +18,7 @@ class FiveThirtyEight:
     ############################################################################
     def __init__(self):
         options = Options()
-#         options.headless = True
+        options.headless = True
         prefs = {"download.default_directory" : os.getcwd()}
         options.add_experimental_option("prefs",prefs)
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
