@@ -1,6 +1,6 @@
 ---
 name: ScraperFC Issue Template
-about: Issue template for new ScraperFC feature request
+about: Issue template for new ScraperFC feature requests.
 title: ''
 labels: ''
 assignees: ''
