@@ -7,38 +7,48 @@ import random
 import pandas as pd
 import numpy as np
 
-
-################################################################################
-def check_season(year, league, source):
-    """ Checks to make sure that the given league season is a valid season for\
-        the scraper.
-    
-    Args
-    ----
-    year : int
-        Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
-    league : str
-        League. Look in shared_functions.py for the available leagues for each\
-        module.
-    source : str
-        The scraper to be checked (e.g. "FBRef", "Transfermarkt, etc.). These\
-        are the ScraperFC modules.
-    Returns
-    -------
-    err : str
-        String of the error message, if there is one.
-    valid : bool
-        True if the league season is valid for the scraper. False otherwise.
-    """
-    valid = {
+# Dict of data sources, leagues, and the first year data is available for that league from that source
+# Only used by check_season(), but moved here to be able to be accessed when ScraperFC is imported
+valid_years = {
         'All': {},
         'FBRef': {
-            'EPL': 1993,
-            'La Liga': 1989,
-            'Bundesliga': 1989,
-            'Serie A': 1989,
-            'Ligue 1': 1996,
-            'MLS': 1996,
+            # Men's big 5
+            # Other mens's domestic leagues
+            # Men's international cups
+            # Men's domstic cups
+            # Women's domestic leagues
+            # Women's international cups
+            # Women's domestic leagues
+            "Women World Cup": 1991,
+            "World Cup": 1930,
+            "Copa America": 2015,
+            "Copa Libertadores": 2014,
+            "Champions League": 1991,
+            "Europa Conference League": 2022,
+            "Europa League": 1991,
+            "Euros": 2000,
+            "Women Champions League": 2015,
+            "Women Euros": 2001,
+            "MLS": 1996,
+            "NWSL": 2013,
+            "A-League Women": 2019,
+            "Brazilian Serie A": 2014,
+            "Eredivisie": 2001,
+            "EFL Championship": 2002,
+            "EPL": 1993,
+            "WSL": 2017,
+            "Women Ligue 1": 2018,
+            "Ligue 1": 1996,
+            "Bundesliga": 1989,
+            "Women Bundesliga": 2017,
+            "Women Serie A": 2019,
+            "Serie A": 1989,
+            "Liga MX": 2004,
+            "NWSL Challenge Cup": 2020,
+            "NWSL Fall Series": 2020,
+            "Primeira Liga": 2001,
+            "La Liga": 1989,
+            "Liga F": 2023,
         },
         'Understat': {
             'EPL': 2015,
@@ -96,8 +106,30 @@ def check_season(year, league, source):
             'MLS': 1996,
         },
     }
+
+################################################################################
+def check_season(year, league, source):
+    """ Checks to make sure that the given league season is a valid season for\
+        the scraper.
     
-    assert source in list(valid.keys())
+    Args
+    ----
+    year : int
+        Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+    league : str
+        League. Look in shared_functions.py for the available leagues for each\
+        module.
+    source : str
+        The scraper to be checked (e.g. "FBRef", "Transfermarkt, etc.). These\
+        are the ScraperFC modules.
+    Returns
+    -------
+    err : str
+        String of the error message, if there is one.
+    valid : bool
+        True if the league season is valid for the scraper. False otherwise.
+    """
+    assert source in list(valid_years.keys())
     error = None
     
     # make sure year is an int
@@ -106,13 +138,13 @@ def check_season(year, league, source):
         return error, False
     
     # Make sure league is a valid string for the source
-    if type(league)!=str or league not in list(valid[source].keys()):
-        error = f'League must be a string. Options are {list(valid[source].keys())}'
+    if type(league)!=str or league not in list(valid_years[source].keys()):
+        error = f'League must be a string. Options are {list(valid_years[source].keys())}'
         return error, False
     
     # Make sure the source has data from the requested league and year
-    if year < valid[source][league]:
-        error = f'{year} invalid for source {source} and league {league}. Must be {valid[source][league]} or later.'
+    if year < valid_years[source][league]:
+        error = f'{year} invalid for source {source} and league {league}. Must be {valid_years[source][league]} or later.'
         return error, False
     
     return error, True
@@ -158,7 +190,6 @@ def get_proxy():
         
 ################################################################################
 def xpath_soup(element):
-    # type: (typing.Union[bs4.element.Tag, bs4.element.NavigableString]) -> str
     """ Generate xpath from BeautifulSoup4 element.
     
     I shamelessly stole this from https://gist.github.com/ergoithz/6cf043e3fdedd1b94fcf.
