@@ -12,7 +12,7 @@ years = range(1988, 2024)
 iterator = list(itertools.product(years, leagues))
 iterator.remove((2023,'MLS'))
 
-
+########################################################################################################################
 def get_random_league_season():
     got_random = False
     while not got_random:
@@ -25,10 +25,10 @@ def get_random_league_season():
     return year, league
 
 
-################################################################################
+########################################################################################################################
 class TestFBRef:
 
-    ############################################################################
+    ####################################################################################################################
     def test_scrape_match(self):
         scraper = sfc.FBRef()
 
@@ -42,8 +42,7 @@ class TestFBRef:
             match = scraper.scrape_match(link)
 
             player_stats_columns = [
-                'Team Sheet', 'Summary', 'GK', 'Passing', 'Pass Types', 
-                'Defense', 'Possession', 'Misc'
+                'Team Sheet', 'Summary', 'GK', 'Passing', 'Pass Types', 'Defense', 'Possession', 'Misc'
             ]
             assert type(match['Link'].values[0]) is str
             assert type(match['Date'].values[0]) is datetime.date
@@ -82,12 +81,11 @@ class TestFBRef:
                 assert type(match['Shots'].values[0][c]) in [type(None), pd.core.frame.DataFrame]
 
         except Exception as E:
-            scraper.close()
             raise E
+        finally:
+            scraper.close()
 
-        scraper.close()
-
-#     ############################################################################
+#     ####################################################################################################################
 #     def test_scrape_matches(self):
 #         scraper = sfc.FBRef()
 
@@ -101,7 +99,35 @@ class TestFBRef:
 #             assert matches.shape[0] == len(match_links)
 
 #         except Exception as E:
-#             scraper.close()
-#             raise E
+        #     raise E
+        # finally:
+        #     scraper.close()
 
-#         scraper.close()
+    ####################################################################################################################
+    def test_scrape_all_stats(self):
+        scraper = sfc.FBRef()
+
+        try:
+            # Randomly pick year/league combos until a valid one
+            year, league = get_random_league_season()
+   
+            stats = scraper.scrape_all_stats(year=year, league=league)
+            stats_categories = scraper.stats_categories.keys()
+
+            for category in stats_categories:
+                assert len(stats[category]) == 3
+                squad, opponent, player = stats[category]
+
+                if squad is not None:
+                    pass
+
+                if opponent is not None:
+                    pass
+
+                if player is not None:
+                    pass
+
+        except Exception as E:
+            raise E
+        finally:
+            scraper.close()

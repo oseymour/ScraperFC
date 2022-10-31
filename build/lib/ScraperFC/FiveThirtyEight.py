@@ -18,7 +18,7 @@ class FiveThirtyEight:
     ############################################################################
     def __init__(self):
         options = Options()
-#         options.headless = True
+        options.headless = True
         prefs = {"download.default_directory" : os.getcwd()}
         options.add_experimental_option("prefs",prefs)
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
@@ -80,7 +80,6 @@ class FiveThirtyEight:
         button_xpath = xpath_soup(soup.find('div', {'dataset-name': 'soccer-spi'}))
         button = self.driver.find_element(By.XPATH, button_xpath)
         self.driver.execute_script('arguments[0].click();', button)
-        print('clicked')
                 
         # Wait for download to complete
         while not os.path.exists('soccer-spi.zip'):
