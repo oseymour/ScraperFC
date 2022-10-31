@@ -1,7 +1,7 @@
 from IPython.display import clear_output
 import numpy as np
 import pandas as pd
-from ScraperFC.shared_functions import check_season, xpath_soup
+from ScraperFC.shared_functions import check_season, xpath_soup, sources
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -131,136 +131,8 @@ class FBRef:
             print(err)
             return -1
         
-        # urls are to league's seasons history page
-        # finders are used later to make sure we're getting the right season URL
-        urls_finders = {
-            'EPL': {
-                'url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
-                'finder': 'Premier-League-Stats',
-            },
-            'La Liga': {
-                'url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
-                'finder': 'La-Liga-Stats',
-            },
-            'Bundesliga': {
-                'url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
-                'finder': 'Bundesliga-Stats',
-            },
-            'Serie A': {
-                'url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
-                'finder': 'Serie-A-Stats',
-            },
-            'Ligue 1': {
-                'url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
-                'finder': 'Ligue-1-Stats' if year>=2003 else 'Division-1-Stats',
-            },
-            'MLS': {
-                'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
-                'finder': 'Major-League-Soccer-Stats',
-            },
-            "Women World Cup": {
-                "url": "https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons",
-                "finder": "Womens-World-Cup-Stats",
-            },
-            "World Cup": {
-                "url": "https://fbref.com/en/comps/106/history/World-Cup-Seasons",
-                "finder": "World-Cup-Stats",
-            },
-            "Copa America": {
-                "url": "https://fbref.com/en/comps/685/history/Copa-America-Seasons",
-                "finder": "Copa-America-Stats",
-            },
-            "Copa Libertadores": {
-                "url": "https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons",
-                "finder": "Copa-Libertadores-Stats",
-            },
-            "Champions League": {
-                "url": "https://fbref.com/en/comps/8/history/Champions-League-Seasons",
-                "finder": "Champions-League-Stats",
-            },
-            "Europa Conference League": {
-                "url": "https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons",
-                "finder": "Europa-Conference-League-Stats",
-            },
-            "Europa League": {
-                "url": "https://fbref.com/en/comps/19/history/Europa-League-Seasons",
-                "finder": "Europa-League-Stats",
-            },
-            "Euros": {
-                "url": "https://fbref.com/en/comps/676/history/European-Championship-Seasons",
-                "finder": "European-Championship-Stats",
-            },
-            "Women Champions League": {
-                "url": "https://fbref.com/en/comps/181/history/Champions-League-Seasons",
-                "finder": "Champions-League-Stats",
-            },
-            "Women Euros": {
-                "url": "",
-                "finder": "",
-            },
-            "NWSL": {
-                "url": "",
-                "finder": "",
-            },
-            "A-League Women": {
-                "url": "",
-                "finder": "",
-            },
-            "Brazilian Serie A": {
-                "url": "",
-                "finder": "",
-            },
-            "Eredivisie": {
-                "url": "",
-                "finder": "",
-            },
-            "EFL Championship": {
-                "url": "",
-                "finder": "",
-            },
-            "WSL": {
-                "url": "",
-                "finder": "",
-            },
-            "Women Ligue 1": {
-                "url": "",
-                "finder": "",
-            },
-            "Women Bundesliga": {
-                "url": "",
-                "finder": "",
-            },
-            "Women Serie A": {
-                "url": "",
-                "finder": "",
-            },
-            "Liga MX": {
-                "url": "",
-                "finder": "",
-            },
-            "NWSL Challenge Cup": {
-                "url": "",
-                "finder": "",
-            },
-            "NWSL Fall Series": {
-                "url": "",
-                "finder": "",
-            },
-            "Primeira Liga": {
-                "url": "",
-                "finder": "",
-            },
-            "Liga F": {
-                "url": "",
-                "finder": "",
-            },
-            "": {
-                "url": "",
-                "finder": "",
-            },
-        }
-        url = urls_finders[league]['url']
-        finder = urls_finders[league]['finder']
+        url = sources["FBRef"][league]['url']
+        finder = sources["FBRef"][league]['finder']
         
         # go to the league's history page
         response = self.requests_get(url)
@@ -271,9 +143,7 @@ class FBRef:
            
         # Get url to season
         for tag in soup.find_all('th', {'data-stat': 'year_id'}):
-            if tag.find('a') \
-                    and finder in tag.find('a')['href'] \
-                    and tag.getText()==season:
+            if tag.find('a') and np.any([f in tag.find('a')['href'] for f in finder]) and tag.getText()==season:
                 return 'https://fbref.com'+tag.find('a')['href']
             
         return -1 # if season URL is not found
