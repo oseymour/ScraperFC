@@ -6,7 +6,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.firefox import GeckoDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
 from urllib.request import urlopen
 import requests
 from bs4 import BeautifulSoup
@@ -21,13 +21,10 @@ class FBRef:
     """
     
     ############################################################################
-    def __init__(self): #, driver='chrome'):
-        # assert driver in ['chrome', 'firefox']
+    def __init__(self):
  
-        self.wait_time = 5
+        self.wait_time = 6 # in seconds, as of 30-Oct-2022 FBRef blocks if requesting more than 20 requests/minute
 
-        #if driver == 'chrome':
-        from selenium.webdriver.chrome.service import Service as ChromeService
         options = Options()
         options.headless = True
         options.add_argument(
@@ -44,9 +41,6 @@ class FBRef:
             service=ChromeService(ChromeDriverManager().install()),
             options=options
         )
-#         elif driver == 'firefox':
-#             from selenium.webdriver.chrome.service import Service as FirefoxService
-#             self.driver = webdriver.Firefox(service=FirefoxService(GeckoDriverManager().install()))
 
         self.stats_categories = {
             'standard': {'url': 'stats', 'html': 'standard',},
@@ -164,6 +158,106 @@ class FBRef:
                 'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
                 'finder': 'Major-League-Soccer-Stats',
             },
+            "Women World Cup": {
+                "url": "https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons",
+                "finder": "Womens-World-Cup-Stats",
+            },
+            "World Cup": {
+                "url": "https://fbref.com/en/comps/106/history/World-Cup-Seasons",
+                "finder": "World-Cup-Stats",
+            },
+            "Copa America": {
+                "url": "https://fbref.com/en/comps/685/history/Copa-America-Seasons",
+                "finder": "Copa-America-Stats",
+            },
+            "Copa Libertadores": {
+                "url": "https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons",
+                "finder": "Copa-Libertadores-Stats",
+            },
+            "Champions League": {
+                "url": "https://fbref.com/en/comps/8/history/Champions-League-Seasons",
+                "finder": "Champions-League-Stats",
+            },
+            "Europa Conference League": {
+                "url": "https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons",
+                "finder": "Europa-Conference-League-Stats",
+            },
+            "Europa League": {
+                "url": "https://fbref.com/en/comps/19/history/Europa-League-Seasons",
+                "finder": "Europa-League-Stats",
+            },
+            "Euros": {
+                "url": "https://fbref.com/en/comps/676/history/European-Championship-Seasons",
+                "finder": "European-Championship-Stats",
+            },
+            "Women Champions League": {
+                "url": "https://fbref.com/en/comps/181/history/Champions-League-Seasons",
+                "finder": "Champions-League-Stats",
+            },
+            "Women Euros": {
+                "url": "",
+                "finder": "",
+            },
+            "NWSL": {
+                "url": "",
+                "finder": "",
+            },
+            "A-League Women": {
+                "url": "",
+                "finder": "",
+            },
+            "Brazilian Serie A": {
+                "url": "",
+                "finder": "",
+            },
+            "Eredivisie": {
+                "url": "",
+                "finder": "",
+            },
+            "EFL Championship": {
+                "url": "",
+                "finder": "",
+            },
+            "WSL": {
+                "url": "",
+                "finder": "",
+            },
+            "Women Ligue 1": {
+                "url": "",
+                "finder": "",
+            },
+            "Women Bundesliga": {
+                "url": "",
+                "finder": "",
+            },
+            "Women Serie A": {
+                "url": "",
+                "finder": "",
+            },
+            "Liga MX": {
+                "url": "",
+                "finder": "",
+            },
+            "NWSL Challenge Cup": {
+                "url": "",
+                "finder": "",
+            },
+            "NWSL Fall Series": {
+                "url": "",
+                "finder": "",
+            },
+            "Primeira Liga": {
+                "url": "",
+                "finder": "",
+            },
+            "Liga F": {
+                "url": "",
+                "finder": "",
+            },
+            "": {
+                "url": "",
+                "finder": "",
+            },
         }
         url = urls_finders[league]['url']
         finder = urls_finders[league]['finder']
@@ -217,11 +311,11 @@ class FBRef:
         # Get links to all of the matches in that season
         finders = {
             'EPL': '-Premier-League',
-           'La Liga': '-La-Liga',
-           'Bundesliga': '-Bundesliga',
-           'Serie A': '-Serie-A',
-           'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
-           'MLS': '-Major-League-Soccer'
+            'La Liga': '-La-Liga',
+            'Bundesliga': '-Bundesliga',
+            'Serie A': '-Serie-A',
+            'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
+            'MLS': '-Major-League-Soccer'
         }
         finder = finders[league]
         
@@ -487,6 +581,7 @@ class FBRef:
         response = self.requests_get(link)
         soup = BeautifulSoup(response.content, 'html.parser')
         
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Matchweek ####
         matchweek_el = list(soup.find('a', {'href': re.compile('-Stats')}, string=True).parents)[0]
         if '-Major-League-Soccer' in link:
@@ -507,6 +602,7 @@ class FBRef:
                 .strip()
             )
 
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Team names and ids ####
         team_els = [
             el.find('a') \
@@ -519,12 +615,15 @@ class FBRef:
         away_team_name = team_els[1].getText()
         away_team_id   = team_els[1]['href'].split('/')[3]
         
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Scores ####
         scores = soup.find('div', {'class': 'scorebox'}).find_all('div', {'class': 'score'})
 
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Formations ####
         lineup_tags = [tag.find('table') for tag in soup.find_all('div', {'class': 'lineup'})]
         
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Player stats ####
         # Use table ID's to find the appropriate table. More flexible than xpath
         player_stats = dict()
@@ -560,6 +659,7 @@ class FBRef:
             
             lineup_df = pd.read_html(str(lineup_tags[i]))[0] if len(lineup_tags)!=0 else None
             
+            #-------------------------------------------------------------------
             #### Field player ID's for the stats tables ####
             if summary_df is not None:
                 player_ids = [
@@ -582,7 +682,8 @@ class FBRef:
                     possession_df['Player ID'] = player_ids
                 if misc_df is not None:
                     misc_df['Player ID'] = player_ids
-            
+
+            #-------------------------------------------------------------------
             #### GK ID's ####
             if gk_df is not None:
                 gk_ids = [
@@ -594,6 +695,7 @@ class FBRef:
                 
                 gk_df['Player ID'] = gk_ids
 
+            #-------------------------------------------------------------------
             #### Build player stats dict ####
             # This will be turned into a Series and then put into the match dataframe
             player_stats[team] = {
@@ -607,7 +709,7 @@ class FBRef:
                 'Misc': misc_df,
             }
             
-
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Shots ####
         both_shots = soup.find_all('table', {'id': 'shots_all'})
         if len(both_shots) == 1:
@@ -628,6 +730,7 @@ class FBRef:
         else:
             away_shots = None
             
+        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         #### Expected stats flag ####
         expected = 'Expected' in player_stats['Home']['Summary'].columns.get_level_values(0)
 
@@ -638,7 +741,7 @@ class FBRef:
         match['Date'] = datetime.strptime(
             str(soup.find('h1'))
                 .split('<br/>')[0]
-                .split('–')[-1] # not a normal dash, 
+                .split('–')[-1] # not a normal dash
                 .replace('</h1>','')
                 .split('(')[0]
                 .strip(),
@@ -665,17 +768,13 @@ class FBRef:
         match['Away xG'] = player_stats['Away']['Summary'][('Expected','xG')].values[-1] if expected else None
         match['Home npxG'] = player_stats['Home']['Summary'][('Expected','npxG')].values[-1] if expected else None
         match['Away npxG'] = player_stats['Away']['Summary'][('Expected','npxG')].values[-1] if expected else None
-        match['Home xA']   = player_stats['Home']['Summary'][('Expected','xA')].values[-1] if expected else None
-        match['Away xA']   = player_stats['Away']['Summary'][('Expected','xA')].values[-1] if expected else None
+        match['Home xAG'] = player_stats['Home']['Summary'][('Expected','xAG')].values[-1] if expected else None
+        match['Away xAG'] = player_stats['Away']['Summary'][('Expected','xAG')].values[-1] if expected else None
         match['Home Player Stats'] = pd.Series(player_stats['Home'])
         match['Away Player Stats'] = pd.Series(player_stats['Away'])
-        match['Shots'] = pd.Series({
-            'Both': both_shots,
-            'Home': home_shots,
-            'Away': away_shots,
-        })
+        match['Shots'] = pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots,})
         
-        match = match.to_frame().T
+        match = match.to_frame().T # series to dataframe
         
         return match
     
