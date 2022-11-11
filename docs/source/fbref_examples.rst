@@ -38,7 +38,7 @@ And here is the output.
 Match stats
 ***********
 
-In this code block, we're scrpaing data from an FBRef match page. The example 
+In this code block, we're scraping data from an FBRef match page. The example 
 I've chosen is So'ton 2:5 Tottenham from 20 Sept, 2020.
 
 .. code-block:: python
