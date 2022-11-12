@@ -7,79 +7,85 @@ import random
 import pandas as pd
 import numpy as np
 
-# Dict of data sources, leagues, and the first year data is available for that league from that source
-# Only used by check_season(), but moved here to be able to be accessed when ScraperFC is imported
+# Dict of data sources and leagues for each source
 sources = {
         'All': {},
         'FBRef': {
+            # Each competition gets its first valid year (from the competition seasons history page on fbref), the url
+            # to the season history page, and the "finder" which is used to find the season and match links in HTML
             #################################
             # Men's club international cups #
             #################################
             "Copa Libertadores": {
                 "first valid year": 2014,
                 "url": "https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons",
-                "finder": ["Copa-Libertadores-Stats"],
+                "finder": ["Copa-Libertadores"],
             },
             "Champions League": {
                 "first valid year": 1991,
                 "url": "https://fbref.com/en/comps/8/history/Champions-League-Seasons",
-                "finder": "Champions-League-Stats",
+                "finder": ["European-Cup", "Champions-League"],
             },
             "Europa League": {
                 "first valid year": 1991,
                 "url": "https://fbref.com/en/comps/19/history/Europa-League-Seasons",
-                "finder": ["Europa-League-Stats"],
+                "finder": ["UEFA-Cup", "Europa-League"],
             },
             "Europa Conference League": {
                 "first valid year": 2022,
                 "url": "https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons",
-                "finder": ["Europa-Conference-League-Stats"],
+                "finder": ["Europa-Conference-League"],
             },
             ####################################
             # Men's national team competitions #
             ####################################
             "World Cup": {
                 "first valid year": 1930,
-                "url": "https://fbref.com/en/comps/106/history/World-Cup-Seasons",
-                "finder": ["World-Cup-Stats"],
+                "url": "https://fbref.com/en/comps/1/history/World-Cup-Seasons",
+                "finder": ["World-Cup"],
             },
             "Copa America": {
                 "first valid year": 2015,
                 "url": "https://fbref.com/en/comps/685/history/Copa-America-Seasons",
-                "finder": ["Copa-America-Stats"],
+                "finder": ["Copa-America"],
             },
             "Euros": {
                 "first valid year": 2000,
                 "url": "https://fbref.com/en/comps/676/history/European-Championship-Seasons",
-                "finder": ["European-Championship-Stats"],
+                "finder": ["UEFA-Euro", "European-Championship"],
             },
             ###############
             # Men's big 5 #
             ###############
+            "Big 5 combined": {
+                "first valid year": 1996,
+                "url": "https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons",
+                "finder": ["Big-5-European-Leagues"],
+            },
             "EPL": {
                 "first valid year": 1993,
                 'url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
-                'finder': ['Premier-League-Stats'],
+                'finder': ["Premier-League"],
             },
             "Ligue 1": {
                 "first valid year": 1996,
                 'url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
-                'finder': ['Ligue-1-Stats', 'Division-1-Stats'],
+                'finder': ['Ligue-1', 'Division-1'],
             },
             "Bundesliga": {
                 "first valid year": 1989,
                 'url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
-                'finder': ['Bundesliga-Stats'],
+                'finder': ['Bundesliga'],
             },
             "Serie A": {
                 "first valid year": 1989,
                 'url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
-                'finder': ['Serie-A-Stats'],
+                'finder': ['Serie-A'],
             },
             "La Liga": {
                 "first valid year": 1989,
                 'url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
-                'finder': ['La-Liga-Stats'],
+                'finder': ['La-Liga'],
             },
             #####################################
             # Men's domestic leagues - 1st tier #
@@ -87,27 +93,27 @@ sources = {
             "MLS": {
                 "first valid year": 1996,
                 'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
-                'finder': ['Major-League-Soccer-Stats'],
+                'finder': ['Major-League-Soccer'],
             },
             "Brazilian Serie A": {
                 "first valid year": 2014,
                 "url": "https://fbref.com/en/comps/24/history/Serie-A-Seasons",
-                "finder": ["Serie-A-Stats"],
+                "finder": ["Serie-A"],
             },
             "Eredivisie": {
                 "first valid year": 2001,
                 "url": "https://fbref.com/en/comps/23/history/Eredivisie-Seasons",
-                "finder": ["Eredivisie-Stats"],
+                "finder": ["Eredivisie"],
             },
             "Liga MX": {
                 "first valid year": 2004,
                 "url": "https://fbref.com/en/comps/31/history/Liga-MX-Seasons",
-                "finder": ["Liga-MX-Stats"],
+                "finder": ["Primera-Division", "Liga-MX"],
             },
             "Primeira Liga": {
                 "first valid year": 2001,
                 "url": "https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons",
-                "finder": ["Primeira-Liga-Stats"],
+                "finder": ["Primeira-Liga"],
             },
             ####################################
             # Men's domestic league - 2nd tier #
@@ -115,31 +121,34 @@ sources = {
             "EFL Championship": {
                 "first valid year": 2002,
                 "url": "https://fbref.com/en/comps/10/history/Championship-Seasons",
-                "finder": ["Championship-Stats"],
+                "finder": ["First-Division", "Championship"],
             },
             ##############################################
             # Men's domestic league - 3rd tier and lower #
             ##############################################
+            #######################
+            # Men's domestic cups #
+            #######################
             #########################################
             # Women's internation club competitions #
             #########################################
             "Women Champions League": {
                 "first valid year": 2015,
                 "url": "https://fbref.com/en/comps/181/history/Champions-League-Seasons",
-                "finder": ["Champions-League-Stats"],
+                "finder": ["Champions-League"],
             },
             ######################################
             # Women's national team competitions #
             ######################################
-            "Women World Cup": {
+            "Womens World Cup": {
                 "first valid year": 1991,
                 "url": "https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons",
-                "finder": ["Womens-World-Cup-Stats"],
+                "finder": ["Womens-World-Cup"],
             },
-            "Women Euros": {
+            "Womens Euros": {
                 "first valid year": 2001,
                 "url": "https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons",
-                "finder": ["UEFA-Womens-Euro-Stats"],
+                "finder": ["UEFA-Womens-Euro"],
             },
             ############################
             # Women's domestic leagues #
@@ -147,50 +156,50 @@ sources = {
             "NWSL": {
                 "first valid year": 2013,
                 "url": "https://fbref.com/en/comps/182/history/NWSL-Seasons",
-                "finder": ["NWSL-Stats"],
+                "finder": ["NWSL"],
             },
             "A-League Women": {
                 "first valid year": 2019,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/196/history/A-League-Women-Seasons",
+                "finder": ["A-League-Women"],
             },
             "WSL": {
                 "first valid year": 2017,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons",
+                "finder": ["Womens-Super-League-1"],
             },
-            "Women Ligue 1": {
+            "D1 Feminine": {
                 "first valid year": 2018,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons",
+                "finder": ["Division-1-Feminine"],
             },
-            "Women Bundesliga": {
+            "Womens Bundesliga": {
                 "first valid year": 2017,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons",
+                "finder": ["Frauen-Bundesliga"],
             },
-            "Women Serie A": {
+            "Womens Serie A": {
                 "first valid year": 2019,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/208/history/Serie-A-Seasons",
+                "finder": ["Serie-A"],
             },
             "Liga F": {
                 "first valid year": 2023,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/230/history/Liga-F-Seasons",
+                "finder": ["Liga-F"],
             },
             #########################
             # Women's domestic cups #
             #########################
             "NWSL Challenge Cup": {
                 "first valid year": 2020,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons",
+                "finder": ["NWSL-Challenge-Cup"],
             },
             "NWSL Fall Series": {
                 "first valid year": 2020,
-                "url": "",
-                "finder": [],
+                "url": "https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons",
+                "finder": ["NWSL-Fall-Series"],
             },
         },
         'Understat': {
@@ -273,12 +282,33 @@ def check_season(year, league, source):
         True if the league season is valid for the scraper. False otherwise.
     """
     assert source in list(sources.keys())
-    error = None
     
     # make sure year is an int
     if type(year) != int:
         error = "Year needs to be an integer."
         return error, False
+
+    # # make sure the year is valid for international tournaments
+    # if source == "FBRef":
+    #     if league=="World Cup" and ((2018-year)%4 != 0 or year in [1942, 1946]):
+    #         # 1942 and 1946 world cups were cancelled due to WWII
+    #         error = f"There was no men's world cup in {year}."
+    #         return error, False
+    #     elif league=="Copa America" and (2015-year)%4 != 0 and year!=2016:
+    #         # 2016 copa america was the centenario, no tournament the year after
+    #         error = f"There was no Copa America in {year}."
+    #         return error, False
+    #     elif league=="Euros" and (2000-year)%4!=0 and year!=2021 or year==2020:
+    #         # 2020 euros was moved to 2021 due to COVID-19
+    #         error = f"There were no men's Euros in {year}"
+    #         return error, False
+    #     elif league=="Womens World Cup" and (1991-year)%4!=0:
+    #         error = f"There was no wommen's world cup in {year}."
+    #         return error, False
+    #     elif league=="Womens Euros" and (2001-year)%4!=0 and year!=2022 or year==2021:
+    #         # 2021 womens euros was moved to 2022 due to COVID-19
+    #         error = f"There were no women's Euros in {year}"
+    #         return error, False
     
     # Make sure league is a valid string for the source
     if type(league)!=str or league not in list(sources[source].keys()):
@@ -291,7 +321,7 @@ def check_season(year, league, source):
             f"Must be {sources[source][league]['first valid year']} or later."
         return error, False
     
-    return error, True
+    return None, True
 
 ################################################################################
 def get_proxy():

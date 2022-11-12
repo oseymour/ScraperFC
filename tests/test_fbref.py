@@ -62,8 +62,8 @@ class TestFBRef:
             assert type(match['Away xG'].values[0]) in [type(None), float]
             assert type(match['Home npxG'].values[0]) in [type(None), float]
             assert type(match['Away npxG'].values[0]) in [type(None), float]
-            assert type(match['Home xA'].values[0]) in [type(None), float]
-            assert type(match['Away xA'].values[0]) in [type(None), float]
+            assert type(match['Home xAG'].values[0]) in [type(None), float]
+            assert type(match['Away xAG'].values[0]) in [type(None), float]
         
             assert type(match['Home Player Stats'].values[0]) is pd.core.series.Series
             assert list(match['Home Player Stats'].values[0].keys()) == player_stats_columns

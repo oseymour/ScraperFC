@@ -129,22 +129,23 @@ class FBRef:
         err, valid = check_season(year,league,'FBRef')
         if not valid:
             print(err)
-            return -1
+            return None
         
-        url = sources["FBRef"][league]['url']
-        finder = sources["FBRef"][league]['finder']
+        url = sources["FBRef"][league]["url"]
+        finder = sources["FBRef"][league]["finder"]
         
         # go to the league's history page
         response = self.requests_get(url)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
         
-        # Generate season string to find right element
-        season = str(year-1)+'-'+str(year) if league!='MLS' else str(year)
+        calendar_years = [str(year-1)+'-'+str(year), str(year)] # list of 1- and 2-calendar years strings to work for any competition
            
         # Get url to season
-        for tag in soup.find_all('th', {'data-stat': 'year_id'}):
-            if tag.find('a') and np.any([f in tag.find('a')['href'] for f in finder]) and tag.getText()==season:
-                return 'https://fbref.com'+tag.find('a')['href']
+        for tag in soup.find_all("th", {"data-stat": ["year", "year_id"]}):
+            finder_found = np.any([f in tag.find("a")["href"] for f in finder if tag.find("a")]) # bool, if any finders are found in tag
+            season_found = np.any([tag.getText()==s for s in calendar_years]) # bool, if 1- or 2-calendar years are found in tag
+            if tag.find("a") and finder_found and season_found:
+                return "https://fbref.com"+tag.find("a")["href"]
             
         return -1 # if season URL is not found
     
@@ -165,8 +166,16 @@ class FBRef:
         : list
             FBRef links to all matches for the chosen league season
         """
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return None
+
         print('Gathering match links.')
         season_link = self.get_season_link(year, league)
+        if season_link == -1:
+            print(f"No {league} {year} season is available on FBRef.")
+            return None
         
         # go to the scores and fixtures page
         split = season_link.split('/')
@@ -174,27 +183,21 @@ class FBRef:
         second_half = split[-1].split('-')
         second_half = '-'.join(second_half[:-1])+'-Score-and-Fixtures'
         fixtures_url = first_half+'/schedule/'+second_half
-        
         response = self.requests_get(fixtures_url)
         soup = BeautifulSoup(response.content, 'html.parser')
+
+        # check if there are any scores elements with links. if not, no match links are present
+        scores_links = [t.find(href=True) for t in soup.find_all("td", {"data-stat": "score"}) if t.find(href=True)]
+        if len(scores_links) == 0:
+            print(f"No match score elements with links found at {fixtures_url} for {league} {year}.")
+            return None
         
-        # Get links to all of the matches in that season
-        finders = {
-            'EPL': '-Premier-League',
-            'La Liga': '-La-Liga',
-            'Bundesliga': '-Bundesliga',
-            'Serie A': '-Serie-A',
-            'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
-            'MLS': '-Major-League-Soccer'
-        }
-        finder = finders[league]
-        
+        # find all of the match links from the scores and fixtures page that have the sources finder
+        finders = sources["FBRef"][league]["finder"]
         match_links = [
-            'https://fbref.com'+tag.find('a')['href'] 
-            for tag 
-            in soup.find_all('td', {'data-stat': 'score'}) 
-            if tag.find('a') 
-            and finder in tag.find('a')['href']
+            "https://fbref.com"+t["href"] 
+            for t in scores_links 
+            if t and np.any([f in t["href"] for f in finders])
         ]
         
         return match_links
