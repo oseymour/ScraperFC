@@ -1,5 +1,5 @@
-![alt text](https://github.com/oseymour/ScraperFC/blob/main/scraperfc_logo.png?raw=true)
 <p align="center">
+  ![alt text](https://github.com/oseymour/ScraperFC/blob/main/scraperfc_logo.png?raw=true)
   <a href="https://pypi.org/project/ScraperFC/"><img src="https://img.shields.io/pypi/v/scraperfc.svg", alt="pypi version badge"></a>
   <a href="https://pypi.org/project/ScraperFC/"><img src="https://static.pepy.tech/badge/scraperfc" alt="downloads badge"/></a>
   <a href="https://scraperfc.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/nrc4d/badge/?version=latest" alt="documentation status badge"/></a>
