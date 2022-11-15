@@ -1,12 +1,12 @@
 import setuptools
 
-with open('README.md', 'r', encoding='utf-8') as f:
+with open("README.md", "r", encoding="utf-8") as f:
     long_description = f.read()
     
 setuptools.setup(
-    name = 'ScraperFC',
-    version = '2.2.3',
-    author = 'Owen Seymour',
+    name = "ScraperFC",
+    version = "2.3.0",
+    author = "Owen Seymour",
     author_email = 'osmour043@gmail.com',
     description = 'Package for scraping soccer data from a variety of sources.',
     long_description = long_description,
@@ -17,8 +17,8 @@ setuptools.setup(
         'soccer', 'football', 'Premier League', 'Serie A', 'La Liga', 
         'Bundesliga', 'Ligue 1', 'web scraping', 'soccer data', 
         'soccer stats', 'football data', 'football stats',
-        'web scraping soccer stats', 'webscraping football stats',
-        'webscraping soccer data', 'webscraping football data',
+        'web scraping soccer stats', 'web scraping football stats',
+        'web scraping soccer data', 'web scraping football data',
     ],
     install_requires = [
         'selenium', 'webdriver-manager', 'pandas', 'numpy', 'datetime',

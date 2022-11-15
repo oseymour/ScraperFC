@@ -309,7 +309,6 @@ class Understat:
         matches = pd.DataFrame()
         
         for link in tqdm(links):
-#             print(link)
             match   = self.scrape_match(link)
             matches = pd.concat([matches, match], ignore_index=True, axis=0)
         

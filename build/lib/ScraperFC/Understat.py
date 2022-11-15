@@ -91,6 +91,10 @@ class Understat:
         for el in self.driver.find_elements(By.CLASS_NAME, "match-info"):
             links.add(el.get_attribute("href"))
                 
+        # Remove Nones from the list of links 
+        links = np.array(list(links))
+        links = links[links!=None]
+
         return list(links)
     
     ############################################################################
@@ -179,7 +183,7 @@ class Understat:
 
         Returns
         -------
-        match : Pandas Series
+        match : Pandas DataFrame
             The match stats
         """
         self.driver.get(link)
@@ -188,7 +192,7 @@ class Understat:
         for element in self.driver.find_elements(By.CLASS_NAME, "progress-value"):
             elements.append(element.get_attribute("innerHTML"))
 
-        match = pd.Series()
+        match = pd.Series(dtype=object)
         
         # Match date and ID
         for element in self.driver.find_elements(By.CLASS_NAME, "breadcrumb"):
@@ -252,10 +256,7 @@ class Understat:
 
         #### Get the team sum stats that weren't gathered in the team stats table ####
         for team, temp in (("home", home_player_df), ("away", away_player_df)):
-            for stat, column in (("key passes","KP"), 
-                                 ("xa","xA"), 
-                                 ("xgchain","xGChain"), 
-                                 ("xgbuildup","xGBuildup")):
+            for stat, column in (("key passes","KP"), ("xa","xA"), ("xgchain","xGChain"),  ("xgbuildup","xGBuildup")):
                 match[f"{team} {stat}"] = self.remove_diff(str(temp.loc[temp.index[-1], column]))
 
         #### Remove No column, remove sum row, and remove diffs on xG and xA columns ####
@@ -271,7 +272,7 @@ class Understat:
         match["home player stats"] = home_player_df
         match["away player stats"] = away_player_df
         
-        return match
+        return match.to_frame().T
         
         
     ############################################################################    
@@ -310,7 +311,7 @@ class Understat:
         for link in tqdm(links):
 #             print(link)
             match   = self.scrape_match(link)
-            matches = matches.append(match, ignore_index=True)
+            matches = pd.concat([matches, match], ignore_index=True, axis=0)
         
         # save to CSV if requested by user
         if save:
