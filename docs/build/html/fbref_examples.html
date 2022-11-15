@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="ScraperFC modules" href="ScraperFC.html" />
+    <link rel="next" title="Understat Examples" href="understat_examples.html" />
     <link rel="prev" title="Installation" href="installation.html" /> 
 </head>
 
@@ -51,6 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#player-scout-reports">Player Scout Reports</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="understat_examples.html">Understat Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ScraperFC.html">ScraperFC modules</a></li>
 </ul>
 
@@ -96,10 +97,10 @@ Premier League season from FBRef.</p>
     <span class="c1"># Catch and print any exceptions. This allows us to still close the</span>
     <span class="c1"># scraper below, even if an exception occurs.</span>
     <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
-
-<span class="c1"># It&#39;s important to close the scraper when you&#39;re done with it. Otherwise,</span>
-<span class="c1"># you&#39;ll have a bunch of webdrivers open and running in the background.</span>
-<span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="c1"># It&#39;s important to close the scraper when you&#39;re done with it. Otherwise,</span>
+    <span class="c1"># you&#39;ll have a bunch of webdrivers open and running in the background.</span>
+    <span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>And here is the output.</p>
@@ -108,7 +109,7 @@ Premier League season from FBRef.</p>
 <hr class="docutils" />
 <section id="match-stats">
 <h2>Match stats<a class="headerlink" href="#match-stats" title="Permalink to this heading"></a></h2>
-<p>In this code block, we’re scrpaing data from an FBRef match page. The example
+<p>In this code block, we’re scraping data from an FBRef match page. The example
 I’ve chosen is So’ton 2:5 Tottenham from 20 Sept, 2020.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ScraperFC</span> <span class="k">as</span> <span class="nn">sfc</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
@@ -122,9 +123,9 @@ I’ve chosen is So’ton 2:5 Tottenham from 20 Sept, 2020.</p>
 <span class="k">except</span><span class="p">:</span>
     <span class="c1"># Catch and print any exceptions.</span>
     <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
-
-<span class="c1"># Again, make sure to close the scraper when you&#39;re done</span>
-<span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="c1"># Again, make sure to close the scraper when you&#39;re done</span>
+    <span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 </pre></div>
 </div>
 <p>The output of <code class="docutils literal notranslate"><span class="pre">scrape_match()</span></code> can be a little confusing, but it contains a
@@ -167,7 +168,7 @@ a shot in the match, they won’t have a DataFrame in this Series.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="ScraperFC.html" class="btn btn-neutral float-right" title="ScraperFC modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="understat_examples.html" class="btn btn-neutral float-right" title="Understat Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

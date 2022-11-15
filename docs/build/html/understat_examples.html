@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Understat Examples &mdash; ScraperFC 2.1.2 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ScraperFC modules" href="ScraperFC.html" />
+    <link rel="prev" title="FBRef Examples" href="fbref_examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> ScraperFC
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="fbref_examples.html">FBRef Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Understat Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#league-table">League table</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shot-xy-locations-and-data">Shot XY Locations and Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#attack-speeds">Attack Speeds</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ScraperFC.html">ScraperFC modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">ScraperFC</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+      <li>Understat Examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/understat_examples.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="understat-examples">
+<h1>Understat Examples<a class="headerlink" href="#understat-examples" title="Permalink to this heading"></a></h1>
+<section id="league-table">
+<h2>League table<a class="headerlink" href="#league-table" title="Permalink to this heading"></a></h2>
+<p>Similar to FBRef you can scrape the league table from Understat. The code below scrapes the 2022/23 La Liga table.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ScraperFC</span> <span class="k">as</span> <span class="nn">sfc</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="c1"># Initialize the Understat scraper</span>
+<span class="n">scraper</span> <span class="o">=</span> <span class="n">sfc</span><span class="o">.</span><span class="n">Understat</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Scrape the table</span>
+    <span class="n">lg_table</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">scrape_league_table</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2023</span><span class="p">,</span> <span class="n">league</span><span class="o">=</span><span class="s2">&quot;La Liga&quot;</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="c1"># Catch and print any exceptions. This allows us to still close the</span>
+    <span class="c1"># scraper below, even if an exception occurs.</span>
+    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="c1"># It&quot;s important to close the scraper when you&quot;re done with it. Otherwise,</span>
+    <span class="c1"># you&quot;ll have a bunch of webdrivers open and running in the background.</span>
+    <span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The league table from Understat has a lot more advanced metrics than the one from FBRef, however. The screenshot below
+was taken from code run on 14 Nov 2022.</p>
+<img alt="_images/understat_league_table_example.png" src="_images/understat_league_table_example.png" />
+</section>
+<section id="shot-xy-locations-and-data">
+<h2>Shot XY Locations and Data<a class="headerlink" href="#shot-xy-locations-and-data" title="Permalink to this heading"></a></h2>
+<p>One really valuable dataset on Understat is their shot location data, and other data associated with the shot. The code
+below scrapes the shot maps of all matches from the 2022/23 La Liga season.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ScraperFC</span> <span class="k">as</span> <span class="nn">sfc</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+
+<span class="c1"># Initialize the Understat scraper</span>
+<span class="n">scraper</span> <span class="o">=</span> <span class="n">sfc</span><span class="o">.</span><span class="n">Understat</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Scrape the table</span>
+    <span class="n">lg_table</span> <span class="o">=</span> <span class="n">scraper</span><span class="o">.</span><span class="n">scrape_shot_xy</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="mi">2023</span><span class="p">,</span> <span class="n">league</span><span class="o">=</span><span class="s2">&quot;La Liga&quot;</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="c1"># Catch and print any exceptions. This allows us to still close the</span>
+    <span class="c1"># scraper below, even if an exception occurs.</span>
+    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="c1"># It&quot;s important to close the scraper when you&quot;re done with it. Otherwise,</span>
+    <span class="c1"># you&quot;ll have a bunch of webdrivers open and running in the background.</span>
+    <span class="n">scraper</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>This function returns a dict. The keys are Understat match ID”s, the values for each match is another dict. This second
+dict contains 2 lists, one for all of the home team shots and another for all of the away team shots. See the example
+below, which summarizes data scraped a match between Barcelona and Athletic Club (match ID 19065).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">shots</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;19065&quot;</span><span class="p">:</span>
+        <span class="s2">&quot;h&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;495925&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;minute&quot;</span><span class="p">:</span> <span class="s2">&quot;11&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;SavedShot&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="s2">&quot;0.8019999694824219&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="s2">&quot;0.3240000152587891&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;xG&quot;</span><span class="p">:</span> <span class="s2">&quot;0.026046590879559517&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;player&quot;</span><span class="p">:</span> <span class="s2">&quot;Ousmane Dembélé&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;h_a&quot;</span><span class="p">:</span> <span class="s2">&quot;h&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;player_id&quot;</span><span class="p">:</span> <span class="s2">&quot;3226&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;situation&quot;</span><span class="p">:</span> <span class="s2">&quot;OpenPlay&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;season&quot;</span><span class="p">:</span> <span class="s2">&quot;2022&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;shotType&quot;</span><span class="p">:</span> <span class="s2">&quot;LeftFoot&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;match_id&quot;</span><span class="p">:</span> <span class="s2">&quot;19065&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;h_team&quot;</span><span class="p">:</span> <span class="s2">&quot;Barcelona&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;a_team&quot;</span><span class="p">:</span> <span class="s2">&quot;Athletic Club&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;h_goals&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;a_goals&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2022-10-23 19:00:00&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;player_assisted&quot;</span><span class="p">:</span> <span class="s2">&quot;Pedri&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;lastAction&quot;</span><span class="p">:</span> <span class="s2">&quot;Pass&quot;</span>
+            <span class="p">},</span>
+            <span class="c1"># more home shots</span>
+        <span class="p">],</span>
+        <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;495930&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;minute&quot;</span><span class="p">:</span> <span class="s2">&quot;40&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="s2">&quot;BlockedShot&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;X&quot;</span><span class="p">:</span> <span class="s2">&quot;0.759000015258789&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Y&quot;</span><span class="p">:</span> <span class="s2">&quot;0.5059999847412109&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;xG&quot;</span><span class="p">:</span> <span class="s2">&quot;0.026612039655447006&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;player&quot;</span><span class="p">:</span> <span class="s2">&quot;Iñaki Williams&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;h_a&quot;</span><span class="p">:</span> <span class="s2">&quot;a&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;player_id&quot;</span><span class="p">:</span> <span class="s2">&quot;2399&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;situation&quot;</span><span class="p">:</span> <span class="s2">&quot;OpenPlay&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;season&quot;</span><span class="p">:</span> <span class="s2">&quot;2022&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;shotType&quot;</span><span class="p">:</span> <span class="s2">&quot;RightFoot&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;match_id&quot;</span><span class="p">:</span> <span class="s2">&quot;19065&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;h_team&quot;</span><span class="p">:</span> <span class="s2">&quot;Barcelona&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;a_team&quot;</span><span class="p">:</span> <span class="s2">&quot;Athletic Club&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;h_goals&quot;</span><span class="p">:</span> <span class="s2">&quot;4&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;a_goals&quot;</span><span class="p">:</span> <span class="s2">&quot;0&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;date&quot;</span><span class="p">:</span> <span class="s2">&quot;2022-10-23 19:00:00&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;player_assisted&quot;</span><span class="p">:</span> <span class="s2">&quot;Nico Williams&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;lastAction&quot;</span><span class="p">:</span> <span class="s2">&quot;BallTouch&quot;</span>
+            <span class="p">},</span>
+            <span class="c1"># more away shots</span>
+        <span class="p">],</span>
+    <span class="p">},</span>
+    <span class="c1"># more matches</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="attack-speeds">
+<h2>Attack Speeds<a class="headerlink" href="#attack-speeds" title="Permalink to this heading"></a></h2>
+<p>COMING SOON</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="fbref_examples.html" class="btn btn-neutral float-left" title="FBRef Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ScraperFC.html" class="btn btn-neutral float-right" title="ScraperFC modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Owen Seymour.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

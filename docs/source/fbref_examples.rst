@@ -23,10 +23,10 @@ Premier League season from FBRef.
         # Catch and print any exceptions. This allows us to still close the 
         # scraper below, even if an exception occurs.
         traceback.print_exc()
-        
-    # It's important to close the scraper when you're done with it. Otherwise, 
-    # you'll have a bunch of webdrivers open and running in the background. 
-    scraper.close()
+    finally:
+        # It's important to close the scraper when you're done with it. Otherwise, 
+        # you'll have a bunch of webdrivers open and running in the background. 
+        scraper.close()
 
 And here is the output.
 
@@ -55,9 +55,9 @@ I've chosen is So'ton 2:5 Tottenham from 20 Sept, 2020.
     except:
         # Catch and print any exceptions.
         traceback.print_exc()
-        
-    # Again, make sure to close the scraper when you're done
-    scraper.close()
+    finally:
+        # Again, make sure to close the scraper when you're done
+        scraper.close()
 
 The output of ``scrape_match()`` can be a little confusing, but it contains a
 lot of information. There are 3 columns that are Pandas Series of Pandas 

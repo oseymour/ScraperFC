@@ -13,6 +13,7 @@ Welcome to ScraperFC's documentation!
 
    installation
    fbref_examples
+   understat_examples
    ScraperFC
 
 ==================
