@@ -126,7 +126,7 @@ class FBRef:
         : str
             URL to the FBRef page of the chosen league season 
         """
-        err, valid = check_season(year,league,'FBRef')
+        err, valid = check_season(year,league,"FBRef")
         if not valid:
             print(err)
             return None
@@ -146,7 +146,8 @@ class FBRef:
             season_found = np.any([tag.getText()==s for s in calendar_years]) # bool, if 1- or 2-calendar years are found in tag
             if tag.find("a") and finder_found and season_found:
                 return "https://fbref.com"+tag.find("a")["href"]
-            
+        
+        print(f"No {league} {year} season is available on FBRef.")
         return -1 # if season URL is not found
     
     ############################################################################
@@ -174,7 +175,6 @@ class FBRef:
         print('Gathering match links.')
         season_link = self.get_season_link(year, league)
         if season_link == -1:
-            print(f"No {league} {year} season is available on FBRef.")
             return None
         
         # go to the scores and fixtures page
