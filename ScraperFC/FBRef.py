@@ -1,7 +1,7 @@
 from IPython.display import clear_output
 import numpy as np
 import pandas as pd
-from ScraperFC.shared_functions import check_season, xpath_soup
+from ScraperFC.shared_functions import check_season, xpath_soup, sources
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -126,156 +126,28 @@ class FBRef:
         : str
             URL to the FBRef page of the chosen league season 
         """
-        err, valid = check_season(year,league,'FBRef')
+        err, valid = check_season(year,league,"FBRef")
         if not valid:
             print(err)
-            return -1
+            return None
         
-        # urls are to league's seasons history page
-        # finders are used later to make sure we're getting the right season URL
-        urls_finders = {
-            'EPL': {
-                'url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
-                'finder': 'Premier-League-Stats',
-            },
-            'La Liga': {
-                'url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
-                'finder': 'La-Liga-Stats',
-            },
-            'Bundesliga': {
-                'url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
-                'finder': 'Bundesliga-Stats',
-            },
-            'Serie A': {
-                'url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
-                'finder': 'Serie-A-Stats',
-            },
-            'Ligue 1': {
-                'url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
-                'finder': 'Ligue-1-Stats' if year>=2003 else 'Division-1-Stats',
-            },
-            'MLS': {
-                'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
-                'finder': 'Major-League-Soccer-Stats',
-            },
-            "Women World Cup": {
-                "url": "https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons",
-                "finder": "Womens-World-Cup-Stats",
-            },
-            "World Cup": {
-                "url": "https://fbref.com/en/comps/106/history/World-Cup-Seasons",
-                "finder": "World-Cup-Stats",
-            },
-            "Copa America": {
-                "url": "https://fbref.com/en/comps/685/history/Copa-America-Seasons",
-                "finder": "Copa-America-Stats",
-            },
-            "Copa Libertadores": {
-                "url": "https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons",
-                "finder": "Copa-Libertadores-Stats",
-            },
-            "Champions League": {
-                "url": "https://fbref.com/en/comps/8/history/Champions-League-Seasons",
-                "finder": "Champions-League-Stats",
-            },
-            "Europa Conference League": {
-                "url": "https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons",
-                "finder": "Europa-Conference-League-Stats",
-            },
-            "Europa League": {
-                "url": "https://fbref.com/en/comps/19/history/Europa-League-Seasons",
-                "finder": "Europa-League-Stats",
-            },
-            "Euros": {
-                "url": "https://fbref.com/en/comps/676/history/European-Championship-Seasons",
-                "finder": "European-Championship-Stats",
-            },
-            "Women Champions League": {
-                "url": "https://fbref.com/en/comps/181/history/Champions-League-Seasons",
-                "finder": "Champions-League-Stats",
-            },
-            "Women Euros": {
-                "url": "",
-                "finder": "",
-            },
-            "NWSL": {
-                "url": "",
-                "finder": "",
-            },
-            "A-League Women": {
-                "url": "",
-                "finder": "",
-            },
-            "Brazilian Serie A": {
-                "url": "",
-                "finder": "",
-            },
-            "Eredivisie": {
-                "url": "",
-                "finder": "",
-            },
-            "EFL Championship": {
-                "url": "",
-                "finder": "",
-            },
-            "WSL": {
-                "url": "",
-                "finder": "",
-            },
-            "Women Ligue 1": {
-                "url": "",
-                "finder": "",
-            },
-            "Women Bundesliga": {
-                "url": "",
-                "finder": "",
-            },
-            "Women Serie A": {
-                "url": "",
-                "finder": "",
-            },
-            "Liga MX": {
-                "url": "",
-                "finder": "",
-            },
-            "NWSL Challenge Cup": {
-                "url": "",
-                "finder": "",
-            },
-            "NWSL Fall Series": {
-                "url": "",
-                "finder": "",
-            },
-            "Primeira Liga": {
-                "url": "",
-                "finder": "",
-            },
-            "Liga F": {
-                "url": "",
-                "finder": "",
-            },
-            "": {
-                "url": "",
-                "finder": "",
-            },
-        }
-        url = urls_finders[league]['url']
-        finder = urls_finders[league]['finder']
+        url = sources["FBRef"][league]["url"]
+        finder = sources["FBRef"][league]["finder"]
         
         # go to the league's history page
         response = self.requests_get(url)
-        soup = BeautifulSoup(response.content, 'html.parser')
+        soup = BeautifulSoup(response.content, "html.parser")
         
-        # Generate season string to find right element
-        season = str(year-1)+'-'+str(year) if league!='MLS' else str(year)
+        calendar_years = [str(year-1)+'-'+str(year), str(year)] # list of 1- and 2-calendar years strings to work for any competition
            
         # Get url to season
-        for tag in soup.find_all('th', {'data-stat': 'year_id'}):
-            if tag.find('a') \
-                    and finder in tag.find('a')['href'] \
-                    and tag.getText()==season:
-                return 'https://fbref.com'+tag.find('a')['href']
-            
+        for tag in soup.find_all("th", {"data-stat": ["year", "year_id"]}):
+            finder_found = np.any([f in tag.find("a")["href"] for f in finder if tag.find("a")]) # bool, if any finders are found in tag
+            season_found = np.any([tag.getText()==s for s in calendar_years]) # bool, if 1- or 2-calendar years are found in tag
+            if tag.find("a") and finder_found and season_found:
+                return "https://fbref.com"+tag.find("a")["href"]
+        
+        print(f"No {league} {year} season is available on FBRef.")
         return -1 # if season URL is not found
     
     ############################################################################
@@ -295,8 +167,15 @@ class FBRef:
         : list
             FBRef links to all matches for the chosen league season
         """
+        err, valid = check_season(year,league,'FBRef')
+        if not valid:
+            print(err)
+            return None
+
         print('Gathering match links.')
         season_link = self.get_season_link(year, league)
+        if season_link == -1:
+            return None
         
         # go to the scores and fixtures page
         split = season_link.split('/')
@@ -304,27 +183,21 @@ class FBRef:
         second_half = split[-1].split('-')
         second_half = '-'.join(second_half[:-1])+'-Score-and-Fixtures'
         fixtures_url = first_half+'/schedule/'+second_half
-        
         response = self.requests_get(fixtures_url)
         soup = BeautifulSoup(response.content, 'html.parser')
+
+        # check if there are any scores elements with links. if not, no match links are present
+        scores_links = [t.find(href=True) for t in soup.find_all("td", {"data-stat": "score"}) if t.find(href=True)]
+        if len(scores_links) == 0:
+            print(f"No match score elements with links found at {fixtures_url} for {league} {year}.")
+            return None
         
-        # Get links to all of the matches in that season
-        finders = {
-            'EPL': '-Premier-League',
-            'La Liga': '-La-Liga',
-            'Bundesliga': '-Bundesliga',
-            'Serie A': '-Serie-A',
-            'Ligue 1': '-Ligue-1' if year>=2003 else '-Division-1',
-            'MLS': '-Major-League-Soccer'
-        }
-        finder = finders[league]
-        
+        # find all of the match links from the scores and fixtures page that have the sources finder
+        finders = sources["FBRef"][league]["finder"]
         match_links = [
-            'https://fbref.com'+tag.find('a')['href'] 
-            for tag 
-            in soup.find_all('td', {'data-stat': 'score'}) 
-            if tag.find('a') 
-            and finder in tag.find('a')['href']
+            "https://fbref.com"+t["href"] 
+            for t in scores_links 
+            if t and np.any([f in t["href"] for f in finders])
         ]
         
         return match_links
