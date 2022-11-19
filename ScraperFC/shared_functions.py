@@ -9,255 +9,255 @@ import numpy as np
 
 # Dict of data sources and leagues for each source
 sources = {
-        'All': {},
-        'FBRef': {
-            # Each competition gets its first valid year (from the competition seasons history page on fbref), the url
-            # to the season history page, and the "finder" which is used to find the season and match links in HTML
-            #################################
-            # Men's club international cups #
-            #################################
-            "Copa Libertadores": {
-                "first valid year": 2014,
-                "url": "https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons",
-                "finder": ["Copa-Libertadores"],
-            },
-            "Champions League": {
-                "first valid year": 1991,
-                "url": "https://fbref.com/en/comps/8/history/Champions-League-Seasons",
-                "finder": ["European-Cup", "Champions-League"],
-            },
-            "Europa League": {
-                "first valid year": 1991,
-                "url": "https://fbref.com/en/comps/19/history/Europa-League-Seasons",
-                "finder": ["UEFA-Cup", "Europa-League"],
-            },
-            "Europa Conference League": {
-                "first valid year": 2022,
-                "url": "https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons",
-                "finder": ["Europa-Conference-League"],
-            },
-            ####################################
-            # Men's national team competitions #
-            ####################################
-            "World Cup": {
-                "first valid year": 1930,
-                "url": "https://fbref.com/en/comps/1/history/World-Cup-Seasons",
-                "finder": ["World-Cup"],
-            },
-            "Copa America": {
-                "first valid year": 2015,
-                "url": "https://fbref.com/en/comps/685/history/Copa-America-Seasons",
-                "finder": ["Copa-America"],
-            },
-            "Euros": {
-                "first valid year": 2000,
-                "url": "https://fbref.com/en/comps/676/history/European-Championship-Seasons",
-                "finder": ["UEFA-Euro", "European-Championship"],
-            },
-            ###############
-            # Men's big 5 #
-            ###############
-            "Big 5 combined": {
-                "first valid year": 1996,
-                "url": "https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons",
-                "finder": ["Big-5-European-Leagues"],
-            },
-            "EPL": {
-                "first valid year": 1993,
-                'url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
-                'finder': ["Premier-League"],
-            },
-            "Ligue 1": {
-                "first valid year": 1996,
-                'url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
-                'finder': ['Ligue-1', 'Division-1'],
-            },
-            "Bundesliga": {
-                "first valid year": 1989,
-                'url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
-                'finder': ['Bundesliga'],
-            },
-            "Serie A": {
-                "first valid year": 1989,
-                'url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
-                'finder': ['Serie-A'],
-            },
-            "La Liga": {
-                "first valid year": 1989,
-                'url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
-                'finder': ['La-Liga'],
-            },
-            #####################################
-            # Men's domestic leagues - 1st tier #
-            #####################################
-            "MLS": {
-                "first valid year": 1996,
-                'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
-                'finder': ['Major-League-Soccer'],
-            },
-            "Brazilian Serie A": {
-                "first valid year": 2014,
-                "url": "https://fbref.com/en/comps/24/history/Serie-A-Seasons",
-                "finder": ["Serie-A"],
-            },
-            "Eredivisie": {
-                "first valid year": 2001,
-                "url": "https://fbref.com/en/comps/23/history/Eredivisie-Seasons",
-                "finder": ["Eredivisie"],
-            },
-            "Liga MX": {
-                "first valid year": 2004,
-                "url": "https://fbref.com/en/comps/31/history/Liga-MX-Seasons",
-                "finder": ["Primera-Division", "Liga-MX"],
-            },
-            "Primeira Liga": {
-                "first valid year": 2001,
-                "url": "https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons",
-                "finder": ["Primeira-Liga"],
-            },
-            ####################################
-            # Men's domestic league - 2nd tier #
-            ####################################
-            "EFL Championship": {
-                "first valid year": 2002,
-                "url": "https://fbref.com/en/comps/10/history/Championship-Seasons",
-                "finder": ["First-Division", "Championship"],
-            },
-            ##############################################
-            # Men's domestic league - 3rd tier and lower #
-            ##############################################
-            #######################
-            # Men's domestic cups #
-            #######################
-            #########################################
-            # Women's internation club competitions #
-            #########################################
-            "Women Champions League": {
-                "first valid year": 2015,
-                "url": "https://fbref.com/en/comps/181/history/Champions-League-Seasons",
-                "finder": ["Champions-League"],
-            },
-            ######################################
-            # Women's national team competitions #
-            ######################################
-            "Womens World Cup": {
-                "first valid year": 1991,
-                "url": "https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons",
-                "finder": ["Womens-World-Cup"],
-            },
-            "Womens Euros": {
-                "first valid year": 2001,
-                "url": "https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons",
-                "finder": ["UEFA-Womens-Euro"],
-            },
-            ############################
-            # Women's domestic leagues #
-            ############################
-            "NWSL": {
-                "first valid year": 2013,
-                "url": "https://fbref.com/en/comps/182/history/NWSL-Seasons",
-                "finder": ["NWSL"],
-            },
-            "A-League Women": {
-                "first valid year": 2019,
-                "url": "https://fbref.com/en/comps/196/history/A-League-Women-Seasons",
-                "finder": ["A-League-Women"],
-            },
-            "WSL": {
-                "first valid year": 2017,
-                "url": "https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons",
-                "finder": ["Womens-Super-League-1"],
-            },
-            "D1 Feminine": {
-                "first valid year": 2018,
-                "url": "https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons",
-                "finder": ["Division-1-Feminine"],
-            },
-            "Womens Bundesliga": {
-                "first valid year": 2017,
-                "url": "https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons",
-                "finder": ["Frauen-Bundesliga"],
-            },
-            "Womens Serie A": {
-                "first valid year": 2019,
-                "url": "https://fbref.com/en/comps/208/history/Serie-A-Seasons",
-                "finder": ["Serie-A"],
-            },
-            "Liga F": {
-                "first valid year": 2023,
-                "url": "https://fbref.com/en/comps/230/history/Liga-F-Seasons",
-                "finder": ["Liga-F"],
-            },
-            #########################
-            # Women's domestic cups #
-            #########################
-            "NWSL Challenge Cup": {
-                "first valid year": 2020,
-                "url": "https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons",
-                "finder": ["NWSL-Challenge-Cup"],
-            },
-            "NWSL Fall Series": {
-                "first valid year": 2020,
-                "url": "https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons",
-                "finder": ["NWSL-Fall-Series"],
-            },
+    'All': {},
+    'FBRef': {
+        # Each competition gets its first valid year (from the competition seasons history page on fbref), the url
+        # to the season history page, and the "finder" which is used to find the season and match links in HTML
+        #################################
+        # Men's club international cups #
+        #################################
+        "Copa Libertadores": {
+            "first valid year": 2014,
+            "url": "https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons",
+            "finder": ["Copa-Libertadores"],
         },
-        'Understat': {
-            'EPL': {"first valid year": 2015,},
-            'La Liga': {"first valid year": 2015,},
-            'Bundesliga':  {"first valid year": 2015,},
-            'Serie A':  {"first valid year": 2015,},
-            'Ligue 1':  {"first valid year": 2015,},
+        "Champions League": {
+            "first valid year": 1991,
+            "url": "https://fbref.com/en/comps/8/history/Champions-League-Seasons",
+            "finder": ["European-Cup", "Champions-League"],
         },
-        'FiveThirtyEight': {
-            'EPL':  {"first valid year": 2017,},
-            'La Liga':  {"first valid year": 2017,},
-            'Bundesliga':  {"first valid year": 2017,},
-            'Serie A':  {"first valid year": 2017,},
-            'Ligue 1':  {"first valid year": 2017,},
+        "Europa League": {
+            "first valid year": 1991,
+            "url": "https://fbref.com/en/comps/19/history/Europa-League-Seasons",
+            "finder": ["UEFA-Cup", "Europa-League"],
         },
-        'SofaScore': {'USL League One':  {"first valid year": 2019,}},
-        'Capology': {
-            'Bundesliga':  {"first valid year": 2014,},
-            '2.Bundesliga':  {"first valid year": 2020,},
-            'EPL':  {"first valid year": 2014,},
-            'EFL Championship':  {"first valid year": 2014,},
-            'Serie A':  {"first valid year": 2010,},
-            'Serie B':  {"first valid year": 2020,},
-            'La Liga':  {"first valid year": 2014,},
-            'La Liga 2':  {"first valid year": 2020,},
-            'Ligue 1':  {"first valid year": 2014,},
-            'Ligue 2':  {"first valid year": 2020,},
-            'Eredivisie':  {"first valid year": 2014,},
-            'Primeira Liga':  {"first valid year": 2014,},
-            'Scottish PL':  {"first valid year": 2020,},
-            'Super Lig':  {"first valid year": 2014,},
-            'Belgian 1st Division':  {"first valid year": 2014,},
+        "Europa Conference League": {
+            "first valid year": 2022,
+            "url": "https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons",
+            "finder": ["Europa-Conference-League"],
         },
-        'Transfermarkt': {
-            'EPL':  {"first valid year": 1993,},
-            'EFL Championship': {"first valid year": 2005,},
-            'EFL1': {"first valid year": 2005,},
-            'EFL2': {"first valid year": 2005,},
-            'Bundesliga': {"first valid year": 1964,},
-            '2.Bundesliga': {"first valid year": 1982,},
-            'Serie A': {"first valid year": 1930,},
-            'Serie B': {"first valid year": 1930,},
-            'La Liga': {"first valid year": 1929,},
-            'La Liga 2': {"first valid year": 1929,},
-            'Ligue 1': {"first valid year": 1970,},
-            'Ligue 2': {"first valid year": 1993,},
-            'Eredivisie': {"first valid year": 1955,},
-            'Scottish PL': {"first valid year": 2004,},
-            'Super Lig': {"first valid year": 1960,},
-            'Jupiler Pro League': {"first valid year": 1987,},
-            'Liga Nos': {"first valid year": 1994,},
-            'Russian Premier League': {"first valid year": 2011,},
-            'Brasileirao': {"first valid year": 2001,},
-            'Argentina Liga Profesional': {"first valid year": 2015,},
-            'MLS': {"first valid year": 1996,},
+        ####################################
+        # Men's national team competitions #
+        ####################################
+        "World Cup": {
+            "first valid year": 1930,
+            "url": "https://fbref.com/en/comps/1/history/World-Cup-Seasons",
+            "finder": ["World-Cup"],
         },
-    }
+        "Copa America": {
+            "first valid year": 2015,
+            "url": "https://fbref.com/en/comps/685/history/Copa-America-Seasons",
+            "finder": ["Copa-America"],
+        },
+        "Euros": {
+            "first valid year": 2000,
+            "url": "https://fbref.com/en/comps/676/history/European-Championship-Seasons",
+            "finder": ["UEFA-Euro", "European-Championship"],
+        },
+        ###############
+        # Men's big 5 #
+        ###############
+        "Big 5 combined": {
+            "first valid year": 1996,
+            "url": "https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons",
+            "finder": ["Big-5-European-Leagues"],
+        },
+        "EPL": {
+            "first valid year": 1993,
+            'url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
+            'finder': ["Premier-League"],
+        },
+        "Ligue 1": {
+            "first valid year": 1996,
+            'url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
+            'finder': ['Ligue-1', 'Division-1'],
+        },
+        "Bundesliga": {
+            "first valid year": 1989,
+            'url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
+            'finder': ['Bundesliga'],
+        },
+        "Serie A": {
+            "first valid year": 1989,
+            'url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
+            'finder': ['Serie-A'],
+        },
+        "La Liga": {
+            "first valid year": 1989,
+            'url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
+            'finder': ['La-Liga'],
+        },
+        #####################################
+        # Men's domestic leagues - 1st tier #
+        #####################################
+        "MLS": {
+            "first valid year": 1996,
+            'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
+            'finder': ['Major-League-Soccer'],
+        },
+        "Brazilian Serie A": {
+            "first valid year": 2014,
+            "url": "https://fbref.com/en/comps/24/history/Serie-A-Seasons",
+            "finder": ["Serie-A"],
+        },
+        "Eredivisie": {
+            "first valid year": 2001,
+            "url": "https://fbref.com/en/comps/23/history/Eredivisie-Seasons",
+            "finder": ["Eredivisie"],
+        },
+        "Liga MX": {
+            "first valid year": 2004,
+            "url": "https://fbref.com/en/comps/31/history/Liga-MX-Seasons",
+            "finder": ["Primera-Division", "Liga-MX"],
+        },
+        "Primeira Liga": {
+            "first valid year": 2001,
+            "url": "https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons",
+            "finder": ["Primeira-Liga"],
+        },
+        ####################################
+        # Men's domestic league - 2nd tier #
+        ####################################
+        "EFL Championship": {
+            "first valid year": 2002,
+            "url": "https://fbref.com/en/comps/10/history/Championship-Seasons",
+            "finder": ["First-Division", "Championship"],
+        },
+        ##############################################
+        # Men's domestic league - 3rd tier and lower #
+        ##############################################
+        #######################
+        # Men's domestic cups #
+        #######################
+        #########################################
+        # Women's internation club competitions #
+        #########################################
+        "Women Champions League": {
+            "first valid year": 2015,
+            "url": "https://fbref.com/en/comps/181/history/Champions-League-Seasons",
+            "finder": ["Champions-League"],
+        },
+        ######################################
+        # Women's national team competitions #
+        ######################################
+        "Womens World Cup": {
+            "first valid year": 1991,
+            "url": "https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons",
+            "finder": ["Womens-World-Cup"],
+        },
+        "Womens Euros": {
+            "first valid year": 2001,
+            "url": "https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons",
+            "finder": ["UEFA-Womens-Euro"],
+        },
+        ############################
+        # Women's domestic leagues #
+        ############################
+        "NWSL": {
+            "first valid year": 2013,
+            "url": "https://fbref.com/en/comps/182/history/NWSL-Seasons",
+            "finder": ["NWSL"],
+        },
+        "A-League Women": {
+            "first valid year": 2019,
+            "url": "https://fbref.com/en/comps/196/history/A-League-Women-Seasons",
+            "finder": ["A-League-Women"],
+        },
+        "WSL": {
+            "first valid year": 2017,
+            "url": "https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons",
+            "finder": ["Womens-Super-League-1"],
+        },
+        "D1 Feminine": {
+            "first valid year": 2018,
+            "url": "https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons",
+            "finder": ["Division-1-Feminine"],
+        },
+        "Womens Bundesliga": {
+            "first valid year": 2017,
+            "url": "https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons",
+            "finder": ["Frauen-Bundesliga"],
+        },
+        "Womens Serie A": {
+            "first valid year": 2019,
+            "url": "https://fbref.com/en/comps/208/history/Serie-A-Seasons",
+            "finder": ["Serie-A"],
+        },
+        "Liga F": {
+            "first valid year": 2023,
+            "url": "https://fbref.com/en/comps/230/history/Liga-F-Seasons",
+            "finder": ["Liga-F"],
+        },
+        #########################
+        # Women's domestic cups #
+        #########################
+        "NWSL Challenge Cup": {
+            "first valid year": 2020,
+            "url": "https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons",
+            "finder": ["NWSL-Challenge-Cup"],
+        },
+        "NWSL Fall Series": {
+            "first valid year": 2020,
+            "url": "https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons",
+            "finder": ["NWSL-Fall-Series"],
+        },
+    },
+    'Understat': {
+        'EPL': {"first valid year": 2015,},
+        'La Liga': {"first valid year": 2015,},
+        'Bundesliga':  {"first valid year": 2015,},
+        'Serie A':  {"first valid year": 2015,},
+        'Ligue 1':  {"first valid year": 2015,},
+    },
+    'FiveThirtyEight': {
+        'EPL':  {"first valid year": 2017,},
+        'La Liga':  {"first valid year": 2017,},
+        'Bundesliga':  {"first valid year": 2017,},
+        'Serie A':  {"first valid year": 2017,},
+        'Ligue 1':  {"first valid year": 2017,},
+    },
+    'SofaScore': {'USL League One':  {"first valid year": 2019,}},
+    'Capology': {
+        'Bundesliga':  {"first valid year": 2014,},
+        '2.Bundesliga':  {"first valid year": 2020,},
+        'EPL':  {"first valid year": 2014,},
+        'EFL Championship':  {"first valid year": 2014,},
+        'Serie A':  {"first valid year": 2010,},
+        'Serie B':  {"first valid year": 2020,},
+        'La Liga':  {"first valid year": 2014,},
+        'La Liga 2':  {"first valid year": 2020,},
+        'Ligue 1':  {"first valid year": 2014,},
+        'Ligue 2':  {"first valid year": 2020,},
+        'Eredivisie':  {"first valid year": 2014,},
+        'Primeira Liga':  {"first valid year": 2014,},
+        'Scottish PL':  {"first valid year": 2020,},
+        'Super Lig':  {"first valid year": 2014,},
+        'Belgian 1st Division':  {"first valid year": 2014,},
+    },
+    'Transfermarkt': {
+        'EPL':  {"first valid year": 1993,},
+        'EFL Championship': {"first valid year": 2005,},
+        'EFL1': {"first valid year": 2005,},
+        'EFL2': {"first valid year": 2005,},
+        'Bundesliga': {"first valid year": 1964,},
+        '2.Bundesliga': {"first valid year": 1982,},
+        'Serie A': {"first valid year": 1930,},
+        'Serie B': {"first valid year": 1930,},
+        'La Liga': {"first valid year": 1929,},
+        'La Liga 2': {"first valid year": 1929,},
+        'Ligue 1': {"first valid year": 1970,},
+        'Ligue 2': {"first valid year": 1993,},
+        'Eredivisie': {"first valid year": 1955,},
+        'Scottish PL': {"first valid year": 2004,},
+        'Super Lig': {"first valid year": 1960,},
+        'Jupiler Pro League': {"first valid year": 1987,},
+        'Liga Nos': {"first valid year": 1994,},
+        'Russian Premier League': {"first valid year": 2011,},
+        'Brasileirao': {"first valid year": 2001,},
+        'Argentina Liga Profesional': {"first valid year": 2015,},
+        'MLS': {"first valid year": 1996,},
+    },
+}
 
 ################################################################################
 def check_season(year, league, source):
