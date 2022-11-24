@@ -2,4 +2,4 @@
 **__pycache__
 **ipynb_checkpoints
 **-checkpoint.ipynb
-*build
+build/lib/ScraperFC/
