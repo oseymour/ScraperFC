@@ -454,29 +454,15 @@ class FBRef:
         response = self.requests_get(link)
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Matchweek ####
-        matchweek_el = list(soup.find('a', {'href': re.compile('-Stats')}, string=True).parents)[0]
-        if '-Major-League-Soccer' in link:
-            matchweek = matchweek_el\
-                .getText()\
-                .replace('Major League Soccer','')\
-                .replace(')','')\
-                .replace('(', '')\
-                .strip()
+        # Matchweek/stage ==============================================================================================
+        stage_el = list(soup.find('a', {'href': re.compile('-Stats')}, string=True).parents)[0]
+        stage_text = stage_el.getText().split("(")[-1].split(")")[0].strip()
+        if "matchweek" in stage_text:
+            stage = int(stage_text.lower().replace("matchweek","").strip())
         else:
-            matchweek = int(
-                matchweek_el\
-                .getText()\
-                .split('(')[-1]\
-                .split(')')[0]\
-                .lower()\
-                .replace('matchweek','')\
-                .strip()
-            )
+            stage = stage_text
 
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Team names and ids ####
+        # Team names and ids ===========================================================================================
         team_els = [
             el.find('a') \
             for el 
@@ -488,16 +474,13 @@ class FBRef:
         away_team_name = team_els[1].getText()
         away_team_id   = team_els[1]['href'].split('/')[3]
         
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Scores ####
+        # Scores =======================================================================================================
         scores = soup.find('div', {'class': 'scorebox'}).find_all('div', {'class': 'score'})
 
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Formations ####
+        # Formations ===================================================================================================
         lineup_tags = [tag.find('table') for tag in soup.find_all('div', {'class': 'lineup'})]
         
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Player stats ####
+        # Player stats =================================================================================================
         # Use table ID's to find the appropriate table. More flexible than xpath
         player_stats = dict()
         for i, (team, team_id) in enumerate([('Home',home_team_id), ('Away',away_team_id)]):
@@ -532,9 +515,17 @@ class FBRef:
             
             lineup_df = pd.read_html(str(lineup_tags[i]))[0] if len(lineup_tags)!=0 else None
             
-            #-------------------------------------------------------------------
-            #### Field player ID's for the stats tables ####
+            # Field player ID's for the stats tables -------------------------------------------------------------------
+            # Note: if a coach gets a yellow/red card, they appear in the player stats tables, in their own row, at the 
+            # bottom.
             if summary_df is not None:
+                # player_ids = list()
+                # for tag in summary_tag[0].find_all('th', {'data-stat': 'player'}):
+                #     if tag.find('a'):
+                #         player_id = tag.find('a')['href'].split('/')[3]
+                #     else:
+                #         player_id = ''
+                #     player_ids.append(player_id)
                 player_ids = [
                     tag.find('a')['href'].split('/')[3]
                     for tag 
@@ -544,6 +535,7 @@ class FBRef:
                 # Add empty string for the summary row at the bottom of the stats tables
                 player_ids = player_ids + ['',]
                 
+                # print(summary_df.shape, len(player_ids))
                 summary_df['Player ID'] = player_ids
                 if passing_df is not None:
                     passing_df['Player ID'] = player_ids
@@ -556,8 +548,7 @@ class FBRef:
                 if misc_df is not None:
                     misc_df['Player ID'] = player_ids
 
-            #-------------------------------------------------------------------
-            #### GK ID's ####
+            # GK ID's --------------------------------------------------------------------------------------------------
             if gk_df is not None:
                 gk_ids = [
                     tag.find('a')['href'].split('/')[3]
@@ -568,8 +559,7 @@ class FBRef:
                 
                 gk_df['Player ID'] = gk_ids
 
-            #-------------------------------------------------------------------
-            #### Build player stats dict ####
+            # Build player stats dict ----------------------------------------------------------------------------------
             # This will be turned into a Series and then put into the match dataframe
             player_stats[team] = {
                 'Team Sheet': lineup_df,
@@ -582,8 +572,7 @@ class FBRef:
                 'Misc': misc_df,
             }
             
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Shots ####
+        # Shots ========================================================================================================
         both_shots = soup.find_all('table', {'id': 'shots_all'})
         if len(both_shots) == 1:
             both_shots = pd.read_html(str(both_shots[0]))[0]
@@ -603,12 +592,10 @@ class FBRef:
         else:
             away_shots = None
             
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Expected stats flag ####
+        # Expected stats flag ==========================================================================================
         expected = 'Expected' in player_stats['Home']['Summary'].columns.get_level_values(0)
 
-        #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-        #### Build match series ####
+        # Build match series ===========================================================================================
         match = pd.Series(dtype=object)
         match['Link'] = link
         match['Date'] = datetime.strptime(
@@ -620,7 +607,7 @@ class FBRef:
                 .strip(),
             '%A %B %d, %Y'
         ).date()
-        match['Matchweek'] = matchweek
+        match['Stage'] = stage
         match['Home Team'] = home_team_name
         match['Away Team'] = away_team_name
         match['Home Team ID'] = home_team_id
