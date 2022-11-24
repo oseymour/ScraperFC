@@ -519,23 +519,17 @@ class FBRef:
             # Note: if a coach gets a yellow/red card, they appear in the player stats tables, in their own row, at the 
             # bottom.
             if summary_df is not None:
-                # player_ids = list()
-                # for tag in summary_tag[0].find_all('th', {'data-stat': 'player'}):
-                #     if tag.find('a'):
-                #         player_id = tag.find('a')['href'].split('/')[3]
-                #     else:
-                #         player_id = ''
-                #     player_ids.append(player_id)
-                player_ids = [
-                    tag.find('a')['href'].split('/')[3]
-                    for tag 
-                    in summary_tag[0].find_all('th', {'data-stat': 'player'})
-                    if tag.find('a')
-                ] 
-                # Add empty string for the summary row at the bottom of the stats tables
-                player_ids = player_ids + ['',]
+                player_ids = list()
+                # Iterate across all els that are player/coach names in the summary stats table
+                for tag in summary_tag[0].find_all('th', {'data-stat':'player', 'scope':'row', 'class':'left'}):
+                    if tag.find('a'):
+                        # if th el has an a subel, it should contain an href link to the player
+                        player_id = tag.find('a')['href'].split('/')[3]
+                    else:
+                        # coaches and the summary row have now a subel (and no player id)
+                        player_id = ''
+                    player_ids.append(player_id)
                 
-                # print(summary_df.shape, len(player_ids))
                 summary_df['Player ID'] = player_ids
                 if passing_df is not None:
                     passing_df['Player ID'] = player_ids
@@ -630,8 +624,8 @@ class FBRef:
         match['Away npxG'] = player_stats['Away']['Summary'][('Expected','npxG')].values[-1] if expected else None
         match['Home xAG'] = player_stats['Home']['Summary'][('Expected','xAG')].values[-1] if expected else None
         match['Away xAG'] = player_stats['Away']['Summary'][('Expected','xAG')].values[-1] if expected else None
-        match['Home Player Stats'] = pd.Series(player_stats['Home'])
-        match['Away Player Stats'] = pd.Series(player_stats['Away'])
+        match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame()
+        match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame()
         match['Shots'] = pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots,})
         
         match = match.to_frame().T # series to dataframe
