@@ -20,7 +20,7 @@ class FBRef:
     """ ScraperFC module for FBRef
     """
     
-    ############################################################################
+    ####################################################################################################################
     def __init__(self):
  
         self.wait_time = 6 # in seconds, as of 30-Oct-2022 FBRef blocks if requesting more than 20 requests/minute
@@ -56,14 +56,14 @@ class FBRef:
             'misc': {'url': 'misc', 'html': 'misc',},
         }
       
-    ############################################################################
+    ####################################################################################################################
     def close(self):
         """ Closes and quits the Selenium WebDriver instance.
         """
         self.driver.close()
         self.driver.quit()
 
-    ############################################################################
+    ####################################################################################################################
     def get(self, url):
         """ Custom get function just for the FBRef module. 
         
@@ -81,7 +81,7 @@ class FBRef:
         self.driver.get(url)
         time.sleep(self.wait_time)
         
-    ############################################################################
+    ####################################################################################################################
     def requests_get(self, url):
         """ Custom requests.get function for the FBRef module
         
@@ -109,7 +109,7 @@ class FBRef:
         return response
         
 
-    ############################################################################
+    ####################################################################################################################
     def get_season_link(self, year, league):
         """ Returns the URL for the chosen league season.
 
@@ -150,7 +150,7 @@ class FBRef:
         print(f"No {league} {year} season is available on FBRef.")
         return -1 # if season URL is not found
     
-    ############################################################################
+    ####################################################################################################################
     def get_match_links(self, year, league):
         """ Gets all match links for the chosen league season.
 
@@ -202,7 +202,7 @@ class FBRef:
         
         return match_links
 
-    ############################################################################
+    ####################################################################################################################
     def scrape_league_table(self, year, league):
         """ Scrapes the league table of the chosen league season
 
@@ -246,7 +246,7 @@ class FBRef:
             west_table = pd.read_html(str(lg_table_html[1]))[0]
             return (east_table, west_table)
         
-    ############################################################################
+    ####################################################################################################################
     def scrape_stats(self, year, league, stat_category, normalize=False):
         """ Scrapes a single stats category
         
@@ -277,8 +277,10 @@ class FBRef:
         
         # Verify valid stat category
         if stat_category not in self.stats_categories.keys():
-            raise Exception(f'"{stat_category}" is not a valid FBRef stats category. '+\
-                            f'Must be one of {list(self.stats_categories.keys())}.')
+            raise Exception(
+                f'"{stat_category}" is not a valid FBRef stats category. '+\
+                f'Must be one of {list(self.stats_categories.keys())}.'
+            )
         
         # Get URL to stat category
         season_url = self.get_season_link(year, league)
@@ -286,10 +288,10 @@ class FBRef:
         new_suffix = f'{self.stats_categories[stat_category]["url"]}/{old_suffix}'
         new_url = season_url.replace(old_suffix, new_suffix)
 
-        self.driver.get(new_url) # webdrive to link
+        self.get(new_url) # webdrive to link
         soup = BeautifulSoup(self.driver.page_source, 'html.parser') # get initial soup
 
-        # Normalize, if requested
+        # Normalize button, if requested
         if normalize:
             # click all per90 toggles on the page
             per90_toggles = soup.find_all('button', {'id': re.compile('per_match_toggle')})
@@ -312,11 +314,17 @@ class FBRef:
         squad_stats = pd.read_html(str(squad_stats_tag))[0] if squad_stats_tag is not None else None
         opponent_stats = pd.read_html(str(opponent_stats_tag))[0] if opponent_stats_tag is not None else None
         player_stats = pd.read_html(str(player_stats_tag))[0] if player_stats_tag is not None else None
-        
-        # Drop duplicate header rows in player stats table
-        if player_stats is not None:
-            keep_rows_mask = player_stats[('Unnamed: 0_level_0','Rk')] != 'Rk'
-            player_stats = player_stats[keep_rows_mask].reset_index(drop=True)
+
+        # Drop rows that contain duplicated table headers
+        squad_stats = squad_stats[
+            (~squad_stats[('Unnamed: 0_level_0','Squad')].isna()) 
+            & (squad_stats[('Unnamed: 0_level_0','Squad')]!="Squad")
+        ].reset_index(drop=True)
+        opponent_stats = opponent_stats[
+            (~opponent_stats[('Unnamed: 0_level_0','Squad')].isna()) 
+            & (opponent_stats[('Unnamed: 0_level_0','Squad')]!="Squad")
+        ].reset_index(drop=True)
+        player_stats = player_stats[player_stats[('Unnamed: 0_level_0','Rk')] != 'Rk'].reset_index(drop=True)
         
         # Add team ID's
         if squad_stats is not None:
@@ -324,12 +332,14 @@ class FBRef:
                 tag.find('a')['href'].split('/')[3] 
                 for tag 
                 in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+                if tag and tag.find('a')
             ]
         if opponent_stats is not None:
             opponent_stats['Team ID'] = [
                 tag.find('a')['href'].split('/')[3] 
                 for tag 
                 in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+                if tag and tag.find('a')
             ]
         
         # Add player links and ID's
@@ -338,13 +348,14 @@ class FBRef:
                 'https://fbref.com' + tag.find('a')['href']
                 for tag 
                 in player_stats_tag.find_all('td', {'data-stat': 'player'})
+                if tag and tag.find('a')
             ]
             player_stats['Player Link'] = player_links
-            player_stats['Player ID'] = [l.split('/')[-1] for l in player_links]
+            player_stats['Player ID'] = [l.split('/')[-2] for l in player_links]
         
         return squad_stats, opponent_stats, player_stats
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_all_stats(self, year, league, normalize=False):
         """ Scrapes all stat categories
         
@@ -379,7 +390,7 @@ class FBRef:
             
         return return_package
 
-    ############################################################################
+    ####################################################################################################################
     def scrape_matches(self, year, league, save=False):
         """ Scrapes the FBRef standard stats page of the chosen league season.
             
@@ -436,7 +447,7 @@ class FBRef:
         else:
             return matches
         
-    ############################################################################
+    ####################################################################################################################
     def scrape_match(self, link):
         """ Scrapes an FBRef match page.
         
@@ -632,7 +643,7 @@ class FBRef:
         
         return match
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_complete_scouting_reports(self, year, league, goalkeepers=False):
         """ Scrapes the FBRef scouting reports for all players in the chosen league\
             season.
@@ -690,7 +701,7 @@ class FBRef:
         
         return per90_df, percentiles_df
     
-    ############################################################################
+    ####################################################################################################################
     def complete_report_from_player_link(self, player_link):
         """ Scrapes the FBRef scouting reports for a player.
         
