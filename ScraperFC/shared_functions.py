@@ -6,6 +6,7 @@ from IPython.display import clear_output
 import random
 import pandas as pd
 import numpy as np
+from ScraperFCExceptions import InvalidSourceException
 
 # Dict of data sources and leagues for each source
 sources = {
@@ -281,37 +282,17 @@ def check_season(year, league, source):
     valid : bool
         True if the league season is valid for the scraper. False otherwise.
     """
-    assert source in list(sources.keys())
+    if source not in list(sources.keys()):
+        raise InvalidSourceException(source)
     
     # make sure year is an int
     if type(year) != int:
-        error = "Year needs to be an integer."
-        return error, False
-
-    # # make sure the year is valid for international tournaments
-    # if source == "FBRef":
-    #     if league=="World Cup" and ((2018-year)%4 != 0 or year in [1942, 1946]):
-    #         # 1942 and 1946 world cups were cancelled due to WWII
-    #         error = f"There was no men's world cup in {year}."
-    #         return error, False
-    #     elif league=="Copa America" and (2015-year)%4 != 0 and year!=2016:
-    #         # 2016 copa america was the centenario, no tournament the year after
-    #         error = f"There was no Copa America in {year}."
-    #         return error, False
-    #     elif league=="Euros" and (2000-year)%4!=0 and year!=2021 or year==2020:
-    #         # 2020 euros was moved to 2021 due to COVID-19
-    #         error = f"There were no men's Euros in {year}"
-    #         return error, False
-    #     elif league=="Womens World Cup" and (1991-year)%4!=0:
-    #         error = f"There was no wommen's world cup in {year}."
-    #         return error, False
-    #     elif league=="Womens Euros" and (2001-year)%4!=0 and year!=2022 or year==2021:
-    #         # 2021 womens euros was moved to 2022 due to COVID-19
-    #         error = f"There were no women's Euros in {year}"
-    #         return error, False
+        raise TypeError("Year must be an integer.")
     
     # Make sure league is a valid string for the source
-    if type(league)!=str or league not in list(sources[source].keys()):
+    if type(league)!=str:
+        raise TypeError("League must be a string.")
+    if league not in list(sources[source].keys()):
         error = f'League must be a string. Options are {list(sources[source].keys())}'
         return error, False
     
