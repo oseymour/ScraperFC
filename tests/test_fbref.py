@@ -1,27 +1,31 @@
 import sys
 sys.path.insert(0, '..') # import local ScraperFC, not pypi installed version
 import ScraperFC as sfc
+from sfc.shared_functions import sources, InvalidYearException, UnavailableSeasonException
 import numpy as np
 import itertools
 import datetime
 import pandas as pd
+from tqdm import tqdm
+from datetime import datetime
 
 
-leagues = ['EPL', 'La Liga', 'Bundesliga', 'Serie A', 'Ligue 1', 'MLS']
-years = range(1988, 2024)
-iterator = list(itertools.product(years, leagues))
-iterator.remove((2023,'MLS'))
+leagues = sources["FBRef"].keys()
+years = range(1988, datetime.now().year+1)
+iterator = list(itertools.product(leagues, years))
 
 ########################################################################################################################
 def get_random_league_season():
     got_random = False
     while not got_random:
         random_idx = np.random.choice(len(iterator), size=1, replace=False)[0]
-        year, league = np.array(iterator)[random_idx]
-        year, league = int(year), str(league)
-        err, _ = sfc.shared_functions.check_season(year,league,'FBRef')
-        if not err:
-            got_random = True
+        league, year = np.array(iterator)[random_idx]
+        league, year = str(league), int(year)
+        try:
+            sfc.shared_functions.check_season(year,league,'FBRef')
+        except:
+            continue
+        got_random = True
     return year, league
 
 
@@ -31,7 +35,6 @@ class TestFBRef:
     ####################################################################################################################
     def test_scrape_match(self):
         scraper = sfc.FBRef()
-
         try:
             # Randomly pick year/league combos until a valid one
             year, league = get_random_league_season()
@@ -79,34 +82,26 @@ class TestFBRef:
             assert list(match['Shots'].values[0].keys()) == ['Both', 'Home', 'Away']
             for c in match['Shots'].values[0].keys():
                 assert type(match['Shots'].values[0][c]) in [type(None), pd.core.frame.DataFrame]
-
-        except Exception as E:
-            raise E
         finally:
             scraper.close()
 
-#     ####################################################################################################################
-#     def test_scrape_matches(self):
-#         scraper = sfc.FBRef()
+    ####################################################################################################################
+    def test_scrape_matches(self):
+        scraper = sfc.FBRef()
+        try:
+            # Randomly pick year/league combos until a valid one
+            year, league = get_random_league_season()
 
-#         try:
-#             # Randomly pick year/league combos until a valid one
-#             year, league = get_random_league_season()
+            match_links = scraper.get_match_links(year, league)
+            matches = scraper.scrape_matches(year, league)
 
-#             match_links = scraper.get_match_links(year, league)
-#             matches = scraper.scrape_matches(year, league)
-
-#             assert matches.shape[0] == len(match_links)
-
-#         except Exception as E:
-        #     raise E
-        # finally:
-        #     scraper.close()
+            assert matches.shape[0] == len(match_links)
+        finally:
+            scraper.close()
 
     ####################################################################################################################
     def test_scrape_all_stats(self):
         scraper = sfc.FBRef()
-
         try:
             # Randomly pick year/league combos until a valid one
             year, league = get_random_league_season()
@@ -126,8 +121,33 @@ class TestFBRef:
 
                 if player is not None:
                     pass
+        finally:
+            scraper.close()
 
-        except Exception as E:
-            raise E
+    ####################################################################################################################
+    def test_sources(self):
+        scraper = sfc.FBRef()
+        try:
+            for (league, year) in tqdm(iterator):
+                year = int(year) # year became a string during random sampling?
+                league = str(league) # league also became a weird type of numpy string?
+                print(year, league)
+
+                # Skip invalid years
+                try:
+                    sfc.shared_functions.check_season(year, league, "FBRef")
+                except InvalidYearException:
+                    continue
+
+                try:
+                    season_link = scraper.get_season_link(year, league)
+                except UnavailableSeasonException:
+                    continue
+
+                match_links = scraper.get_match_links(year, league)
+
+                assert type(season_link) is str
+
+                assert len(match_links) > 0
         finally:
             scraper.close()
