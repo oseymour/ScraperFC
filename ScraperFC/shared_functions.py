@@ -6,7 +6,6 @@ from IPython.display import clear_output
 import random
 import pandas as pd
 import numpy as np
-from ScraperFCExceptions import InvalidSourceException
 
 # Dict of data sources and leagues for each source
 sources = {
@@ -260,7 +259,52 @@ sources = {
     },
 }
 
-################################################################################
+########################################################################################################################
+class InvalidSourceException(Exception):
+    def __init__(self, source):
+        super().__init__()
+        self.source = source
+    def __str__(self):
+        return f"{self.source} is not a valid source. Must be one of {list(sources.keys())}."
+
+########################################################################################################################
+class InvalidLeagueException(Exception):
+    def __init__(self, league, source):
+        super().__init__()
+        self.league = league
+        self.source = source
+    def __str__(self):
+        return f"{self.league} is not a valid league for {self.source}. Options are {list(sources[self.source].keys())}."
+
+########################################################################################################################
+class InvalidYearException(Exception):
+    def __init__(self, year, league, source):
+        super().__init__()
+        self.year = year
+        self.league = league
+        self.source = source
+    def __str__(self):
+        return f"{self.year} invalid for source {self.source} and league {self.league}. " +\
+            f"Must be {sources[self.source][self.league]['first valid year']} or later."
+
+########################################################################################################################
+class InvalidCurrencyException(Exception):
+    def __init__(self):
+        super().__init__()
+    def __str__():
+        return 'Currency must be one of "eur", "gbp", or "usd".'
+
+########################################################################################################################
+class UnavailableSeasonException(Exception):
+    def __init__(self, year, league, source):
+        super().__init__()
+        self.year = year
+        self.league = league
+        self.source = source
+    def __str__(self):
+        return f"No {self.league} {self.year} season is available on {self.source}."
+
+########################################################################################################################
 def check_season(year, league, source):
     """ Checks to make sure that the given league season is a valid season for\
         the scraper.
@@ -282,29 +326,26 @@ def check_season(year, league, source):
     valid : bool
         True if the league season is valid for the scraper. False otherwise.
     """
+    # Check source
     if source not in list(sources.keys()):
         raise InvalidSourceException(source)
-    
-    # make sure year is an int
-    if type(year) != int:
-        raise TypeError("Year must be an integer.")
-    
-    # Make sure league is a valid string for the source
+
+    # Check league
     if type(league)!=str:
         raise TypeError("League must be a string.")
     if league not in list(sources[source].keys()):
-        error = f'League must be a string. Options are {list(sources[source].keys())}'
-        return error, False
+        raise InvalidLeagueException(league, source)
     
-    # Make sure the source has data from the requested league and year
+    # Check year
+    if type(year) != int:
+        raise TypeError("Year must be an integer.")
     if year < sources[source][league]["first valid year"]:
-        error = f"{year} invalid for source {source} and league {league}. " + \
-            f"Must be {sources[source][league]['first valid year']} or later."
-        return error, False
+        raise InvalidYearException(year, league, source)
     
-    return None, True
+    
+    return
 
-################################################################################
+########################################################################################################################
 def get_proxy():
     """ Gets a proxy address.
 
@@ -343,7 +384,7 @@ def get_proxy():
         driver.quit()
         raise e
         
-################################################################################
+########################################################################################################################
 def xpath_soup(element):
     """ Generate xpath from BeautifulSoup4 element.
     
