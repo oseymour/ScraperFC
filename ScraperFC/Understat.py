@@ -71,8 +71,8 @@ class Understat:
         : list
             List of match links of the chosen league season
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
+         
         base_url = "https://understat.com/"
         lg = league.replace(" ","_")
         url = base_url+"league/"+lg+"/"+str(year-1)
@@ -301,8 +301,7 @@ class Understat:
         filename : str
             If save=True, the filename the DataFrame was saved to
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         season = str(year-1)+'-'+str(year)
         links = self.get_match_links(year, league)
@@ -342,8 +341,7 @@ class Understat:
         : Pandas DataFrame
             The league table of the chosen league season.
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         url = self.get_season_link(year, league) # link to the selected league/season
         self.driver.get(url)
@@ -395,8 +393,7 @@ class Understat:
         away : Pandas DataFrame
             Away league table
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         url = self.get_season_link(year, league) # link to the selected league/season
         self.driver.get(url)
@@ -460,8 +457,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the situations
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -522,8 +518,7 @@ class Understat:
             Keys are each team. Values are more dicts with keys for each formation\
             and values are stats for each formation.
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -581,8 +576,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the game states
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -606,11 +600,13 @@ class Understat:
             df = pd.read_html(table)[0]
             df.drop(columns=["№"], inplace=True)
             
-            row = {"Goal diff 0": None,
-                   "Goal diff -1": None,
-                   "Goal diff +1": None,
-                   "Goal diff < -1": None,
-                   "Goal diff > +1": None}
+            row = {
+                "Goal diff 0": None,
+                "Goal diff -1": None,
+                "Goal diff +1": None,
+                "Goal diff < -1": None,
+                "Goal diff > +1": None
+            }
             for i in range(df.shape[0]):
                 # remove performance differential text from some columns
                 df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
@@ -655,8 +651,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the timing stats
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -680,12 +675,14 @@ class Understat:
             df = pd.read_html(table)[0]
             df.drop(columns=["№"], inplace=True)
 
-            row = {"1-15": None,
-                   "16-30": None,
-                   "31-45": None,
-                   "46-60": None,
-                   "61-75": None,
-                   "76+": None}
+            row = {
+                "1-15": None,
+                "16-30": None,
+                "31-45": None,
+                "46-60": None,
+                "61-75": None,
+                "76+": None
+            }
             for i in range(df.shape[0]):
                 # remove performance differential text from some columns
                 df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
@@ -730,8 +727,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the shot zones data
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -755,10 +751,12 @@ class Understat:
             df = pd.read_html(table)[0]
             df.drop(columns=["№"], inplace=True)
 
-            row = {"Own goals": None,
-                   "Out of box": None,
-                   "Penalty area": None,
-                   "Six-yard box": None}
+            row = {
+                "Own goals": None,
+                "Out of box": None,
+                "Penalty area": None,
+                "Six-yard box": None
+            }
             for i in range(df.shape[0]):
                 # remove performance differential text from some columns
                 df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
@@ -805,8 +803,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the attack speeds of each team
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -825,16 +822,18 @@ class Understat:
             self.driver.find_element(
                 By.XPATH, 
                  "/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[6]"
-                ).click()
+            ).click()
             
             table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
             df = pd.read_html(table)[0]
             df.drop(columns=["№"], inplace=True)
 
-            row = {"Normal": None,
-                   "Standard": None,
-                   "Slow": None,
-                   "Fast": None}
+            row = {
+                "Normal": None,
+                "Standard": None,
+                "Slow": None,
+                "Fast": None
+            }
             for i in range(df.shape[0]):
                 # remove performance differential text from some columns
                 df.loc[i,"xG"] = self.remove_diff(df.loc[i,"xG"])
@@ -879,8 +878,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the shot results data
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -958,8 +956,7 @@ class Understat:
         filename : str
             If save=True, filename of the JSON file that the dict was saved to.
         """
-        if not check_season(year,league,'Understat'):
-            return -1
+        check_season(year,league,'Understat')
         
         season = str(year-1)+'-'+str(year)
         links = self.get_match_links(year, league)
