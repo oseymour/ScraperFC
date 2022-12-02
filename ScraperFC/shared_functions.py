@@ -261,6 +261,8 @@ sources = {
 
 ########################################################################################################################
 class InvalidSourceException(Exception):
+    """ Raised when an invalid source is used with the check_season() function.
+    """
     def __init__(self, source):
         super().__init__()
         self.source = source
@@ -269,6 +271,8 @@ class InvalidSourceException(Exception):
 
 ########################################################################################################################
 class InvalidLeagueException(Exception):
+    """ Raised when an invalid league is used with the check_season() function.
+    """
     def __init__(self, league, source):
         super().__init__()
         self.league = league
@@ -278,6 +282,8 @@ class InvalidLeagueException(Exception):
 
 ########################################################################################################################
 class InvalidYearException(Exception):
+    """ Raised when an invalid year is used with the check_season() function.
+    """
     def __init__(self, year, league, source):
         super().__init__()
         self.year = year
@@ -289,6 +295,8 @@ class InvalidYearException(Exception):
 
 ########################################################################################################################
 class InvalidCurrencyException(Exception):
+    """ Raised when an invalid currency is used with the Capology module.
+    """
     def __init__(self):
         super().__init__()
     def __str__():
@@ -296,6 +304,8 @@ class InvalidCurrencyException(Exception):
 
 ########################################################################################################################
 class UnavailableSeasonException(Exception):
+    """ Raised when a given year and league is unavailable from a source.
+    """
     def __init__(self, year, league, source):
         super().__init__()
         self.year = year
@@ -305,9 +315,20 @@ class UnavailableSeasonException(Exception):
         return f"No {self.league} {self.year} season is available on {self.source}."
 
 ########################################################################################################################
+class NoMatchLinksException(Exception):
+    """ Raised when no match links are found
+    """
+    def __init__(self, fixtures_url, year, league):
+        super().__init__()
+        self.fixtures_url = fixtures_url
+        self.league = league
+        self.year = year
+    def __str__(self):
+        return f"No match score elements with links found at {self.fixtures_url} for {self.year} {self.league}."
+
+########################################################################################################################
 def check_season(year, league, source):
-    """ Checks to make sure that the given league season is a valid season for\
-        the scraper.
+    """ Checks to make sure that the given league season is a valid season for the scraper.
     
     Args
     ----
