@@ -1,7 +1,8 @@
 from IPython.display import clear_output
 import numpy as np
 import pandas as pd
-from ScraperFC.shared_functions import check_season, xpath_soup, sources, UnavailableSeasonException
+from ScraperFC.shared_functions import check_season, xpath_soup, sources, UnavailableSeasonException, \
+    NoMatchLinksException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -182,8 +183,7 @@ class FBRef:
         # check if there are any scores elements with links. if not, no match links are present
         scores_links = [t.find(href=True) for t in soup.find_all("td", {"data-stat": "score"}) if t.find(href=True)]
         if len(scores_links) == 0:
-            print(f"No match score elements with links found at {fixtures_url} for {league} {year}.")
-            return None
+            raise NoMatchLinksException(fixtures_url, year, league)
         
         # find all of the match links from the scores and fixtures page that have the sources finder
         finders = sources["FBRef"][league]["finder"]
@@ -450,7 +450,7 @@ class FBRef:
         
         # Matchweek/stage ==============================================================================================
         stage_el = list(soup.find('a', {'href': re.compile('-Stats')}, string=True).parents)[0]
-        stage_text = stage_el.getText().split("(")[-1].split(")")[0].strip()
+        stage_text = stage_el.getText().split("(")[1].split(")")[0].strip()
         if "matchweek" in stage_text:
             stage = int(stage_text.lower().replace("matchweek","").strip())
         else:
@@ -618,9 +618,9 @@ class FBRef:
         match['Away npxG'] = player_stats['Away']['Summary'][('Expected','npxG')].values[-1] if expected else None
         match['Home xAG'] = player_stats['Home']['Summary'][('Expected','xAG')].values[-1] if expected else None
         match['Away xAG'] = player_stats['Away']['Summary'][('Expected','xAG')].values[-1] if expected else None
-        match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame()
-        match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame()
-        match['Shots'] = pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots,})
+        match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame().T
+        match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame().T
+        match['Shots'] = pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots,}).to_frame().T
         
         match = match.to_frame().T # series to dataframe
         
