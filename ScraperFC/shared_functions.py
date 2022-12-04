@@ -12,116 +12,116 @@ sources = {
     'All': {},
     'FBRef': {
         # Each competition gets its first valid year (from the competition seasons history page on fbref), the url
-        # to the season history page, and the "finder" which is used to find the season and match links in HTML
+        # to the season history page, and the 'finder' which is used to find the season and match links in HTML
         #################################
         # Men's club international cups #
         #################################
-        "Copa Libertadores": {
-            "first valid year": 2014,
-            "url": "https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons",
-            "finder": ["Copa-Libertadores"],
+        'Copa Libertadores': {
+            'first valid year': 2014,
+            'url': 'https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons',
+            'finder': ['Copa-Libertadores'],
         },
-        "Champions League": {
-            "first valid year": 1991,
-            "url": "https://fbref.com/en/comps/8/history/Champions-League-Seasons",
-            "finder": ["European-Cup", "Champions-League"],
+        'Champions League': {
+            'first valid year': 1991,
+            'url': 'https://fbref.com/en/comps/8/history/Champions-League-Seasons',
+            'finder': ['European-Cup', 'Champions-League'],
         },
-        "Europa League": {
-            "first valid year": 1991,
-            "url": "https://fbref.com/en/comps/19/history/Europa-League-Seasons",
-            "finder": ["UEFA-Cup", "Europa-League"],
+        'Europa League': {
+            'first valid year': 1991,
+            'url': 'https://fbref.com/en/comps/19/history/Europa-League-Seasons',
+            'finder': ['UEFA-Cup', 'Europa-League'],
         },
-        "Europa Conference League": {
-            "first valid year": 2022,
-            "url": "https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons",
-            "finder": ["Europa-Conference-League"],
+        'Europa Conference League': {
+            'first valid year': 2022,
+            'url': 'https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons',
+            'finder': ['Europa-Conference-League'],
         },
         ####################################
         # Men's national team competitions #
         ####################################
-        "World Cup": {
-            "first valid year": 1930,
-            "url": "https://fbref.com/en/comps/1/history/World-Cup-Seasons",
-            "finder": ["World-Cup"],
+        'World Cup': {
+            'first valid year': 1930,
+            'url': 'https://fbref.com/en/comps/1/history/World-Cup-Seasons',
+            'finder': ['World-Cup'],
         },
-        "Copa America": {
-            "first valid year": 2015,
-            "url": "https://fbref.com/en/comps/685/history/Copa-America-Seasons",
-            "finder": ["Copa-America"],
+        'Copa America': {
+            'first valid year': 2015,
+            'url': 'https://fbref.com/en/comps/685/history/Copa-America-Seasons',
+            'finder': ['Copa-America'],
         },
-        "Euros": {
-            "first valid year": 2000,
-            "url": "https://fbref.com/en/comps/676/history/European-Championship-Seasons",
-            "finder": ["UEFA-Euro", "European-Championship"],
+        'Euros': {
+            'first valid year': 2000,
+            'url': 'https://fbref.com/en/comps/676/history/European-Championship-Seasons',
+            'finder': ['UEFA-Euro', 'European-Championship'],
         },
         ###############
         # Men's big 5 #
         ###############
-        "Big 5 combined": {
-            "first valid year": 1996,
-            "url": "https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons",
-            "finder": ["Big-5-European-Leagues"],
+        'Big 5 combined': {
+            'first valid year': 1996,
+            'url': 'https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons',
+            'finder': ['Big-5-European-Leagues'],
         },
-        "EPL": {
-            "first valid year": 1993,
+        'EPL': {
+            'first valid year': 1993,
             'url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
-            'finder': ["Premier-League"],
+            'finder': ['Premier-League'],
         },
-        "Ligue 1": {
-            "first valid year": 1996,
+        'Ligue 1': {
+            'first valid year': 1996,
             'url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
             'finder': ['Ligue-1', 'Division-1'],
         },
-        "Bundesliga": {
-            "first valid year": 1989,
+        'Bundesliga': {
+            'first valid year': 1989,
             'url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
             'finder': ['Bundesliga'],
         },
-        "Serie A": {
-            "first valid year": 1989,
+        'Serie A': {
+            'first valid year': 1989,
             'url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
             'finder': ['Serie-A'],
         },
-        "La Liga": {
-            "first valid year": 1989,
+        'La Liga': {
+            'first valid year': 1989,
             'url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
             'finder': ['La-Liga'],
         },
         #####################################
         # Men's domestic leagues - 1st tier #
         #####################################
-        "MLS": {
-            "first valid year": 1996,
+        'MLS': {
+            'first valid year': 1996,
             'url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
             'finder': ['Major-League-Soccer'],
         },
-        "Brazilian Serie A": {
-            "first valid year": 2014,
-            "url": "https://fbref.com/en/comps/24/history/Serie-A-Seasons",
-            "finder": ["Serie-A"],
+        'Brazilian Serie A': {
+            'first valid year': 2014,
+            'url': 'https://fbref.com/en/comps/24/history/Serie-A-Seasons',
+            'finder': ['Serie-A'],
         },
-        "Eredivisie": {
-            "first valid year": 2001,
-            "url": "https://fbref.com/en/comps/23/history/Eredivisie-Seasons",
-            "finder": ["Eredivisie"],
+        'Eredivisie': {
+            'first valid year': 2001,
+            'url': 'https://fbref.com/en/comps/23/history/Eredivisie-Seasons',
+            'finder': ['Eredivisie'],
         },
-        "Liga MX": {
-            "first valid year": 2004,
-            "url": "https://fbref.com/en/comps/31/history/Liga-MX-Seasons",
-            "finder": ["Primera-Division", "Liga-MX"],
+        'Liga MX': {
+            'first valid year': 2004,
+            'url': 'https://fbref.com/en/comps/31/history/Liga-MX-Seasons',
+            'finder': ['Primera-Division', 'Liga-MX'],
         },
-        "Primeira Liga": {
-            "first valid year": 2001,
-            "url": "https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons",
-            "finder": ["Primeira-Liga"],
+        'Primeira Liga': {
+            'first valid year': 2001,
+            'url': 'https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons',
+            'finder': ['Primeira-Liga'],
         },
         ####################################
         # Men's domestic league - 2nd tier #
         ####################################
-        "EFL Championship": {
-            "first valid year": 2002,
-            "url": "https://fbref.com/en/comps/10/history/Championship-Seasons",
-            "finder": ["First-Division", "Championship"],
+        'EFL Championship': {
+            'first valid year': 2002,
+            'url': 'https://fbref.com/en/comps/10/history/Championship-Seasons',
+            'finder': ['First-Division', 'Championship'],
         },
         ##############################################
         # Men's domestic league - 3rd tier and lower #
@@ -132,171 +132,171 @@ sources = {
         #########################################
         # Women's internation club competitions #
         #########################################
-        "Women Champions League": {
-            "first valid year": 2015,
-            "url": "https://fbref.com/en/comps/181/history/Champions-League-Seasons",
-            "finder": ["Champions-League"],
+        'Women Champions League': {
+            'first valid year': 2015,
+            'url': 'https://fbref.com/en/comps/181/history/Champions-League-Seasons',
+            'finder': ['Champions-League'],
         },
         ######################################
         # Women's national team competitions #
         ######################################
-        "Womens World Cup": {
-            "first valid year": 1991,
-            "url": "https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons",
-            "finder": ["Womens-World-Cup"],
+        'Womens World Cup': {
+            'first valid year': 1991,
+            'url': 'https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons',
+            'finder': ['Womens-World-Cup'],
         },
-        "Womens Euros": {
-            "first valid year": 2001,
-            "url": "https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons",
-            "finder": ["UEFA-Womens-Euro"],
+        'Womens Euros': {
+            'first valid year': 2001,
+            'url': 'https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons',
+            'finder': ['UEFA-Womens-Euro'],
         },
         ############################
         # Women's domestic leagues #
         ############################
-        "NWSL": {
-            "first valid year": 2013,
-            "url": "https://fbref.com/en/comps/182/history/NWSL-Seasons",
-            "finder": ["NWSL"],
+        'NWSL': {
+            'first valid year': 2013,
+            'url': 'https://fbref.com/en/comps/182/history/NWSL-Seasons',
+            'finder': ['NWSL'],
         },
-        "A-League Women": {
-            "first valid year": 2019,
-            "url": "https://fbref.com/en/comps/196/history/A-League-Women-Seasons",
-            "finder": ["A-League-Women"],
+        'A-League Women': {
+            'first valid year': 2019,
+            'url': 'https://fbref.com/en/comps/196/history/A-League-Women-Seasons',
+            'finder': ['A-League-Women', 'W-League'],
         },
-        "WSL": {
-            "first valid year": 2017,
-            "url": "https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons",
-            "finder": ["Womens-Super-League-1"],
+        'WSL': {
+            'first valid year': 2017,
+            'url': 'https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons',
+            'finder': ['Womens-Super-League-1'],
         },
-        "D1 Feminine": {
-            "first valid year": 2018,
-            "url": "https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons",
-            "finder": ["Division-1-Feminine"],
+        'D1 Feminine': {
+            'first valid year': 2018,
+            'url': 'https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons',
+            'finder': ['Division-1-Feminine'],
         },
-        "Womens Bundesliga": {
-            "first valid year": 2017,
-            "url": "https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons",
-            "finder": ["Frauen-Bundesliga"],
+        'Womens Bundesliga': {
+            'first valid year': 2017,
+            'url': 'https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons',
+            'finder': ['Frauen-Bundesliga'],
         },
-        "Womens Serie A": {
-            "first valid year": 2019,
-            "url": "https://fbref.com/en/comps/208/history/Serie-A-Seasons",
-            "finder": ["Serie-A"],
+        'Womens Serie A': {
+            'first valid year': 2019,
+            'url': 'https://fbref.com/en/comps/208/history/Serie-A-Seasons',
+            'finder': ['Serie-A'],
         },
-        "Liga F": {
-            "first valid year": 2023,
-            "url": "https://fbref.com/en/comps/230/history/Liga-F-Seasons",
-            "finder": ["Liga-F"],
+        'Liga F': {
+            'first valid year': 2023,
+            'url': 'https://fbref.com/en/comps/230/history/Liga-F-Seasons',
+            'finder': ['Liga-F'],
         },
         #########################
         # Women's domestic cups #
         #########################
-        "NWSL Challenge Cup": {
-            "first valid year": 2020,
-            "url": "https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons",
-            "finder": ["NWSL-Challenge-Cup"],
+        'NWSL Challenge Cup': {
+            'first valid year': 2020,
+            'url': 'https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons',
+            'finder': ['NWSL-Challenge-Cup'],
         },
-        "NWSL Fall Series": {
-            "first valid year": 2020,
-            "url": "https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons",
-            "finder": ["NWSL-Fall-Series"],
+        'NWSL Fall Series': {
+            'first valid year': 2020,
+            'url': 'https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons',
+            'finder': ['NWSL-Fall-Series'],
         },
     },
     'Understat': {
-        'EPL': {"first valid year": 2015,},
-        'La Liga': {"first valid year": 2015,},
-        'Bundesliga':  {"first valid year": 2015,},
-        'Serie A':  {"first valid year": 2015,},
-        'Ligue 1':  {"first valid year": 2015,},
+        'EPL': {'first valid year': 2015,},
+        'La Liga': {'first valid year': 2015,},
+        'Bundesliga':  {'first valid year': 2015,},
+        'Serie A':  {'first valid year': 2015,},
+        'Ligue 1':  {'first valid year': 2015,},
     },
     'FiveThirtyEight': {
-        'EPL':  {"first valid year": 2017,},
-        'La Liga':  {"first valid year": 2017,},
-        'Bundesliga':  {"first valid year": 2017,},
-        'Serie A':  {"first valid year": 2017,},
-        'Ligue 1':  {"first valid year": 2017,},
+        'EPL':  {'first valid year': 2017,},
+        'La Liga':  {'first valid year': 2017,},
+        'Bundesliga':  {'first valid year': 2017,},
+        'Serie A':  {'first valid year': 2017,},
+        'Ligue 1':  {'first valid year': 2017,},
     },
-    'SofaScore': {'USL League One':  {"first valid year": 2019,}},
+    'SofaScore': {'USL League One':  {'first valid year': 2019,}},
     'Capology': {
-        'Bundesliga':  {"first valid year": 2014,},
-        '2.Bundesliga':  {"first valid year": 2020,},
-        'EPL':  {"first valid year": 2014,},
-        'EFL Championship':  {"first valid year": 2014,},
-        'Serie A':  {"first valid year": 2010,},
-        'Serie B':  {"first valid year": 2020,},
-        'La Liga':  {"first valid year": 2014,},
-        'La Liga 2':  {"first valid year": 2020,},
-        'Ligue 1':  {"first valid year": 2014,},
-        'Ligue 2':  {"first valid year": 2020,},
-        'Eredivisie':  {"first valid year": 2014,},
-        'Primeira Liga':  {"first valid year": 2014,},
-        'Scottish PL':  {"first valid year": 2020,},
-        'Super Lig':  {"first valid year": 2014,},
-        'Belgian 1st Division':  {"first valid year": 2014,},
+        'Bundesliga':  {'first valid year': 2014,},
+        '2.Bundesliga':  {'first valid year': 2020,},
+        'EPL':  {'first valid year': 2014,},
+        'EFL Championship':  {'first valid year': 2014,},
+        'Serie A':  {'first valid year': 2010,},
+        'Serie B':  {'first valid year': 2020,},
+        'La Liga':  {'first valid year': 2014,},
+        'La Liga 2':  {'first valid year': 2020,},
+        'Ligue 1':  {'first valid year': 2014,},
+        'Ligue 2':  {'first valid year': 2020,},
+        'Eredivisie':  {'first valid year': 2014,},
+        'Primeira Liga':  {'first valid year': 2014,},
+        'Scottish PL':  {'first valid year': 2020,},
+        'Super Lig':  {'first valid year': 2014,},
+        'Belgian 1st Division':  {'first valid year': 2014,},
     },
     'Transfermarkt': {
-        'EPL':  {"first valid year": 1993,},
-        'EFL Championship': {"first valid year": 2005,},
-        'EFL1': {"first valid year": 2005,},
-        'EFL2': {"first valid year": 2005,},
-        'Bundesliga': {"first valid year": 1964,},
-        '2.Bundesliga': {"first valid year": 1982,},
-        'Serie A': {"first valid year": 1930,},
-        'Serie B': {"first valid year": 1930,},
-        'La Liga': {"first valid year": 1929,},
-        'La Liga 2': {"first valid year": 1929,},
-        'Ligue 1': {"first valid year": 1970,},
-        'Ligue 2': {"first valid year": 1993,},
-        'Eredivisie': {"first valid year": 1955,},
-        'Scottish PL': {"first valid year": 2004,},
-        'Super Lig': {"first valid year": 1960,},
-        'Jupiler Pro League': {"first valid year": 1987,},
-        'Liga Nos': {"first valid year": 1994,},
-        'Russian Premier League': {"first valid year": 2011,},
-        'Brasileirao': {"first valid year": 2001,},
-        'Argentina Liga Profesional': {"first valid year": 2015,},
-        'MLS': {"first valid year": 1996,},
+        'EPL':  {'first valid year': 1993,},
+        'EFL Championship': {'first valid year': 2005,},
+        'EFL1': {'first valid year': 2005,},
+        'EFL2': {'first valid year': 2005,},
+        'Bundesliga': {'first valid year': 1964,},
+        '2.Bundesliga': {'first valid year': 1982,},
+        'Serie A': {'first valid year': 1930,},
+        'Serie B': {'first valid year': 1930,},
+        'La Liga': {'first valid year': 1929,},
+        'La Liga 2': {'first valid year': 1929,},
+        'Ligue 1': {'first valid year': 1970,},
+        'Ligue 2': {'first valid year': 1993,},
+        'Eredivisie': {'first valid year': 1955,},
+        'Scottish PL': {'first valid year': 2004,},
+        'Super Lig': {'first valid year': 1960,},
+        'Jupiler Pro League': {'first valid year': 1987,},
+        'Liga Nos': {'first valid year': 1994,},
+        'Russian Premier League': {'first valid year': 2011,},
+        'Brasileirao': {'first valid year': 2001,},
+        'Argentina Liga Profesional': {'first valid year': 2015,},
+        'MLS': {'first valid year': 1996,},
     },
 }
 
 ########################################################################################################################
 class InvalidSourceException(Exception):
-    """ Raised when an invalid source is used with the check_season() function.
-    """
+    ''' Raised when an invalid source is used with the check_season() function.
+    '''
     def __init__(self, source):
         super().__init__()
         self.source = source
     def __str__(self):
-        return f"{self.source} is not a valid source. Must be one of {list(sources.keys())}."
+        return f'{self.source} is not a valid source. Must be one of {list(sources.keys())}.'
 
 ########################################################################################################################
 class InvalidLeagueException(Exception):
-    """ Raised when an invalid league is used with the check_season() function.
-    """
+    ''' Raised when an invalid league is used with the check_season() function.
+    '''
     def __init__(self, league, source):
         super().__init__()
         self.league = league
         self.source = source
     def __str__(self):
-        return f"{self.league} is not a valid league for {self.source}. Options are {list(sources[self.source].keys())}."
+        return f'{self.league} is not a valid league for {self.source}. Options are {list(sources[self.source].keys())}.'
 
 ########################################################################################################################
 class InvalidYearException(Exception):
-    """ Raised when an invalid year is used with the check_season() function.
-    """
+    ''' Raised when an invalid year is used with the check_season() function.
+    '''
     def __init__(self, year, league, source):
         super().__init__()
         self.year = year
         self.league = league
         self.source = source
     def __str__(self):
-        return f"{self.year} invalid for source {self.source} and league {self.league}. " +\
-            f"Must be {sources[self.source][self.league]['first valid year']} or later."
+        return f'{self.year} invalid for source {self.source} and league {self.league}. ' +\
+            f'Must be {sources[self.source][self.league]["first valid year"]} or later.'
 
 ########################################################################################################################
 class InvalidCurrencyException(Exception):
-    """ Raised when an invalid currency is used with the Capology module.
-    """
+    ''' Raised when an invalid currency is used with the Capology module.
+    '''
     def __init__(self):
         super().__init__()
     def __str__():
@@ -304,31 +304,31 @@ class InvalidCurrencyException(Exception):
 
 ########################################################################################################################
 class UnavailableSeasonException(Exception):
-    """ Raised when a given year and league is unavailable from a source.
-    """
+    ''' Raised when a given year and league is unavailable from a source.
+    '''
     def __init__(self, year, league, source):
         super().__init__()
         self.year = year
         self.league = league
         self.source = source
     def __str__(self):
-        return f"No {self.league} {self.year} season is available on {self.source}."
+        return f'No {self.league} {self.year} season is available on {self.source}.'
 
 ########################################################################################################################
 class NoMatchLinksException(Exception):
-    """ Raised when no match links are found
-    """
+    ''' Raised when no match links are found
+    '''
     def __init__(self, fixtures_url, year, league):
         super().__init__()
         self.fixtures_url = fixtures_url
         self.league = league
         self.year = year
     def __str__(self):
-        return f"No match score elements with links found at {self.fixtures_url} for {self.year} {self.league}."
+        return f'No match score elements with links found at {self.fixtures_url} for {self.year} {self.league}.'
 
 ########################################################################################################################
 def check_season(year, league, source):
-    """ Checks to make sure that the given league season is a valid season for the scraper.
+    ''' Checks to make sure that the given league season is a valid season for the scraper.
     
     Args
     ----
@@ -338,7 +338,7 @@ def check_season(year, league, source):
         League. Look in shared_functions.py for the available leagues for each\
         module.
     source : str
-        The scraper to be checked (e.g. "FBRef", "Transfermarkt, etc.). These\
+        The scraper to be checked (e.g. 'FBRef', 'Transfermarkt, etc.). These\
         are the ScraperFC modules.
     Returns
     -------
@@ -346,21 +346,21 @@ def check_season(year, league, source):
         String of the error message, if there is one.
     valid : bool
         True if the league season is valid for the scraper. False otherwise.
-    """
+    '''
     # Check source
     if source not in list(sources.keys()):
         raise InvalidSourceException(source)
 
     # Check league
     if type(league)!=str:
-        raise TypeError("League must be a string.")
+        raise TypeError('League must be a string.')
     if league not in list(sources[source].keys()):
         raise InvalidLeagueException(league, source)
     
     # Check year
     if type(year) != int:
-        raise TypeError("Year must be an integer.")
-    if year < sources[source][league]["first valid year"]:
+        raise TypeError('Year must be an integer.')
+    if year < sources[source][league]['first valid year']:
         raise InvalidYearException(year, league, source)
     
     
@@ -368,7 +368,7 @@ def check_season(year, league, source):
 
 ########################################################################################################################
 def get_proxy():
-    """ Gets a proxy address.
+    ''' Gets a proxy address.
 
     Can be used to initialize a Selenium WebDriver to change the address of the\
     browser. Adapted from https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address.\
@@ -378,7 +378,7 @@ def get_proxy():
     -------
     proxy : str
         In the form <IP address>:<port>
-    """
+    '''
     options = Options()
     options.headless = True
     options.add_argument('window-size=700,600')
@@ -397,7 +397,7 @@ def get_proxy():
         driver.quit()
         proxies = list()
         for i in range(len(ips)):
-            proxies.append("{}:{}".format(ips[i], ports[i]))
+            proxies.append('{}:{}'.format(ips[i], ports[i]))
         i = random.randint(0, len(proxies)-1)
         return proxies[i]
     except Exception as e:
@@ -407,7 +407,7 @@ def get_proxy():
         
 ########################################################################################################################
 def xpath_soup(element):
-    """ Generate xpath from BeautifulSoup4 element.
+    ''' Generate xpath from BeautifulSoup4 element.
     
     I shamelessly stole this from https://gist.github.com/ergoithz/6cf043e3fdedd1b94fcf.
     
@@ -434,7 +434,7 @@ def xpath_soup(element):
     >>> soup = bs4.BeautifulSoup(xml, 'lxml-xml')
     >>> xpath_soup(soup.doc.elm.next_sibling)
     '/doc/elm[2]'
-    """
+    '''
     components = []
     child = element if element.name else element.parent
     for parent in child.parents:  # type: bs4.element.Tag
