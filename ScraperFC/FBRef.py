@@ -1,7 +1,8 @@
 from IPython.display import clear_output
 import numpy as np
 import pandas as pd
-from ScraperFC.shared_functions import check_season, xpath_soup, sources
+from ScraperFC.shared_functions import check_season, xpath_soup, sources, UnavailableSeasonException, \
+    NoMatchLinksException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -126,10 +127,7 @@ class FBRef:
         : str
             URL to the FBRef page of the chosen league season 
         """
-        err, valid = check_season(year,league,"FBRef")
-        if not valid:
-            print(err)
-            return None
+        check_season(year,league,"FBRef")
         
         url = sources["FBRef"][league]["url"]
         finder = sources["FBRef"][league]["finder"]
@@ -147,8 +145,7 @@ class FBRef:
             if tag.find("a") and finder_found and season_found:
                 return "https://fbref.com"+tag.find("a")["href"]
         
-        print(f"No {league} {year} season is available on FBRef.")
-        return -1 # if season URL is not found
+        raise UnavailableSeasonException(year, league, "FBRef")
     
     ####################################################################################################################
     def get_match_links(self, year, league):
@@ -167,10 +164,7 @@ class FBRef:
         : list
             FBRef links to all matches for the chosen league season
         """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return None
+        check_season(year,league,'FBRef')
 
         print('Gathering match links.')
         season_link = self.get_season_link(year, league)
@@ -189,8 +183,7 @@ class FBRef:
         # check if there are any scores elements with links. if not, no match links are present
         scores_links = [t.find(href=True) for t in soup.find_all("td", {"data-stat": "score"}) if t.find(href=True)]
         if len(scores_links) == 0:
-            print(f"No match score elements with links found at {fixtures_url} for {league} {year}.")
-            return None
+            raise NoMatchLinksException(fixtures_url, year, league)
         
         # find all of the match links from the scores and fixtures page that have the sources finder
         finders = sources["FBRef"][league]["finder"]
@@ -222,10 +215,8 @@ class FBRef:
             If the league is MLS, a tuple of (west conference table, east \
             conference table). Both tables are dataframes.
         """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
+        check_season(year,league,'FBRef')
+
         print('Scraping {} {} league table'.format(year, league))
         
         season_url = self.get_season_link(year, league)
@@ -270,10 +261,7 @@ class FBRef:
             tuple of 3 Pandas DataFrames, (squad_stats, opponent_stats,\
             player_stats).
         """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
+        check_season(year,league,'FBRef')
         
         # Verify valid stat category
         if stat_category not in self.stats_categories.keys():
@@ -378,10 +366,7 @@ class FBRef:
             Keys are stat category names, values are tuples of 3 dataframes,\
             (squad_stats, opponent_stats, player_stats)
         """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
+        check_season(year,league,'FBRef')
         
         return_package = dict()
         for stat_category in tqdm(self.stats_categories):
@@ -415,10 +400,8 @@ class FBRef:
         filename : str
             If save is True, will return the filename the CSV was saved to.
         """
-        err, valid = check_season(year,league,'FBRef')
-        if not valid:
-            print(err)
-            return -1
+        check_season(year,league,'FBRef')
+        
         season = str(year-1)+'-'+str(year)
         links = self.get_match_links(year,league)
         
@@ -467,7 +450,7 @@ class FBRef:
         
         # Matchweek/stage ==============================================================================================
         stage_el = list(soup.find('a', {'href': re.compile('-Stats')}, string=True).parents)[0]
-        stage_text = stage_el.getText().split("(")[-1].split(")")[0].strip()
+        stage_text = stage_el.getText().split("(")[1].split(")")[0].strip()
         if "matchweek" in stage_text:
             stage = int(stage_text.lower().replace("matchweek","").strip())
         else:
@@ -635,9 +618,9 @@ class FBRef:
         match['Away npxG'] = player_stats['Away']['Summary'][('Expected','npxG')].values[-1] if expected else None
         match['Home xAG'] = player_stats['Home']['Summary'][('Expected','xAG')].values[-1] if expected else None
         match['Away xAG'] = player_stats['Away']['Summary'][('Expected','xAG')].values[-1] if expected else None
-        match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame()
-        match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame()
-        match['Shots'] = pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots,})
+        match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame().T
+        match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame().T
+        match['Shots'] = pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots,}).to_frame().T
         
         match = match.to_frame().T # series to dataframe
         

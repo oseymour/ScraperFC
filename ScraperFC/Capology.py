@@ -43,6 +43,8 @@ class Capology():
             'Belgian 1st Division': 'be/first-division-a'
         }
 
+        self.valid_currencies = ['eur', 'gbp', 'usd']
+
 
     ############################################################################
     def close(self):
@@ -71,13 +73,9 @@ class Capology():
         : Pandas DataFrame
             The salaries of all players in the given league season
         """
-        error, valid = check_season(year, league, 'Capology')
-        if not valid:
-            print(error)
-            return -1
-        elif currency not in ['eur', 'gbp', 'usd']:
-            print('Currency must be one of "eur", "gbp", or "usd".')
-            return -1
+        check_season(year, league, 'Capology')
+        if currency not in self.valid_currencies:
+            raise InvalidCurrencyException()
 
         
         league_url = f'https://www.capology.com/{self.leagues[league]}/salaries/{year-1}-{year}'
@@ -149,13 +147,9 @@ class Capology():
         : Pandas DataFrame
             The payrolls of all teams in the given league season
         """
-        error, valid = check_season(year, league, 'Capology')
-        if not valid:
-            print(error)
-            return -1
-        elif currency not in ['eur', 'gbp', 'usd']:
-            print('Currency must be one of "eur", "gbp", or "usd".')
-            return -1
+        check_season(year, league, 'Capology')
+        if currency not in self.valid_currencies:
+            raise InvalidCurrencyException()
 
         
         league_url = 'https://www.capology.com/{}/payrolls/{}-{}'.format(self.leagues[league], year-1, year)
