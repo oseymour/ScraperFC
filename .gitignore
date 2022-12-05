@@ -3,3 +3,4 @@
 **ipynb_checkpoints
 **-checkpoint.ipynb
 build/lib/ScraperFC/
+.coverage
