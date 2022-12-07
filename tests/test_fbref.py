@@ -17,19 +17,21 @@ iterator = list(itertools.product(leagues, years))
 ########################################################################################################################
 def get_random_league_season():
     got_random = False
-    while not got_random:
-        random_idx = np.random.choice(len(iterator), size=1, replace=False)[0]
-        league, year = np.array(iterator)[random_idx]
-        league, year = str(league), int(year)
-        try:
-            scraper = sfc.FBRef()
-            sfc.shared_functions.check_season(year,league,'FBRef')
-            scraper.get_match_links(year, league)
-        except:
-            continue
-        finally:
-            scraper.close()
-        got_random = True
+    try:
+        scraper = sfc.FBRef()
+        while not got_random:
+            random_idx = np.random.choice(len(iterator), size=1, replace=False)[0]
+            league, year = np.array(iterator)[random_idx]
+            league, year = str(league), int(year)
+            try:
+                sfc.shared_functions.check_season(year,league,'FBRef')
+                scraper.get_match_links(year, league)
+                got_random = True
+            except:
+                pass
+    finally:
+        scraper.close()
+
     return year, league
 
 
