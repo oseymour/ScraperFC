@@ -10,11 +10,13 @@ from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
 from tqdm import tqdm
 import requests
+from bs4 import BeautifulSoup
+import time
 
 
 class Understat:
     
-    ############################################################################
+    ####################################################################################################################
     def __init__(self):
         options = Options()
         options.headless = True
@@ -24,7 +26,7 @@ class Understat:
         self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
         
         
-    ############################################################################   
+    ####################################################################################################################
     def close(self):
         """ Closes and quits the Selenium WebDriver instance.
         """
@@ -32,7 +34,7 @@ class Understat:
         self.driver.quit()
         
         
-    ############################################################################    
+    ####################################################################################################################
     def get_season_link(self, year, league):
         """ Gets URL of the chosen league season.
 
@@ -54,7 +56,7 @@ class Understat:
         return url
         
         
-    ############################################################################    
+    ####################################################################################################################
     def get_match_links(self, year, league):
         """ Gets all of the match links for the chosen league season
 
@@ -97,7 +99,7 @@ class Understat:
 
         return list(links)
     
-    ############################################################################
+    ####################################################################################################################
     def get_team_links(self, year, league):
         """ Gets all of the team links for the chosen league season
 
@@ -123,7 +125,7 @@ class Understat:
         return list(team_links)
     
     
-    ############################################################################
+    ####################################################################################################################
     def remove_diff(self, string):
         """ Removes the plus/minus from some stats like xG.
 
@@ -141,7 +143,7 @@ class Understat:
         return float(string.split('+')[0])
     
     
-    ############################################################################
+    ####################################################################################################################
     def unhide_stats(self, columns):
         """ Understat doesn't display all stats by default. 
         
@@ -172,7 +174,7 @@ class Understat:
         return
         
         
-    ############################################################################   
+    ####################################################################################################################
     def scrape_match(self, link):
         """ Scrapes a single match from Understat.
 
@@ -186,96 +188,101 @@ class Understat:
         match : Pandas DataFrame
             The match stats
         """
-        self.driver.get(link)
-        
-        elements = []
-        for element in self.driver.find_elements(By.CLASS_NAME, "progress-value"):
-            elements.append(element.get_attribute("innerHTML"))
+        # self.driver.get(link)
+        # soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        soup = BeautifulSoup(requests.get(link).content, 'html.parser')
 
-        match = pd.Series(dtype=object)
-        
-        # Match date and ID
-        for element in self.driver.find_elements(By.CLASS_NAME, "breadcrumb"):
-            date = element.find_elements(By.TAG_NAME, "li")[2]
-            date = date.text
+        # Match ID and date ============================================================================================
+        match_id = link.split('/')[-1]
+        date = soup.find('div', {'class': 'page-wrapper'}).find_all('li')[-1].text
         date = datetime.datetime.strptime(date,'%b %d %Y').date()
-        match['date'] = date
-        match['match id'] = link.split("/")[-1]
 
+        # Shots data
+        shots_script = soup.find('div', {'class':'scheme-block', 'data-scheme':'chart'}).parent.find('script').text
+        shots_data = shots_script.split('JSON.parse(\'')[1].split('\')')[0]
+        shots_data = shots_data.encode('unicode_escape').replace(b'\\\\',b'\\').decode('unicode-escape')
+        shots_data = json.loads(shots_data)
+        shots_home_df = pd.json_normalize(shots_data['h'])
+        shots_away_df = pd.json_normalize(shots_data['a'])
+        all_shots_df = pd.concat([shots_home_df, shots_away_df], axis=0, ignore_index=True)
+        all_shots_df['minute'] = all_shots_df['minute'].astype(int)
+        all_shots_df = all_shots_df.sort_values('minute').reset_index(drop=True)
 
+        # Team stats table =============================================================================================
+        stats_scheme_block = soup.find_all('div', {'data-scheme':'stats'})
+        assert len(stats_scheme_block) == 1
+        stats_scheme_block = stats_scheme_block[0]
         # Team Names
-        progress_values = [el.get_attribute("innerHTML") \
-                           for el in self.driver.find_elements(By.CLASS_NAME, "progress-value")]
-        match['home team'] = progress_values[0]
-        match['away team'] = progress_values[1]
+        home_team, away_team = [
+            x.text for x in 
+            stats_scheme_block.find('div', {'class':'progress-bar teams-titles'}).find_all('div', {'class': 'progress-value'})
+        ]
+        # Chances
+        chances_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[1]
+        home_chance = float(chances_bar.find('div', {'class':'progress-home'})['title'].replace('%',''))
+        draw_chance = float(chances_bar.find('div', {'class':'progress-draw'})['title'].replace('%',''))
+        away_chance = float(chances_bar.find('div', {'class':'progress-away'})['title'].replace('%',''))
+        # Goals
+        goals_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[2]
+        home_goals, away_goals = [float(x.text) for x in goals_bar.find_all('div', {'class':'progress-value'})]
+        # xG
+        xg_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[3]
+        home_xg, away_xg = [float(x.text) for x in xg_bar.find_all('div', {'class':'progress-value'})]
+        # Shots
+        shots_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[4]
+        home_shots, away_shots = [float(x.text) for x in shots_bar.find_all('div', {'class':'progress-value'})]
+        # Shots on Target
+        sot_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[5]
+        home_sot, away_sot = [float(x.text) for x in sot_bar.find_all('div', {'class':'progress-value'})]
+        # DEEP
+        deep_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[6]
+        home_deep, away_deep = [float(x.text) for x in deep_bar.find_all('div', {'class':'progress-value'})]
+        # PPDA
+        ppda_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[7]
+        home_ppda, away_ppda = [float(x.text) for x in ppda_bar.find_all('div', {'class':'progress-value'})]
+        # xPTS
+        xpts_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[8]
+        home_xpts, away_xpts = [float(x.text) for x in xpts_bar.find_all('div', {'class':'progress-value'})]
 
+        # Player stats tables ==========================================================================================
+        players_script = soup.find('div', {'id':'match-rosters'}).parent.find('script').text
+        players_data = players_script.split('JSON.parse(\'')[1].split('\')')[0]
+        players_data = players_data.encode('unicode_escape').replace(b'\\\\',b'\\').decode('unicode-escape')
+        players_data = json.loads(players_data)
+        players_home_df = pd.json_normalize(players_data['h'].values())
+        players_away_df = pd.json_normalize(players_data['a'].values())
 
-        # Data from team stats table
-        # Go to team stats table
-        [el for el in self.driver.find_elements(By.TAG_NAME, "label") \
-         if "Stats" in el.text][0].click()
-        # Each row in the stats table is a progress bar
-        prog_bars = self.driver.find_elements(By.CLASS_NAME, "progress-bar")
+        # Build match df ===============================================================================================
+        match = pd.Series(dtype=object)
+        match['id'] = match_id
+        match['date'] = date
+        match['shots'] = all_shots_df
+        match['home team'] = home_team
+        match['away team'] = away_team
+        match['home win proba'] = home_chance
+        match['draw proba'] = draw_chance
+        match['away win proba'] = away_chance
+        match['home goals'] = home_goals
+        match['away goals'] = away_goals
+        match['home xG'] = home_xg
+        match['away xG'] = away_xg
+        match['home shots'] = home_shots
+        match['away shots'] = away_shots
+        match['home SoT'] = home_sot
+        match['away SoT'] = away_sot
+        match['home DEEP'] = home_deep
+        match['away DEEP'] = away_deep
+        match['home PPDA'] = home_ppda
+        match['away PPDA'] = away_ppda
+        match['home xPTS'] = home_xpts
+        match['away xPTS'] = away_xpts
+        match['home player stats'] = players_home_df
+        match['away player stats'] = players_away_df
+        match = match.to_frame().T
 
-        # Chances (separated out cuz it utilizes a draw element)
-        bar = prog_bars[1]
-        home = bar.find_element(By.CLASS_NAME, "progress-home").text
-        try:
-            draw = bar.find_element(By.CLASS_NAME, "progress-draw").text
-        except NoSuchElementException:
-            draw = "0%"
-        away = bar.find_element(By.CLASS_NAME, "progress-away").text
-
-        match["home win probability"] = float(home.replace("%","")) if home!="" else 0
-        match["draw probability"]     = float(draw.replace("%","")) if draw!="" else 0
-        match["away win probability"] = float(away.replace("%","")) if away!="" else 0
-
-        # Goals, xG, shots, DEEP, PPDA, xPTS
-        for bar in prog_bars[2:]:
-            stat = bar.find_element(By.CLASS_NAME, "progress-title").text.lower()
-            home = bar.find_element(By.CLASS_NAME, "progress-home").text
-            away = bar.find_element(By.CLASS_NAME, "progress-away").text
-            match[f"home {stat}"] = float(home)
-            match[f"away {stat}"] = float(away)
-
-
-        #Data from player stats tables
-        #### Show all hidden stats ####
-        columns = pd.read_html(self.driver.find_element(By.TAG_NAME, "table")\
-                                          .get_attribute("outerHTML"))[0].columns
-        self.unhide_stats(columns)
-
-        #### Scrape player stats tables ####
-        home_player_df = pd.read_html(self.driver.find_element(By.TAG_NAME, "table")\
-                                                 .get_attribute("outerHTML"))[0]
-        # Click button to go to away player stats table
-        [el for el in self.driver.find_elements(By.TAG_NAME, "label") \
-         if el.get_attribute("for")=="team-away"][0].click()
-        away_player_df = pd.read_html(self.driver.find_element(By.TAG_NAME, "table")\
-                                                 .get_attribute("outerHTML"))[0]
-
-        #### Get the team sum stats that weren't gathered in the team stats table ####
-        for team, temp in (("home", home_player_df), ("away", away_player_df)):
-            for stat, column in (("key passes","KP"), ("xa","xA"), ("xgchain","xGChain"),  ("xgbuildup","xGBuildup")):
-                match[f"{team} {stat}"] = self.remove_diff(str(temp.loc[temp.index[-1], column]))
-
-        #### Remove No column, remove sum row, and remove diffs on xG and xA columns ####
-        for player_df in (home_player_df, away_player_df):
-            # drop sum row and No columns
-            player_df.drop(index=player_df.index[-1], columns=player_df.columns[0], inplace=True) 
-            # remove diffs
-            player_df[["xG","xA"]] = player_df[["xG","xA"]].astype(str) # need to be str for remove_diff()
-            player_df["xG"] = player_df.apply(lambda row : self.remove_diff(row["xG"]), axis=1)
-            player_df["xA"] = player_df.apply(lambda row : self.remove_diff(row["xA"]), axis=1)
-
-        #### Player stats dfs to match series ####
-        match["home player stats"] = home_player_df
-        match["away player stats"] = away_player_df
+        return match
         
-        return match.to_frame().T
-        
-        
-    ############################################################################    
+    ####################################################################################################################    
     def scrape_matches(self, year, league, save=False):
         """ Scrapes all of the matches from the chosen league season. 
         
@@ -310,6 +317,7 @@ class Understat:
         for link in tqdm(links):
             match   = self.scrape_match(link)
             matches = pd.concat([matches, match], ignore_index=True, axis=0)
+            time.sleep(2)
         
         # save to CSV if requested by user
         if save:
@@ -321,7 +329,7 @@ class Understat:
             return matches
         
         
-    ############################################################################    
+    ####################################################################################################################
     def scrape_league_table(self, year, league, normalize=False):
         """ Scrapes the league table for the chosen league season.
 
@@ -371,7 +379,7 @@ class Understat:
         return df
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_home_away_tables(self, year, league, normalize=False):
         """ Scrapes the home and away league tables for the chosen league season.
 
@@ -438,7 +446,7 @@ class Understat:
         return home, away
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_situations(self, year, league):
         """ Scrapes the situations leading to shots for each team in the chosen\
             league season.
@@ -498,7 +506,7 @@ class Understat:
         return situations
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_formations(self, year, league):
         """ Scrapes the stats for each team in the year and league, broken down\
             by formation used by the team.
@@ -558,7 +566,7 @@ class Understat:
         return formations
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_game_states(self, year, league):
         """ Scrapes the game states for each team in the year and league
 
@@ -633,7 +641,7 @@ class Understat:
         return game_states
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_timing(self, year, league):
         """ Scrapes the timing of goals for each team in the year and league
 
@@ -709,7 +717,7 @@ class Understat:
         return timing_df
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_shot_zones(self, year, league):
         """ Scrapes the shot zones for each team in the year and league
 
@@ -785,7 +793,7 @@ class Understat:
         return shot_zones_df
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_attack_speeds(self, year, league):
         """ Scrapes the attack speeds for each team in the year and league
 
@@ -860,7 +868,7 @@ class Understat:
         return attack_speeds_df
     
     
-    ############################################################################
+    ####################################################################################################################
     def scrape_shot_results(self, year, league):
         """ Scrapes the shot results for each team in the year and league
 
@@ -933,7 +941,7 @@ class Understat:
         return shot_results_df
             
         
-    ############################################################################
+    ####################################################################################################################
     def scrape_shot_xy(self, year, league, save=False):
         """ Scrapes the info for every shot in the league and year.
 
