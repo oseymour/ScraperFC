@@ -253,7 +253,7 @@ class Understat:
         players_away_df = pd.json_normalize(players_data['a'].values())
 
         # Build match df ===============================================================================================
-        match = pd.Series(dtype=object)
+        match = pd.Series(dtype=float)
         match['id'] = match_id
         match['date'] = date
         match['shots'] = all_shots_df
