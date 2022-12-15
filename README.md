@@ -3,7 +3,10 @@
 </p>
 <p align="center">
   <a href="https://pypi.org/project/ScraperFC/"><img src="https://img.shields.io/pypi/v/scraperfc.svg", alt="pypi version badge"></a>
-  <a href="https://pypi.org/project/ScraperFC/"><img src="https://static.pepy.tech/badge/scraperfc" alt="downloads badge"/></a>
+  <a href="https://pypi.org/project/ScraperFC/"><img src="https://static.pepy.tech/badge/scraperfc" alt="total pypi downloads badge"/></a>
+  <a href="https://pypi.org/project/ScraperFC/"><img src="https://img.shields.io/pypi/dm/ScraperFC.svgc" alt="monthly pypi downloads badge"/></a>
+  <a href="https://pypi.org/project/ScraperFC/"><img src="https://img.shields.io/pypi/dw/ScraperFC.svgc" alt="weekly pypi downloads badge"/></a>
+  <a href="https://pypi.org/project/ScraperFC/"><img src="https://img.shields.io/pypi/dd/ScraperFC.svg" alt="dailypypi downloads badge"/></a>
   <a href="https://scraperfc.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/nrc4d/badge/?version=latest" alt="documentation status badge"/></a>
   <a href="https://github.com/oseymour/ScraperFC"><img src="http://hits.dwyl.com/oseymour/scraperfc.svg?style=flat"></a>
 </p>
