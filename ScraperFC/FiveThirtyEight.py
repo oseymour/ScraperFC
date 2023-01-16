@@ -66,8 +66,9 @@ class FiveThirtyEight:
         filename : str
             If save=True, filename of the CSV that the stats were saved to 
         """
-        if not check_season(year,league,'FiveThirtyEight'):
-            return -1
+        # if not check_season(year,league,'FiveThirtyEight'):
+        #     return -1
+        check_season(year,league,'FiveThirtyEight')
         
         # Load URL
         self.driver.get('https://data.fivethirtyeight.com/#soccer-spi')
