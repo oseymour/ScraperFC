@@ -9,7 +9,8 @@ import numpy as np
     
 ########################################################################################################################
 def get_random_league_seasons(source, sample_size):
-    """"""
+    """
+    """
     if source not in sfc.sources.keys():
         raise ValueError(f'Source needs to be one of {list(sfc.sources.keys())}')
     
