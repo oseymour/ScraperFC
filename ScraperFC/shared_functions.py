@@ -363,7 +363,6 @@ def check_season(year, league, source):
     if year < sources[source][league]['first valid year']:
         raise InvalidYearException(year, league, source)
     
-    
     return
 
 ########################################################################################################################

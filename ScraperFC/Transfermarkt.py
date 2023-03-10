@@ -47,10 +47,7 @@ class Transfermarkt():
             List of the club URL's
         """
         print("Gathering club links.")
-        error, valid = check_season(year, league, 'Transfermarkt')
-        if not valid:
-            print(error)
-            return -1
+        check_season(year, league, 'Transfermarkt')
         
         competition_links = {
             'EPL': 'https://www.transfermarkt.us/premier-league/startseite/wettbewerb/GB1',
@@ -108,10 +105,7 @@ class Transfermarkt():
             List of the player URL's
         """
         print("Gathering player links.")
-        error, valid = check_season(year, league, 'Transfermarkt')
-        if not valid:
-            print(error)
-            return -1
+        check_season(year, league, 'Transfermarkt')
         
         player_links = set()
         club_links = self.get_club_links(year, league)
@@ -149,10 +143,7 @@ class Transfermarkt():
             Each row is a player and contains some of the information from their\
             Transfermarkt player profile.
         """
-        error, valid = check_season(year, league, 'Transfermarkt')
-        if not valid:
-            print(error)
-            return -1
+        check_season(year, league, 'Transfermarkt')
         
         player_links = self.get_player_links(year, league)
         df = pd.DataFrame()
