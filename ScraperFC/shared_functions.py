@@ -166,7 +166,7 @@ sources = {
         'WSL': {
             'first valid year': 2017,
             'url': 'https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons',
-            'finder': ['Womens-Super-League-1'],
+            'finder': ['Womens-Super-League'],
         },
         'D1 Feminine': {
             'first valid year': 2018,
