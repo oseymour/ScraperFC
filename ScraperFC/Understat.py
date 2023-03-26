@@ -942,36 +942,38 @@ class Understat:
             
         
     ####################################################################################################################
-    def scrape_shot_xy(self, year, league, save=False):
+    def scrape_shot_xy(self, year, league, save=False, format='json'):
         """ Scrapes the info for every shot in the league and year.
 
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         save : bool
-            OPTIONAL, default if False. If True, shot XY's will be saved to a\
-            JSON file.
+            OPTIONAL, default if False. If True, shot XY's will be saved to a JSON file.
+        format : str
+            OPTIONAL, format of the output. Options are "json" and "dataframe"
 
         Returns
         -------
-        : dict
-            If save=False.
-        filename : str
-            If save=True, filename of the JSON file that the dict was saved to.
+        : dict, Padnas DataFrame, or str
+            Dict if save=False and format=json
+            Dataframe if save=False and format=json
+            Str if save=True. Filetype is determined by format argument
         """
         check_season(year,league,'Understat')
+
+        if format not in ['json', 'dataframe']:
+            raise ValueError('Format must be one of "json" or "dataframe".')
         
         season = str(year-1)+'-'+str(year)
         links = self.get_match_links(year, league)
         shots_data = dict()
         failures = list()
 
-        for link in tqdm(links):
+        for link in tqdm(links, desc='Shot XY'):
             
             match_id = link.split("/")[-1]
             try:
@@ -983,7 +985,6 @@ class Understat:
                         .encode("latin-1")\
                         .decode("unicode-escape")
                 )
-                
                 shots_data[match_id] = game_shots_data
             except:
                 failures.append(match_id)
@@ -993,14 +994,28 @@ class Understat:
         self.__init__()
         
         # print any matches that scraping failed for
-        print(f"Failed scraping the following matches: {failures}.")
+        if len(failures) != 0:
+            print(f"Failed scraping the following matches: {failures}.")
 
-        # save to JSON file
+        # Convert json to dataframe if requested
+        if format == 'dataframe':
+            shots_df = pd.DataFrame()
+            for k in shots_data:
+                for team in shots_data[k]:
+                    shots_df = pd.concat([shots_df, pd.json_normalize(shots_data[k][team])], ignore_index=True, axis=0)
+            shots_data = shots_df
+        
+        # Save shots data to file if requested
         if save:
-            filename = f"{season}_{league}_shot_xy.json"
-            with open(filename, "w") as f:
-                f.write(json.dumps(shots_data))
-            print(f'Scraping saved to {filename}')
-            return filename
-        else:
-            return shots_data
+            filename_prefix = f'{season}_{league}_shot_xy'
+            if format == 'json':
+                filename = filename_prefix + '.json'
+                with open(filename, "w") as f:
+                    f.write(json.dumps(shots_data))
+            elif format == 'dataframe':
+                filename = filename_prefix + '.csv'
+                shots_data.to_csv(filename, index=False)
+            print(f'Understat shot XY saved to {filename}.')
+            shots_data = filename # return filename
+
+        return shots_data
