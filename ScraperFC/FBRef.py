@@ -11,7 +11,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from urllib.request import urlopen
 import requests
 from bs4 import BeautifulSoup
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import time
 import re
 from datetime import datetime
@@ -27,7 +27,7 @@ class FBRef:
         self.wait_time = 6 # in seconds, as of 30-Oct-2022 FBRef blocks if requesting more than 20 requests/minute
 
         options = Options()
-        options.headless = True
+#         options.headless = True
         options.add_argument(
             'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+\
             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 '+\
@@ -68,8 +68,8 @@ class FBRef:
     def get(self, url):
         """ Custom get function just for the FBRef module. 
         
-        Calls .get() from the Selenium WebDriver and then waits in order to\
-        avoid a Too Many Requests HTTPError from FBRef. 
+        Calls .get() from the Selenium WebDriver and then waits in order to avoid a Too Many Requests HTTPError from \
+        FBRef. 
         
         Args
         ----
@@ -117,11 +117,9 @@ class FBRef:
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         Returns
         -------
         : str
@@ -154,11 +152,9 @@ class FBRef:
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         Returns
         -------
         : list
@@ -202,18 +198,16 @@ class FBRef:
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         Returns
         -------
         : Pandas DataFrame
             If league is not MLS, dataframe of the scraped league table
         : tuple
-            If the league is MLS, a tuple of (west conference table, east \
-            conference table). Both tables are dataframes.
+            If the league is MLS, a tuple of (west conference table, east conference table). Both tables are \
+            dataframes.
         """
         check_season(year,league,'FBRef')
 
@@ -246,11 +240,9 @@ class FBRef:
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         stat_cateogry : str
             The stat category to scrape.
         normalize : bool
@@ -258,8 +250,7 @@ class FBRef:
         Returns
         -------
         : tuple
-            tuple of 3 Pandas DataFrames, (squad_stats, opponent_stats,\
-            player_stats).
+            tuple of 3 Pandas DataFrames, (squad_stats, opponent_stats, player_stats).
         """
         check_season(year,league,'FBRef')
         
@@ -347,24 +338,20 @@ class FBRef:
     def scrape_all_stats(self, year, league, normalize=False):
         """ Scrapes all stat categories
         
-        Runs scrape_stats() for each stats category on dumps the returned tuple\
-        of dataframes into a dict.
+        Runs scrape_stats() for each stats category on dumps the returned tuple of dataframes into a dict.
         
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         normalize : bool
             OPTIONAL, default is False. If True, will normalize all stats to Per90.
         Returns
         -------
         : dict
-            Keys are stat category names, values are tuples of 3 dataframes,\
-            (squad_stats, opponent_stats, player_stats)
+            Keys are stat category names, values are tuples of 3 dataframes, (squad_stats, opponent_stats, player_stats)
         """
         check_season(year,league,'FBRef')
         
@@ -379,20 +366,17 @@ class FBRef:
     def scrape_matches(self, year, league, save=False):
         """ Scrapes the FBRef standard stats page of the chosen league season.
             
-        Works by gathering all of the match URL's from the homepage of the\
-        chosen league season on FBRef and then calling scrape_match() on each one.
+        Works by gathering all of the match URL's from the homepage of the chosen league season on FBRef and then \
+        calling scrape_match() on each one.
 
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         save : bool
-            OPTIONAL, default is False. If True, will save the returned\
-            DataFrame to a CSV file.
+            OPTIONAL, default is False. If True, will save the returned DataFrame to a CSV file.
         Returns
         -------
         : Pandas DataFrame
@@ -441,9 +425,8 @@ class FBRef:
         Returns
         -------
         : Pandas DataFrame
-            DataFrame containing most parts of the match page if they're\
-            available (e.g. formations, lineups, scores, player stats, etc.).\
-            The fields that are available vary by competition and year.
+            DataFrame containing most parts of the match page if they're available (e.g. formations, lineups, scores, \
+            player stats, etc.). The fields that are available vary by competition and year.
         """
         response = self.requests_get(link)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -628,27 +611,23 @@ class FBRef:
     
     ####################################################################################################################
     def scrape_complete_scouting_reports(self, year, league, goalkeepers=False):
-        """ Scrapes the FBRef scouting reports for all players in the chosen league\
-            season.
+        """ Scrapes the FBRef scouting reports for all players in the chosen league season.
 
         Args
         ----
         year : int
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23\
-            season)
+            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
         league : str
-            League. Look in shared_functions.py for the available leagues for\
-            each module.
+            League. Look in shared_functions.py for the available leagues for each module.
         goalkeepers : bool
-            OPTIONAL, default is False. If True, will scrape reports for only\
-            goalkeepers. If False, will scrape reports for only outfield players.
+            OPTIONAL, default is False. If True, will scrape reports for only goalkeepers. If False, will scrape \
+            reports for only outfield players.
         Returns
         -------
         per90 : Pandas DataFrame
             DataFrame of reports with Per90 stats.
         percentiles : Pandas DataFrame
-            DataFrame of reports with stats percentiles (versus other players in\
-            the top 5 leagues)
+            DataFrame of reports with stats percentiles (versus other players in the top 5 leagues)
         """
         # Get the player links
         if goalkeepers:
@@ -695,8 +674,7 @@ class FBRef:
         Returns
         -------
         cleaned_complete_report : Pandas DataFrame
-            Complete report with a MultiIndex of stats categories and statistics.
-            Columns for per90 and percentile values.
+            Complete report with a MultiIndex of stats categories and statistics. Columns for per90 and percentile values.
         player_name : str
         player_pos : str
         minutes : int

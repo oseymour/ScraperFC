@@ -8,7 +8,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 from webdriver_manager.chrome import ChromeDriverManager
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import requests
 from bs4 import BeautifulSoup
 import time
