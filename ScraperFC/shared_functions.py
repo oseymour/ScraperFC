@@ -257,6 +257,13 @@ sources = {
         'Argentina Liga Profesional': {'first valid year': 2015,},
         'MLS': {'first valid year': 1996,},
     },
+    'Oddsportal': {
+        'EPL': {
+            'url': 'https://www.oddsportal.com/football/england/premier-league',
+            'first valid year': 1999,
+            'finder': 'premier-league'
+        },
+    },
 }
 
 ########################################################################################################################
