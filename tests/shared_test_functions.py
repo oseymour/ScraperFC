@@ -45,7 +45,7 @@ def get_random_league_seasons(source, sample_size):
                 continue
             sfc.shared_functions.check_season(year, league, source)
             if (league,year) not in iter:
-                iter.append((league,year))
+                iter.append((year,league))
 
     else:
         raise TypeError('sample_size must be an int > 0 or the string "all".')
