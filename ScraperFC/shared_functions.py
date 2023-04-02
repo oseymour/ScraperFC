@@ -260,7 +260,7 @@ sources = {
     'Oddsportal': {
         'EPL': {
             'url': 'https://www.oddsportal.com/football/england/premier-league',
-            'first valid year': 1999,
+            'first valid year': 2004,
             'finder': 'premier-league'
         },
     },
