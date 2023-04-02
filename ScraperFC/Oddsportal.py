@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-import datetime
+from datetime import datetime
 import numpy as np
 import pandas as pd
 import re
@@ -9,6 +9,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
+import time
 from tqdm.auto import tqdm
 from webdriver_manager.chrome import ChromeDriverManager
 
@@ -112,7 +113,11 @@ class Oddsportal:
 
         # Date
         date = soup.find('div', {'class': re.compile('start-time')}).parent.text.replace('\xa0', ' ')
-        date = datetime.datetime.strptime(date, '%A, %d %b %Y, %H:%M')
+        # Replace 'Today' with day of the week
+        if 'Today' in date:
+            date = date.replace('Today', datetime.now().strftime('%A'))
+        date = datetime.strptime(date, '%A, %d %b %Y, %H:%M')
+
         # Team names
         imgs  = soup.find_all('img')
         teams = [
@@ -121,6 +126,7 @@ class Oddsportal:
         ]
         team1 = teams[0]
         team2 = teams[1]
+        
         # Goals and result
         final_result = [
             el.text for el in soup.find_all('strong') 
@@ -143,6 +149,7 @@ class Oddsportal:
         match1X2odds_df = self.get_1X2odds_from_match(url)
         matchOUodds_df = self.get_OUodds_from_match(url)
 
+        # Concatenate everything
         match_df = match_df.to_frame().T
         match_df = pd.concat([match_df, match1X2odds_df, matchOUodds_df], axis=1)
 
@@ -160,56 +167,70 @@ class Oddsportal:
         self.driver.get(url)
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
 
-        # # Hide inactive odds
-        # hide_inactive_checkbox = [el for el in soup.find_all('label') if 'Hide inactive odds' in el.text][0].parent.find('input', {'type': 'checkbox'})
-        # hide_inactive_checkbox = self.driver.find_element(By.XPATH, sfc.xpath_soup(hide_inactive_checkbox))
-        # self.driver.execute_script('arguments[0].scrollIntoView', hide_inactive_checkbox)
-        # self.driver.execute_script('arguments[0].click()', hide_inactive_checkbox)
-        # time.sleep(0.5)
-        # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+        # Verify that odds are on the page
+        spanners_txt = [l.text for l in soup.find_all('span', {'class':'flex'})]
+        if '1X2' not in spanners_txt:
+            print(f'1X2 odds not found at {url}.')
+            odds_df = pd.DataFrame()
+        else:
+            # Wait for page to load
+            counter = 0
+            while len(soup.find_all('div', {'class':'flex flex-col'})) == 0:
+                if counter == 0:
+                    raise Exception(f'Unable to load 1X2 odds from {url}.')
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+                time.sleep(1)
+                counter += 1
 
-        odds_df = pd.Series(dtype=object)
+            # # Hide inactive odds
+            # hide_inactive_checkbox = [el for el in soup.find_all('label') if 'Hide inactive odds' in el.text][0].parent.find('input', {'type': 'checkbox'})
+            # hide_inactive_checkbox = self.driver.find_element(By.XPATH, sfc.xpath_soup(hide_inactive_checkbox))
+            # self.driver.execute_script('arguments[0].scrollIntoView', hide_inactive_checkbox)
+            # self.driver.execute_script('arguments[0].click()', hide_inactive_checkbox)
+            # time.sleep(0.5)
+            # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
 
-        odds_table = soup.find_all('div', {'class':'flex flex-col'})[1]
-        rows = odds_table.find_all('div', {'class':re.compile('flex text-xs')})
-        for row in rows:
-            bookie_info = row.find_all('a')
-            odds = row.find_all('div', recursive=False)
+            odds_df = pd.Series(dtype=object)
+            odds_table = soup.find_all('div', {'class':'flex flex-col'})[1]
+            rows = odds_table.find_all('div', {'class':re.compile('flex text-xs')})
+            for row in rows:
+                bookie_info = row.find_all('a')
+                odds = row.find_all('div', recursive=False)
 
-            # Skip some rows
-            skip_conds = (
-                (len(odds) <= 1) # Odds not formatted right
-                or ('coupon' in odds[0].text.lower()) # Coupon row
-                or odds[4].text == ' - ' # Odds are crossed out (payout column is a dash)
-            )
-            if skip_conds:
-                continue
+                # Skip some rows
+                skip_conds = (
+                    (len(odds) <= 1) # Odds not formatted right
+                    or ('coupon' in odds[0].text.lower()) # Coupon row
+                    or odds[4].text == ' - ' # Odds are crossed out (payout column is a dash)
+                )
+                if skip_conds:
+                    continue
 
-            # Odds 0 is the bookie info div
-            odds1 = float(odds[1].text)
-            oddsX = float(odds[2].text)
-            odds2 = float(odds[3].text)
-            payout_perc = float(odds[4].text.replace('%',''))
+                # Odds 0 is the bookie info div
+                odds1 = float(odds[1].text)
+                oddsX = float(odds[2].text)
+                odds2 = float(odds[3].text)
+                payout_perc = float(odds[4].text.replace('%',''))
 
-            if (len(bookie_info) <= 1):
-                # Average and max odds rows
-                agg_type = odds[0].text
-                odds_df[f'{agg_type} 1'] = odds1
-                odds_df[f'{agg_type} X'] = oddsX
-                odds_df[f'{agg_type} 2'] = odds2
-                odds_df[f'{agg_type} po %'] = payout_perc
-            else:
-                # This is a row with odds from bookie
-                bookie_url = bookie_info[0]['href']
-                bookie_name = bookie_info[1].text
-                # bookie info 2 is the info button (link to oddsportal page for bookie)
-                # bookie info 3 is whether the bookie is running a bonus or not
-                odds_df[f'{bookie_name} 1'] = odds1
-                odds_df[f'{bookie_name} X'] = oddsX
-                odds_df[f'{bookie_name} 2'] = odds2
-                odds_df[f'{bookie_name} po %'] = payout_perc
+                if (len(bookie_info) <= 1):
+                    # Average and max odds rows
+                    agg_type = odds[0].text
+                    odds_df[f'{agg_type} 1'] = odds1
+                    odds_df[f'{agg_type} X'] = oddsX
+                    odds_df[f'{agg_type} 2'] = odds2
+                    odds_df[f'{agg_type} po %'] = payout_perc
+                else:
+                    # This is a row with odds from bookie
+                    bookie_url = bookie_info[0]['href']
+                    bookie_name = bookie_info[1].text
+                    # bookie info 2 is the info button (link to oddsportal page for bookie)
+                    # bookie info 3 is whether the bookie is running a bonus or not
+                    odds_df[f'{bookie_name} 1'] = odds1
+                    odds_df[f'{bookie_name} X'] = oddsX
+                    odds_df[f'{bookie_name} 2'] = odds2
+                    odds_df[f'{bookie_name} po %'] = payout_perc
 
-        odds_df = odds_df.to_frame().T
+            odds_df = odds_df.to_frame().T
 
         return odds_df
 
@@ -219,79 +240,86 @@ class Oddsportal:
             url += '#over-under'
         self.driver.get(url)
 
-        # Wait for handicaps table to load
-        loaded = False
-        while not loaded:
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+        # Verify that odds are on the page
+        spanners_txt = [l.text for l in BeautifulSoup(self.driver.page_source, 'html.parser').find_all('span', {'class':'flex'})]
+        if 'Over/Under' not in spanners_txt:
+            print(f'Over/Under odds not found at {url}.')
+            odds_df = pd.DataFrame()
+        else:
+            # Wait for handicaps table to load
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             handicaps_table = soup.find_all('div', {'class':'min-md:px-[10px]'})
-            if len(handicaps_table) >= 2:
-                loaded = True
-
-        # # Hide inactive odds
-        # hide_inactive_checkbox = [el for el in soup.find_all('label') if 'Hide inactive odds' in el.text][0].parent.find('input', {'type': 'checkbox'})
-        # hide_inactive_checkbox = self.driver.find_element(By.XPATH, sfc.xpath_soup(hide_inactive_checkbox))
-        # self.driver.execute_script('arguments[0].scrollIntoView', hide_inactive_checkbox)
-        # self.driver.execute_script('arguments[0].click()', hide_inactive_checkbox)
-        # time.sleep(0.5)
-        # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
-        
-        # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
-        # handicaps_table = soup.find_all('div', {'class':'min-md:px-[10px]'})[1]
-        handicaps_table = handicaps_table[1]
-        handicap_rows = handicaps_table.find_all('div', {'class':'relative flex flex-col'}, recursive=False)
-
-        odds_df = pd.Series(dtype=object)
-        for handicap_row in handicap_rows:
-            handicap = handicap_row.find('p').text.replace('Over/Under','').strip()
-
-            # Click on handicap row to expand odds
-            row_button = self.driver.find_element(By.XPATH, xpath_soup(handicap_row.find('div')))
-            self.driver.execute_script('arguments[0].scrollIntoView()', row_button)
-            self.driver.execute_script('arguments[0].click()', row_button)
-
-            # Wait for odds table to load
-            loaded = False
-            while not loaded:
+            counter = 0
+            while len(handicaps_table) < 2:
+                if counter == 10:
+                    raise Exception(f'Unable to load over/under odds from {url}.')
                 soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
-                odds_table = soup.find_all('div', {'class': 'flex flex-col'})
-                if len(odds_table) > 0:
-                    loaded = True
+                handicaps_table = soup.find_all('div', {'class':'min-md:px-[10px]'})
+                time.sleep(1)
+                counter += 1
 
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
-            odds_table = soup.find_all('div', {'class': 'flex flex-col'})[1]
-            odds_rows = odds_table.find_all('div', {'class':re.compile('flex text-xs')})
-            for odds_row in odds_rows:
-                bookie_info = odds_row.find_all('a')
-                odds = odds_row.find_all('div', recursive=False)
+            # # Hide inactive odds
+            # hide_inactive_checkbox = [el for el in soup.find_all('label') if 'Hide inactive odds' in el.text][0].parent.find('input', {'type': 'checkbox'})
+            # hide_inactive_checkbox = self.driver.find_element(By.XPATH, sfc.xpath_soup(hide_inactive_checkbox))
+            # self.driver.execute_script('arguments[0].scrollIntoView', hide_inactive_checkbox)
+            # self.driver.execute_script('arguments[0].click()', hide_inactive_checkbox)
+            # time.sleep(0.5)
+            # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+        
+            odds_df = pd.Series(dtype=object)
+            handicaps_table = handicaps_table[1]
+            handicap_rows = handicaps_table.find_all('div', {'class':'relative flex flex-col'}, recursive=False)
+            for handicap_row in handicap_rows:
+                handicap = handicap_row.find('p').text.replace('Over/Under','').strip()
 
-                # Skip some rows
-                skip_conds = (
-                    (len(odds) <= 1) # Odds not formatted right
-                    or ('coupon' in odds[0].text.lower()) # Coupon row
-                    or np.any([el.text==' - ' for el in odds]) # Odds are crossed out (payout column is a dash)
-                )
-                if skip_conds:
-                    continue
+                # Click on handicap row to expand odds
+                row_button = self.driver.find_element(By.XPATH, xpath_soup(handicap_row.find('div')))
+                self.driver.execute_script('arguments[0].scrollIntoView()', row_button)
+                self.driver.execute_script('arguments[0].click()', row_button)
 
-                if (len(bookie_info) <= 1):
-                    # Average and max odds rows
-                    agg_type = odds[0].text
-                    over = None if odds[1].text=='-' else float(odds[1].text)
-                    under = None if odds[2].text=='-' else float(odds[2].text)
-                    payout_perc = float(odds[3].text.replace('%',''))
-                    odds_df[f'{agg_type} {handicap} over'] = over
-                    odds_df[f'{agg_type} {handicap} under'] = under
-                    odds_df[f'{agg_type} {handicap} po %'] = payout_perc
-                else:
-                    bookie_url = bookie_info[0]['href']
-                    bookie_name = bookie_info[1].text
-                    over = None if odds[2].text=='-' else float(odds[2].text)
-                    under = None if odds[3].text=='-' else float(odds[3].text)
-                    payout_perc = float(odds[4].text.replace('%',''))
-                    odds_df[f'{bookie_name} {handicap} over'] = over
-                    odds_df[f'{bookie_name} {handicap} under'] = under
-                    odds_df[f'{bookie_name} {handicap} po %'] = payout_perc
+                # Wait for odds table to load
+                loaded = False
+                while not loaded:
+                    soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+                    odds_table = soup.find_all('div', {'class': 'flex flex-col'})
+                    if len(odds_table) > 0:
+                        loaded = True
 
-        odds_df = odds_df.to_frame().T
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+                odds_table = soup.find_all('div', {'class': 'flex flex-col'})[1]
+                odds_rows = odds_table.find_all('div', {'class':re.compile('flex text-xs')})
+                for odds_row in odds_rows:
+                    bookie_info = odds_row.find_all('a')
+                    odds = odds_row.find_all('div', recursive=False)
+
+                    # Skip some rows
+                    skip_conds = (
+                        (len(odds) <= 1) # Odds not formatted right
+                        or ('coupon' in odds[0].text.lower()) # Coupon row
+                        or np.any([el.text==' - ' for el in odds]) # Odds are crossed out (payout column is a dash)
+                    )
+                    if skip_conds:
+                        continue
+
+                    if (len(bookie_info) <= 1):
+                        # Average and max odds rows
+                        agg_type = odds[0].text
+                        over = None if odds[1].text=='-' else float(odds[1].text)
+                        under = None if odds[2].text=='-' else float(odds[2].text)
+                        payout_perc = float(odds[3].text.replace('%',''))
+                        odds_df[f'{agg_type} {handicap} over'] = over
+                        odds_df[f'{agg_type} {handicap} under'] = under
+                        odds_df[f'{agg_type} {handicap} po %'] = payout_perc
+                    else:
+                        bookie_url = bookie_info[0]['href']
+                        bookie_name = bookie_info[1].text
+                        over = None if odds[2].text=='-' else float(odds[2].text)
+                        under = None if odds[3].text=='-' else float(odds[3].text)
+                        payout_perc = float(odds[4].text.replace('%',''))
+                        odds_df[f'{bookie_name} {handicap} over'] = over
+                        odds_df[f'{bookie_name} {handicap} under'] = under
+                        odds_df[f'{bookie_name} {handicap} po %'] = payout_perc
+
+            odds_df = odds_df.to_frame().T
 
         return odds_df
