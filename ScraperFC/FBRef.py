@@ -38,10 +38,9 @@ class FBRef:
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
         options.add_argument('--log-level=3')
-        self.driver = webdriver.Chrome(
-            service=ChromeService(ChromeDriverManager().install()),
-            options=options
-        )
+        chromedriver_path = ChromeDriverManager().install()
+        chrome_service = ChromeService(chromedriver_path)
+        self.driver = webdriver.Chrome(service=chrome_service, options=options)
 
         self.stats_categories = {
             'standard': {'url': 'stats', 'html': 'standard',},
@@ -261,34 +260,110 @@ class FBRef:
                 f'Must be one of {list(self.stats_categories.keys())}.'
             )
         
-        # Get URL to stat category
         season_url = self.get_season_link(year, league)
-        old_suffix = season_url.split('/')[-1]
-        new_suffix = f'{self.stats_categories[stat_category]["url"]}/{old_suffix}'
-        new_url = season_url.replace(old_suffix, new_suffix)
-
-        self.get(new_url) # webdrive to link
-        soup = BeautifulSoup(self.driver.page_source, 'html.parser') # get initial soup
-
-        # Normalize button, if requested
-        if normalize:
-            # click all per90 toggles on the page
-            per90_toggles = soup.find_all('button', {'id': re.compile('per_match_toggle')})
-            for toggle in per90_toggles:
-                xpath = xpath_soup(toggle)
-                button_el = self.driver.find_element(By.XPATH, xpath)
-                self.driver.execute_script('arguments[0].click()', button_el)
-            # update the soup
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-
-        # Gather stats table tags
-        squad_stats_tag = soup.find('table', {'id': re.compile('for')})
-        opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
-        player_stats_tag = soup.find(
-            'table', 
-            {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')}
-        )
         
+        if league == 'Big 5 combined':
+            # Big 5 combined has separate pages for squad and player stats
+            # Make the URLs to these pages
+            first_half = '/'.join(season_url.split('/')[:-1])
+            second_half = season_url.split('/')[-1]
+            stats_category_url_filler = self.stats_categories[stat_category]['url']
+            players_stats_url = '/'.join([first_half, stats_category_url_filler, 'players', second_half])
+            squads_stats_url  = '/'.join([first_half, stats_category_url_filler, 'squads', second_half])
+            
+            # Get the soups from the 2 pages
+            self.get(players_stats_url)
+            players_soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            self.get(squads_stats_url)
+            squads_soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+            # Press normalize buttons, if requested
+            if normalize:
+                # click all per90 toggles on the SQUAD page first, since it's already loaded
+                per90_toggles = squads_soup.find_all('button', {'id': re.compile('per_match_toggle')})
+                for toggle in per90_toggles:
+                    xpath = xpath_soup(toggle)
+                    button_el = self.driver.find_element(By.XPATH, xpath)
+                    self.driver.execute_script('arguments[0].click()', button_el)
+                # update the soup
+                squads_soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+                # Now do PLAYERS page
+                self.get(players_stats_url)
+                per90_toggles = players_soup.find_all('button', {'id': re.compile('per_match_toggle')})
+                for toggle in per90_toggles:
+                    xpath = xpath_soup(toggle)
+                    button_el = self.driver.find_element(By.XPATH, xpath)
+                    self.driver.execute_script('arguments[0].click()', button_el)
+                # update the soup
+                players_soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+            # Gather stats table tags
+            squad_stats_tag = squads_soup.find('table', {'id': re.compile('for')})
+            opponent_stats_tag = squads_soup.find('table', {'id': re.compile('against')})
+            player_stats_tag = players_soup.find(
+                'table', 
+                {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')}
+            )
+
+            # Gather squad and opponent squad IDs
+            # These are 'td' elements for Big 5
+            squad_ids = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag 
+                in squad_stats_tag.find_all('td', {'data-stat': 'team'})
+                if tag and tag.find('a')
+            ]
+            opponent_ids = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag 
+                in opponent_stats_tag.find_all('td', {'data-stat': 'team'})
+                if tag and tag.find('a')
+            ]
+
+        else:
+            # Get URL to stat category
+            old_suffix = season_url.split('/')[-1] # suffix is last element 202X-202X-divider-stats
+            new_suffix = f'{self.stats_categories[stat_category]["url"]}/{old_suffix}'
+            new_url = season_url.replace(old_suffix, new_suffix)
+
+            self.get(new_url) # webdrive to link
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser') # get initial soup
+
+            # Normalize button, if requested
+            if normalize:
+                # click all per90 toggles on the page
+                per90_toggles = soup.find_all('button', {'id': re.compile('per_match_toggle')})
+                for toggle in per90_toggles:
+                    xpath = xpath_soup(toggle)
+                    button_el = self.driver.find_element(By.XPATH, xpath)
+                    self.driver.execute_script('arguments[0].click()', button_el)
+                # update the soup
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+            # Gather stats table tags
+            squad_stats_tag = soup.find('table', {'id': re.compile('for')})
+            opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
+            player_stats_tag = soup.find(
+                'table', 
+                {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')}
+            )
+
+            # Gather squad and opponent squad IDs
+            # These are 'th' elements for all other leagues
+            squad_ids = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag 
+                in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+                if tag and tag.find('a')
+            ]
+            opponent_ids = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag 
+                in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+                if tag and tag.find('a')
+            ]
+            
         # Get stats dataframes
         squad_stats = pd.read_html(str(squad_stats_tag))[0] if squad_stats_tag is not None else None
         opponent_stats = pd.read_html(str(opponent_stats_tag))[0] if opponent_stats_tag is not None else None
@@ -296,30 +371,21 @@ class FBRef:
 
         # Drop rows that contain duplicated table headers
         squad_stats = squad_stats[
-            (~squad_stats[('Unnamed: 0_level_0','Squad')].isna()) 
-            & (squad_stats[('Unnamed: 0_level_0','Squad')]!="Squad")
+            (~squad_stats.loc[:, (slice(None), 'Squad')].isna()) 
+            & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
         ].reset_index(drop=True)
         opponent_stats = opponent_stats[
-            (~opponent_stats[('Unnamed: 0_level_0','Squad')].isna()) 
-            & (opponent_stats[('Unnamed: 0_level_0','Squad')]!="Squad")
+            (~opponent_stats.loc[:, (slice(None), 'Squad')].isna()) 
+            & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
         ].reset_index(drop=True)
-        player_stats = player_stats[player_stats[('Unnamed: 0_level_0','Rk')] != 'Rk'].reset_index(drop=True)
-        
-        # Add team ID's
+        keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values
+        player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
+
+        # Add team IDs
         if squad_stats is not None:
-            squad_stats['Team ID'] = [
-                tag.find('a')['href'].split('/')[3] 
-                for tag 
-                in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
-                if tag and tag.find('a')
-            ]
+            squad_stats['Team ID'] = squad_ids
         if opponent_stats is not None:
-            opponent_stats['Team ID'] = [
-                tag.find('a')['href'].split('/')[3] 
-                for tag 
-                in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
-                if tag and tag.find('a')
-            ]
+            opponent_stats['Team ID'] = opponent_ids
         
         # Add player links and ID's
         if player_stats is not None:
