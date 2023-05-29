@@ -20,6 +20,7 @@ class Oddsportal:
     ####################################################################################################################
     def __init__(self):
         options = Options()
+        # options.headless = True
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
         self.driver = webdriver.Chrome(
@@ -78,7 +79,6 @@ class Oddsportal:
                 
                 # Check if we've reached the bottom
                 new_yoffset = self.driver.execute_script('return window.pageYOffset;')
-                # print(len(links), last_yoffset, new_yoffset)
                 if new_yoffset == last_yoffset:
                     reached_bottom = True
                 else:
@@ -94,6 +94,7 @@ class Oddsportal:
                 next_button = self.driver.find_element(By.XPATH, xpath_soup(next_button[0]))
                 self.driver.execute_script('arguments[0].scrollIntoView()', next_button)
                 self.driver.execute_script('arguments[0].click()', next_button)
+                
                 # Wait for next or prev buttons to load
                 loaded = False
                 while not loaded:
@@ -104,6 +105,7 @@ class Oddsportal:
                         loaded = True
 
         all_links = ['https://oddsportal.com' + l for l in all_links]
+
         return all_links
 
     ####################################################################################################################
@@ -116,6 +118,7 @@ class Oddsportal:
         # Replace 'Today' with day of the week
         if 'Today' in date:
             date = date.replace('Today', datetime.now().strftime('%A'))
+        date = date.replace(',', ', ') # add spaces after commas
         date = datetime.strptime(date, '%A, %d %b %Y, %H:%M')
 
         # Team names
@@ -162,17 +165,23 @@ class Oddsportal:
 
     ####################################################################################################################
     def get_1X2odds_from_match(self, url):
-        if '#1X2' not in url:
-            url += '#1X2'
+        # if '#1X2' not in url:
+        #     url += '#1X2'
         self.driver.get(url)
-        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
 
         # Verify that odds are on the page
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
         spanners_txt = [l.text for l in soup.find_all('span', {'class':'flex'})]
         if '1X2' not in spanners_txt:
             print(f'1X2 odds not found at {url}.')
             odds_df = pd.DataFrame()
         else:
+            # Click on button for 1X2 odds
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            button_xpath = xpath_soup(soup.find('a', string='1X2'))
+            button = self.driver.find_element(By.XPATH, button_xpath)
+            self.driver.execute_script('arguments[0].click()', button)
+
             # Wait for page to load
             counter = 0
             while len(soup.find_all('div', {'class':'flex flex-col'})) == 0:
@@ -236,16 +245,23 @@ class Oddsportal:
 
     ####################################################################################################################
     def get_OUodds_from_match(self, url):
-        if '#over-under' not in url:
-            url += '#over-under'
+        # if '#over-under' not in url:
+        #     url += '#over-under'
         self.driver.get(url)
 
         # Verify that odds are on the page
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
         spanners_txt = [l.text for l in BeautifulSoup(self.driver.page_source, 'html.parser').find_all('span', {'class':'flex'})]
         if 'Over/Under' not in spanners_txt:
             print(f'Over/Under odds not found at {url}.')
             odds_df = pd.DataFrame()
         else:
+            # Click on button for Over/Under odds
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            button_xpath = xpath_soup(soup.find('a', string='Over/Under'))
+            button = self.driver.find_element(By.XPATH, button_xpath)
+            self.driver.execute_script('arguments[0].click()', button)
+
             # Wait for handicaps table to load
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             handicaps_table = soup.find_all('div', {'class':'min-md:px-[10px]'})
@@ -257,6 +273,7 @@ class Oddsportal:
                 handicaps_table = soup.find_all('div', {'class':'min-md:px-[10px]'})
                 time.sleep(1)
                 counter += 1
+            handicaps_table = handicaps_table[1]
 
             # # Hide inactive odds
             # hide_inactive_checkbox = [el for el in soup.find_all('label') if 'Hide inactive odds' in el.text][0].parent.find('input', {'type': 'checkbox'})
@@ -267,15 +284,14 @@ class Oddsportal:
             # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
         
             odds_df = pd.Series(dtype=object)
-            handicaps_table = handicaps_table[1]
             handicap_rows = handicaps_table.find_all('div', {'class':'relative flex flex-col'}, recursive=False)
             for handicap_row in handicap_rows:
-                handicap = handicap_row.find('p').text.replace('Over/Under','').strip()
+                handicap = handicap_row.find('p').text.replace('Over/Under','').strip() # the total goals handicap text
 
                 # Click on handicap row to expand odds
-                row_button = self.driver.find_element(By.XPATH, xpath_soup(handicap_row.find('div')))
-                self.driver.execute_script('arguments[0].scrollIntoView()', row_button)
-                self.driver.execute_script('arguments[0].click()', row_button)
+                handicap_row_button = self.driver.find_element(By.XPATH, xpath_soup(handicap_row.find('div')))
+                self.driver.execute_script('arguments[0].scrollIntoView()', handicap_row_button)
+                self.driver.execute_script('arguments[0].click()', handicap_row_button)
 
                 # Wait for odds table to load
                 loaded = False
@@ -287,7 +303,7 @@ class Oddsportal:
 
                 soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
                 odds_table = soup.find_all('div', {'class': 'flex flex-col'})[1]
-                odds_rows = odds_table.find_all('div', {'class':re.compile('flex text-xs')})
+                odds_rows = odds_table.find_all('div', {'class': re.compile('flex text-xs')})
                 for odds_row in odds_rows:
                     bookie_info = odds_row.find_all('a')
                     odds = odds_row.find_all('div', recursive=False)
@@ -311,7 +327,8 @@ class Oddsportal:
                         odds_df[f'{agg_type} {handicap} under'] = under
                         odds_df[f'{agg_type} {handicap} po %'] = payout_perc
                     else:
-                        bookie_url = bookie_info[0]['href']
+                        # Row of bookie odds
+                        # bookie_url = bookie_info[0]['href']
                         bookie_name = bookie_info[1].text
                         over = None if odds[2].text=='-' else float(odds[2].text)
                         under = None if odds[3].text=='-' else float(odds[3].text)
@@ -319,6 +336,10 @@ class Oddsportal:
                         odds_df[f'{bookie_name} {handicap} over'] = over
                         odds_df[f'{bookie_name} {handicap} under'] = under
                         odds_df[f'{bookie_name} {handicap} po %'] = payout_perc
+
+                # Click on handicap row to collapse handicap odds
+                self.driver.execute_script('arguments[0].scrollIntoView()', handicap_row_button)
+                self.driver.execute_script('arguments[0].click()', handicap_row_button)
 
             odds_df = odds_df.to_frame().T
 
