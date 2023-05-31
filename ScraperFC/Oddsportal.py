@@ -147,14 +147,36 @@ class Oddsportal:
         match_df['Goals1'] = goals1
         match_df['Goals2'] = goals2
         match_df['Total goals'] = goals1 + goals2
+        match_df = match_df.to_frame().T
 
         # Scrape odds
-        match1X2odds_df = self.get_1X2odds_from_match(url)
-        matchOUodds_df = self.get_OUodds_from_match(url)
+        moneyline_df = self.get_1X2odds_from_match(url)
+        over_under_df = self.get_OUodds_from_match(url)
 
-        # Concatenate everything
-        match_df = match_df.to_frame().T
-        match_df = pd.concat([match_df, match1X2odds_df, matchOUodds_df], axis=1)
+        # Format MultiIndices
+        dfs_to_concat = [
+            # (match_df, 'Info'), 
+            (moneyline_df, '1X2'), 
+            (over_under_df, 'O/U')
+        ]
+        max_levels = max([len(df.columns[0]) if type(df.columns) is not pd.Index else 1 for df,_ in dfs_to_concat])
+        for df, name in dfs_to_concat:
+            current_levels = len(df.columns[0]) if type(df.columns) is not pd.Index else 1
+
+            # Add a name level to isolate different odds types
+            name_level = pd.DataFrame([name for i in df.columns], index=df.columns)
+            
+            # Add empty levels so all MultiIndices have same number of levels
+            empty_levels = pd.DataFrame([['']*(max_levels-current_levels) for i in df.columns], index=df.columns)
+            
+            # Combine all of the columns
+            new_columns = pd.MultiIndex.from_frame(pd.concat([name_level, df.columns.to_frame(), empty_levels], axis=1))
+            
+            # Update columns in df object
+            df.columns = new_columns
+
+        # Actually merge the odds dfs now
+        match_df = pd.concat([match_df, moneyline_df, over_under_df], axis=1)
 
         return match_df
     
@@ -199,7 +221,7 @@ class Oddsportal:
             # time.sleep(0.5)
             # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
 
-            odds_df = pd.Series(dtype=object)
+            odds_df = pd.Series(index=pd.MultiIndex(levels=[[],[]], codes=[[],[]]))
             odds_table = soup.find_all('div', {'class':'flex flex-col'})[1]
             rows = odds_table.find_all('div', {'class':re.compile('flex text-xs')})
             for row in rows:
@@ -224,20 +246,28 @@ class Oddsportal:
                 if (len(bookie_info) <= 1):
                     # Average and max odds rows
                     agg_type = odds[0].text
-                    odds_df[f'{agg_type} 1'] = odds1
-                    odds_df[f'{agg_type} X'] = oddsX
-                    odds_df[f'{agg_type} 2'] = odds2
-                    odds_df[f'{agg_type} po %'] = payout_perc
+                    # odds_df[f'{agg_type} 1'] = odds1
+                    # odds_df[f'{agg_type} X'] = oddsX
+                    # odds_df[f'{agg_type} 2'] = odds2
+                    # odds_df[f'{agg_type} po %'] = payout_perc
+                    odds_df[(agg_type, '1')] = odds1
+                    odds_df[(agg_type, 'X')] = oddsX
+                    odds_df[(agg_type, '2')] = odds2
+                    odds_df[(agg_type, 'po %')] = payout_perc
                 else:
                     # This is a row with odds from bookie
                     bookie_url = bookie_info[0]['href']
                     bookie_name = bookie_info[1].text
                     # bookie info 2 is the info button (link to oddsportal page for bookie)
                     # bookie info 3 is whether the bookie is running a bonus or not
-                    odds_df[f'{bookie_name} 1'] = odds1
-                    odds_df[f'{bookie_name} X'] = oddsX
-                    odds_df[f'{bookie_name} 2'] = odds2
-                    odds_df[f'{bookie_name} po %'] = payout_perc
+                    # odds_df[f'{bookie_name} 1'] = odds1
+                    # odds_df[f'{bookie_name} X'] = oddsX
+                    # odds_df[f'{bookie_name} 2'] = odds2
+                    # odds_df[f'{bookie_name} po %'] = payout_perc
+                    odds_df[(bookie_name, '1')] = odds1
+                    odds_df[(bookie_name, 'X')] = oddsX
+                    odds_df[(bookie_name, '2')] = odds2
+                    odds_df[(bookie_name, 'po %')] = payout_perc
 
             odds_df = odds_df.to_frame().T
 
@@ -283,7 +313,8 @@ class Oddsportal:
             # time.sleep(0.5)
             # soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
         
-            odds_df = pd.Series(dtype=object)
+            # odds_df = pd.Series(dtype=object)
+            odds_df = pd.Series(index=pd.MultiIndex(levels=[[],[],[]], codes=[[],[],[]]))
             handicap_rows = handicaps_table.find_all('div', {'class':'relative flex flex-col'}, recursive=False)
             for handicap_row in handicap_rows:
                 handicap = handicap_row.find('p').text.replace('Over/Under','').strip() # the total goals handicap text
@@ -323,9 +354,12 @@ class Oddsportal:
                         over = None if odds[1].text=='-' else float(odds[1].text)
                         under = None if odds[2].text=='-' else float(odds[2].text)
                         payout_perc = float(odds[3].text.replace('%',''))
-                        odds_df[f'{agg_type} {handicap} over'] = over
-                        odds_df[f'{agg_type} {handicap} under'] = under
-                        odds_df[f'{agg_type} {handicap} po %'] = payout_perc
+                        # odds_df[f'{agg_type} {handicap} over'] = over
+                        # odds_df[f'{agg_type} {handicap} under'] = under
+                        # odds_df[f'{agg_type} {handicap} po %'] = payout_perc
+                        odds_df[(handicap, agg_type, 'over')] = over
+                        odds_df[(handicap, agg_type, 'under')] = under
+                        odds_df[(handicap, agg_type, 'po %')] = payout_perc
                     else:
                         # Row of bookie odds
                         # bookie_url = bookie_info[0]['href']
@@ -333,9 +367,12 @@ class Oddsportal:
                         over = None if odds[2].text=='-' else float(odds[2].text)
                         under = None if odds[3].text=='-' else float(odds[3].text)
                         payout_perc = float(odds[4].text.replace('%',''))
-                        odds_df[f'{bookie_name} {handicap} over'] = over
-                        odds_df[f'{bookie_name} {handicap} under'] = under
-                        odds_df[f'{bookie_name} {handicap} po %'] = payout_perc
+                        # odds_df[f'{bookie_name} {handicap} over'] = over
+                        # odds_df[f'{bookie_name} {handicap} under'] = under
+                        # odds_df[f'{bookie_name} {handicap} po %'] = payout_perc
+                        odds_df[(handicap, bookie_name, 'over')] = over
+                        odds_df[(handicap, bookie_name, 'under')] = under
+                        odds_df[(handicap, bookie_name, 'po %')] = payout_perc
 
                 # Click on handicap row to collapse handicap odds
                 self.driver.execute_script('arguments[0].scrollIntoView()', handicap_row_button)
