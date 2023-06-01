@@ -129,12 +129,18 @@ class Oddsportal:
         ]
         team1 = teams[0]
         team2 = teams[1]
+
+        # Wait for final result to load
+        final_result = list()
+        while len(final_result) == 0:
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+            final_result = [
+                el.text for el in soup.find_all('strong') 
+                if re.search('(?=.*Final)(?=.*result)', el.parent.text)
+            ]
+        final_result = final_result[0]
         
         # Goals and result
-        final_result = [
-            el.text for el in soup.find_all('strong') 
-            if re.search('(?=.*Final)(?=.*result)', el.parent.text)
-        ][0]
         goals1 = int(final_result.split(':')[0])
         goals2 = int(final_result.split(':')[1])
         result = '1' if goals1>goals2 else ('X' if goals1==goals2 else '2')
@@ -153,37 +159,37 @@ class Oddsportal:
         moneyline_df = self.get_1X2odds_from_match(url)
         over_under_df = self.get_OUodds_from_match(url)
 
-        # Format MultiIndices
-        dfs_to_concat = [
-            # (match_df, 'Info'), 
-            (moneyline_df, '1X2'), 
-            (over_under_df, 'O/U')
-        ]
-        max_levels = max([len(df.columns[0]) if type(df.columns) is not pd.Index else 1 for df,_ in dfs_to_concat])
-        for df, name in dfs_to_concat:
-            current_levels = len(df.columns[0]) if type(df.columns) is not pd.Index else 1
-
-            # Add a name level to isolate different odds types
-            name_level = pd.DataFrame([name for i in df.columns], index=df.columns)
-            
-            # Add empty levels so all MultiIndices have same number of levels
-            empty_levels = pd.DataFrame([['']*(max_levels-current_levels) for i in df.columns], index=df.columns)
-            
-            # Combine all of the columns
-            new_columns = pd.MultiIndex.from_frame(pd.concat([name_level, df.columns.to_frame(), empty_levels], axis=1))
-            
-            # Update columns in df object
-            df.columns = new_columns
+        # New columns as MultiIndex
+        columns = pd.MultiIndex.from_tuples([
+            (i,) if type(i) is str else i 
+            for i in (
+                [('Info',)+(i,) for i in match_df.columns.to_list()] 
+                + [('1X2',)+i for i in moneyline_df.columns.to_list()] 
+                + [('O/U',)+i for i in over_under_df.columns.to_list()]
+            )
+        ])
 
         # Actually merge the odds dfs now
         match_df = pd.concat([match_df, moneyline_df, over_under_df], axis=1)
+        match_df.columns = columns
 
         return match_df
     
     ####################################################################################################################
     def scrape_season_odds(self, year, league):
-        raise NotImplementedError
+        # Verify season is valid
         check_season(year, league, 'Oddsportal')
+
+        # Get match links
+        match_links = self.get_match_links(year, league)
+
+        # Scrape matches
+        df = pd.DataFrame()
+        for link in tqdm(match_links, desc=f'{year} {league}'):
+            match_df = self.scrape_match(link)
+            df = pd.concat([df, match_df], axis=0, ignore_index=True)
+        
+        return df
 
     ####################################################################################################################
     def get_1X2odds_from_match(self, url):
@@ -206,7 +212,7 @@ class Oddsportal:
 
             # Wait for page to load
             counter = 0
-            while len(soup.find_all('div', {'class':'flex flex-col'})) == 0:
+            while len(soup.find_all('div', {'class':'flex flex-col'})) < 2:
                 if counter == 0:
                     raise Exception(f'Unable to load 1X2 odds from {url}.')
                 soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
@@ -348,12 +354,13 @@ class Oddsportal:
                     if skip_conds:
                         continue
 
+                    empty_odds_strs = ['-', ''] # string that are present on Oddsportal for empty odds
                     if (len(bookie_info) <= 1):
                         # Average and max odds rows
                         agg_type = odds[0].text
-                        over = None if odds[1].text=='-' else float(odds[1].text)
-                        under = None if odds[2].text=='-' else float(odds[2].text)
-                        payout_perc = float(odds[3].text.replace('%',''))
+                        over = None if odds[1].text in empty_odds_strs else float(odds[1].text)
+                        under = None if odds[2].text in empty_odds_strs else float(odds[2].text)
+                        payout_perc = None if odds[3].text in empty_odds_strs else float(odds[3].text.replace('%',''))
                         # odds_df[f'{agg_type} {handicap} over'] = over
                         # odds_df[f'{agg_type} {handicap} under'] = under
                         # odds_df[f'{agg_type} {handicap} po %'] = payout_perc
@@ -364,9 +371,9 @@ class Oddsportal:
                         # Row of bookie odds
                         # bookie_url = bookie_info[0]['href']
                         bookie_name = bookie_info[1].text
-                        over = None if odds[2].text=='-' else float(odds[2].text)
-                        under = None if odds[3].text=='-' else float(odds[3].text)
-                        payout_perc = float(odds[4].text.replace('%',''))
+                        over = None if odds[2].text in empty_odds_strs else float(odds[2].text)
+                        under = None if odds[3].text in empty_odds_strs else float(odds[3].text)
+                        payout_perc = None if odds[4].text in empty_odds_strs else float(odds[4].text.replace('%',''))
                         # odds_df[f'{bookie_name} {handicap} over'] = over
                         # odds_df[f'{bookie_name} {handicap} under'] = under
                         # odds_df[f'{bookie_name} {handicap} po %'] = payout_perc
