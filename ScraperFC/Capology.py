@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -15,15 +16,14 @@ class Capology():
     ############################################################################
     def __init__(self):
         options = Options()
-        options.add_argument('--headless')
-        options.add_argument('window-size=700,600')
+        # options.add_argument('--headless')
         # Use proxy
         # don't load images
         prefs = {'profile.managed_default_content_settings.images': 2}
         options.add_experimental_option('prefs', prefs)
         # create driver
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-        clear_output()
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(options=options, service=service) 
 
         self.leagues = {
             'Bundesliga': 'de/1-bundesliga',
@@ -77,10 +77,9 @@ class Capology():
         if currency not in self.valid_currencies:
             raise InvalidCurrencyException()
 
-        
         league_url = f'https://www.capology.com/{self.leagues[league]}/salaries/{year-1}-{year}'
-
         self.driver.get(league_url)
+        print('Loaded page')
 
         # show all players on one page
         done = False
@@ -96,6 +95,7 @@ class Capology():
                 done = True
             except StaleElementReferenceException:
                 pass
+        print('Clicked show all players')
 
         # select the currency
         currency_btn = WebDriverWait(
@@ -105,6 +105,7 @@ class Capology():
             (By.ID, 'btn_{}'.format(currency))
         ))
         self.driver.execute_script('arguments[0].click()', currency_btn)
+        print('Changed currency')
 
         # table to pandas df
         tbody_html = self.driver.find_element(By.ID, 'table')\

@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -19,7 +20,8 @@ class Transfermarkt():
         options = Options()
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options) # create driver
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(options=options, service=service) # create driver
 
         
     ############################################################################

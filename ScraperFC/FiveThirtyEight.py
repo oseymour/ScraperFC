@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -21,7 +22,8 @@ class FiveThirtyEight:
         options.headless = True
         prefs = {"download.default_directory" : os.getcwd()}
         options.add_experimental_option("prefs",prefs)
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(options=options, service=service)  
         
     ############################################################################    
     def close(self):
