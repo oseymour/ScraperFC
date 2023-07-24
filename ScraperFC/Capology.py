@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
@@ -21,8 +22,8 @@ class Capology():
         prefs = {'profile.managed_default_content_settings.images': 2}
         options.add_experimental_option('prefs', prefs)
         # create driver
-        self.driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
-        clear_output()
+        service = Service(ChromeDriverManager().install())
+        self.driver = webdriver.Chrome(options=options, service=service) 
 
         self.leagues = {
             'Bundesliga': 'de/1-bundesliga',
