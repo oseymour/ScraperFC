@@ -208,6 +208,7 @@ sources = {
         'Bundesliga':  {'first valid year': 2015,},
         'Serie A':  {'first valid year': 2015,},
         'Ligue 1':  {'first valid year': 2015,},
+        'RFPL':  {'first valid year': 2015,},
     },
     'FiveThirtyEight': {
         'EPL':  {'first valid year': 2017,},
