@@ -87,10 +87,12 @@ class Oddsportal:
             all_links += page_links
 
             # Click the next button and got to the next page -----------------------------------------------------------
-            next_button = [el for el in soup.find_all('p') if 'next'==el.text.lower()]
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
+            next_button = [el for el in soup.find_all(['p','a']) if 'next'==el.text.lower()]
             if len(next_button) == 0:
                 done = True
             else:
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
                 next_button = self.driver.find_element(By.XPATH, xpath_soup(next_button[0]))
                 self.driver.execute_script('arguments[0].scrollIntoView()', next_button)
                 self.driver.execute_script('arguments[0].click()', next_button)
@@ -99,8 +101,8 @@ class Oddsportal:
                 loaded = False
                 while not loaded:
                     soup = BeautifulSoup(self.driver.page_source, 'html.parser') # update soup
-                    next_button = [el for el in soup.find_all('p') if 'next'==el.text.lower()]
-                    prev_button = [el for el in soup.find_all('p') if 'prev'==el.text.lower()]
+                    next_button = [el for el in soup.find_all(['p','a']) if 'next'==el.text.lower()]
+                    prev_button = [el for el in soup.find_all(['p','a']) if 'prev'==el.text.lower()]
                     if next_button or prev_button:
                         loaded = True
 
