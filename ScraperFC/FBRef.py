@@ -34,7 +34,7 @@ class FBRef:
             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 '+\
             'Safari/537.36'
         )
-        options.add_argument('window-size=1400,600')
+        options.add_argument('window-size=700,400')
         options.add_argument('--incognito')
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
@@ -748,55 +748,58 @@ class FBRef:
         # return -1 if the player has no scouting report
         player_link_html = urlopen(player_link).read().decode('utf8')
         if 'view complete scouting report' not in player_link_html.lower():
-            return -1, -1, -1, -1
+            cleaned_complete_report, player_name, player_pos, minutes = -1, -1, -1, -1
+        else:
+            # Get link to complete report
+            soup = BeautifulSoup(requests.get(player_link).content, 'lxml')
+            complete_report_link = soup\
+                .find('div', {'id': re.compile('all_scout')})\
+                .find('div', {'class': 'section_heading_text'})\
+                .find('a', href=True)['href']
+            complete_report_link = 'https://fbref.com' + complete_report_link
+            self.get(complete_report_link)
 
-        #### Get link to complete report ####
-        soup = BeautifulSoup(requests.get(player_link).content, 'lxml')
-        complete_report_link = soup\
-            .find('div', {'id': 'all_scout'})\
-            .find('div', {'class': 'section_heading_text'})\
-            .find('a', href=True)['href']
-        complete_report_link = 'https://fbref.com' + complete_report_link
-        self.get(complete_report_link)
+            # Load and prelim clean of complete report
+            soup = BeautifulSoup(requests.get(complete_report_link).content, 'lxml')
+            complete_report = pd.read_html(str(soup.find('table', {'id': re.compile('scout_full')})))[0] # load report
+            complete_report.columns = complete_report.columns.get_level_values(1) # drop top level column name
+            complete_report.dropna(axis=0, inplace=True) # drop nan rows
+            complete_report.reset_index(inplace=True, drop=True) # reset index
 
-        #### Load and prelim clean of complete report ####
-        soup = BeautifulSoup(requests.get(complete_report_link).content, 'lxml')
-        complete_report = pd.read_html(str(soup.find('table', {'id': re.compile(f'scout_full')})))[0] # load report
-        complete_report.columns = complete_report.columns.get_level_values(1) # drop top level column name
-        complete_report.dropna(axis=0, inplace=True) # drop nan rows
-        complete_report.reset_index(inplace=True, drop=True) # reset index
+            # Row masks
+            header_row_mask = complete_report.eq(complete_report.iloc[:,0], axis=0).all(1) # rows with stats category header names
 
-        # Row masks
-        header_row_mask = complete_report.eq(complete_report.iloc[:,0], axis=0).all(1) # rows with stats category header names
-
-        #### Create multiindex column names broken down by stats category ####
-        cleaned_complete_report = pd.DataFrame()
-        stats_categories = ('Standard',) + tuple(complete_report[header_row_mask]['Statistic'].values)
-        category_starts = [0,] + list(np.where(header_row_mask)[0]+2) # 2 to skip past category name row and col name row
-        category_ends = list(np.where(header_row_mask)[0]-1) + [complete_report.shape[0]-1]
-        for i in range(len(stats_categories)):
-            temp = complete_report.loc[category_starts[i]:category_ends[i],:]
-            temp.index = pd.MultiIndex.from_product([
-                (stats_categories[i],),
-                temp['Statistic'],
-            ])
-            cleaned_complete_report = pd.concat([cleaned_complete_report,temp])
-        # drop statistic name column, it's in the multiindex now
-        cleaned_complete_report.drop(columns='Statistic', inplace=True)
-        cleaned_complete_report['Per 90'] = cleaned_complete_report['Per 90'].str.rstrip('%').astype('float')
-        cleaned_complete_report['Percentile'] = cleaned_complete_report['Percentile'].astype(int)
-        
-        #### Get player names, positions, and minutes played ####
-        player_name = ' '.join(complete_report_link.split('/')[-1].split('-')[:-2])
-        player_pos = soup.find('div', {'id': 'all_scout'}).find('div', {'class': 'current'}).text.split('vs.')[-1].strip()
-        minutes = int(
-            soup.find('div', {'id': 'all_scout'})\
-                .find('div', {'class': 'footer no_hide_long'})\
-                .find('div')\
-                .text\
-                .split(' minutes')[0]\
-                .split(' ')[-1]
-        )
+            # Create multiindex column names broken down by stats category
+            cleaned_complete_report = pd.DataFrame()
+            stats_categories = ('Standard',) + tuple(complete_report[header_row_mask]['Statistic'].values)
+            category_starts = [0,] + list(np.where(header_row_mask)[0]+2) # 2 to skip past category name row and col name row
+            category_ends = list(np.where(header_row_mask)[0]-1) + [complete_report.shape[0]-1]
+            for i in range(len(stats_categories)):
+                temp = complete_report.loc[category_starts[i]:category_ends[i],:]
+                temp.index = pd.MultiIndex.from_product([
+                    (stats_categories[i],),
+                    temp['Statistic'],
+                ])
+                cleaned_complete_report = pd.concat([cleaned_complete_report,temp])
+            # drop statistic name column, it's in the multiindex now
+            cleaned_complete_report.drop(columns='Statistic', inplace=True)
+            cleaned_complete_report['Per 90'] = cleaned_complete_report['Per 90'].str.rstrip('%').astype('float')
+            cleaned_complete_report['Percentile'] = cleaned_complete_report['Percentile'].astype(int)
+            
+            # Get player names, positions, and minutes played
+            player_name = ' '.join(complete_report_link.split('/')[-1].split('-')[:-2])
+            player_pos = soup\
+                .find('div', {'id': re.compile('all_scout')})\
+                .find('div', {'class': 'current'})\
+                .text.split('vs.')[-1].strip()
+            minutes = int(
+                soup.find('div', {'id': re.compile('all_scout')})\
+                    .find('div', {'class': 'footer no_hide_long'})\
+                    .find('div')\
+                    .text\
+                    .split(' minutes')[0]\
+                    .split(' ')[-1]
+            )
 
         return cleaned_complete_report, player_name, player_pos, minutes
         
