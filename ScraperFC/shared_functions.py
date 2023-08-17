@@ -1,7 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
 from IPython.display import clear_output
 import random
 import pandas as pd
@@ -205,9 +204,9 @@ sources = {
     'Understat': {
         'EPL': {'first valid year': 2015,},
         'La Liga': {'first valid year': 2015,},
-        'Bundesliga':  {'first valid year': 2015,},
-        'Serie A':  {'first valid year': 2015,},
-        'Ligue 1':  {'first valid year': 2015,},
+        'Bundesliga': {'first valid year': 2015,},
+        'Serie A': {'first valid year': 2015,},
+        'Ligue 1': {'first valid year': 2015,},
         'RFPL':  {'first valid year': 2015,},
     },
     'FiveThirtyEight': {
@@ -380,9 +379,8 @@ def get_proxy():
         In the form <IP address>:<port>
     '''
     options = Options()
-    options.headless = True
-    options.add_argument('window-size=700,600')
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options)
+    options.add_argument('--headless')
+    driver = webdriver.Chrome(options=options)
     clear_output()
     
     try:
