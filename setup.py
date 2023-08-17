@@ -21,7 +21,7 @@ setuptools.setup(
         'web scraping soccer data', 'web scraping football data',
     ],
     install_requires = [
-        'selenium', 'webdriver-manager', 'pandas', 'numpy', 'datetime',
+        'selenium', 'pandas', 'numpy', 'datetime',
         'ipython', 'requests', 'bs4', 'lxml', 'tqdm',
     ],
     classifiers = [
