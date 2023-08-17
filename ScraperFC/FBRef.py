@@ -363,14 +363,12 @@ class FBRef:
         player_stats = pd.read_html(str(player_stats_tag))[0] if player_stats_tag is not None else None
 
         # Drop rows that contain duplicated table headers
-        squad_stats = squad_stats[
-            (~squad_stats.loc[:, (slice(None), 'Squad')].isna()) 
-            & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
-        ].reset_index(drop=True)
-        opponent_stats = opponent_stats[
-            (~opponent_stats.loc[:, (slice(None), 'Squad')].isna()) 
-            & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
-        ].reset_index(drop=True)
+        squad_drop_mask = ~squad_stats.loc[:, (slice(None), 'Squad')].isna() & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
+        squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
+
+        opponent_drop_mask = ~opponent_stats.loc[:, (slice(None), 'Squad')].isna() & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
+        opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
+
         keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values
         player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
 
