@@ -1,5 +1,4 @@
 selenium
-webdriver-manager
 pandas
 numpy
 datetime

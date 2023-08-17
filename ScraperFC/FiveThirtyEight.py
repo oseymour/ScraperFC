@@ -1,10 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from webdriver_manager.chrome import ChromeDriverManager
 import os
 import pandas as pd
 import numpy as np
@@ -19,11 +17,10 @@ class FiveThirtyEight:
     ############################################################################
     def __init__(self):
         options = Options()
-        options.headless = True
+        options.add_argument('--headless')
         prefs = {"download.default_directory" : os.getcwd()}
         options.add_experimental_option("prefs",prefs)
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(options=options, service=service)  
+        self.driver = webdriver.Chrome(options=options)
         
     ############################################################################    
     def close(self):

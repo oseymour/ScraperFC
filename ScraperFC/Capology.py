@@ -1,11 +1,9 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import StaleElementReferenceException
-from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 from IPython.display import clear_output
 
@@ -16,14 +14,10 @@ class Capology():
     ############################################################################
     def __init__(self):
         options = Options()
-        # options.add_argument('--headless')
-        # Use proxy
-        # don't load images
-        prefs = {'profile.managed_default_content_settings.images': 2}
+        options.add_argument('--headless')
+        prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
-        # create driver
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(options=options, service=service) 
+        self.driver = webdriver.Chrome(options=options)
 
         self.leagues = {
             'Bundesliga': 'de/1-bundesliga',
@@ -79,9 +73,8 @@ class Capology():
 
         league_url = f'https://www.capology.com/{self.leagues[league]}/salaries/{year-1}-{year}'
         self.driver.get(league_url)
-        print('Loaded page')
 
-        # show all players on one page
+        # Show all players on one page -----------------------------------------
         done = False
         while not done:
             try:
@@ -95,9 +88,8 @@ class Capology():
                 done = True
             except StaleElementReferenceException:
                 pass
-        print('Clicked show all players')
 
-        # select the currency
+        # Select the currency --------------------------------------------------
         currency_btn = WebDriverWait(
             self.driver, 
             10,
@@ -107,7 +99,7 @@ class Capology():
         self.driver.execute_script('arguments[0].click()', currency_btn)
         print('Changed currency')
 
-        # table to pandas df
+        # Table to pandas df ---------------------------------------------------
         tbody_html = self.driver.find_element(By.ID, 'table')\
                 .find_element(By.TAG_NAME, 'tbody')\
                 .get_attribute('outerHTML')

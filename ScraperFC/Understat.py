@@ -5,10 +5,8 @@ import pandas as pd
 from ScraperFC.shared_functions import check_season
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
-from webdriver_manager.chrome import ChromeDriverManager
 from tqdm.auto import tqdm
 import requests
 from bs4 import BeautifulSoup
@@ -20,12 +18,11 @@ class Understat:
     ####################################################################################################################
     def __init__(self):
         options = Options()
-        options.headless = True
-        options.add_argument("window-size=1400,600")
+        options.add_argument('--headless')
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(options=options, service=service)       
+        self.driver = webdriver.Chrome(options=options)
+        
         
     ####################################################################################################################
     def close(self):

@@ -5,10 +5,7 @@ from ScraperFC.shared_functions import check_season, xpath_soup, sources, Unavai
     NoMatchLinksException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service as ChromeService
 from urllib.request import urlopen
 import requests
 from bs4 import BeautifulSoup
@@ -28,19 +25,15 @@ class FBRef:
         self.wait_time = 6 # in seconds, as of 30-Oct-2022 FBRef blocks if requesting more than 20 requests/minute
 
         options = Options()
-#         options.headless = True
         options.add_argument(
             'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+\
             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 '+\
             'Safari/537.36'
         )
-        options.add_argument('window-size=700,400')
         options.add_argument('--incognito')
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
-        options.add_argument('--log-level=3')
-        service = Service(ChromeDriverManager().install())
-        self.driver = webdriver.Chrome(options=options, service=service)  
+        self.driver = webdriver.Chrome(options=options) 
 
         self.stats_categories = {
             'standard': {'url': 'stats', 'html': 'standard',},
@@ -370,14 +363,12 @@ class FBRef:
         player_stats = pd.read_html(str(player_stats_tag))[0] if player_stats_tag is not None else None
 
         # Drop rows that contain duplicated table headers
-        squad_stats = squad_stats[
-            (~squad_stats.loc[:, (slice(None), 'Squad')].isna()) 
-            & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
-        ].reset_index(drop=True)
-        opponent_stats = opponent_stats[
-            (~opponent_stats.loc[:, (slice(None), 'Squad')].isna()) 
-            & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
-        ].reset_index(drop=True)
+        squad_drop_mask = ~squad_stats.loc[:, (slice(None), 'Squad')].isna() & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
+        squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
+
+        opponent_drop_mask = ~opponent_stats.loc[:, (slice(None), 'Squad')].isna() & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
+        opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
+
         keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values
         player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
 
