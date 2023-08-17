@@ -11,6 +11,8 @@ from tqdm import tqdm
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+import re
+import time
 
 
 class Transfermarkt():
@@ -23,6 +25,32 @@ class Transfermarkt():
         service = Service(ChromeDriverManager().install())
         self.driver = webdriver.Chrome(options=options, service=service) # create driver
 
+        # Deal with Accept All popup
+        self.driver.get('https://www.transfermarkt.us')
+        # Switch to the iframe popup
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        iframe = self.driver.find_element(
+            By.XPATH, 
+            xpath_soup(soup.find('div', {'id': re.compile('sp_message_container')}).find('iframe'))
+        )
+        self.driver.switch_to.frame(iframe)
+        # Press the ACCEPT ALL button
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        accept_all_button = self.driver.find_element(
+            By.XPATH,
+            xpath_soup(soup.find('button', {'aria-label': 'ACCEPT ALL'}))
+        )
+        self.driver.execute_script('arguments[0].click()', accept_all_button)
+        # Switch back to the main window
+        self.driver.switch_to.default_content()
+        # Wait until popup is gone from HTML
+        gone = False
+        while not gone:
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            popup_matches = soup.find_all('div', {'id': re.compile('sp_message_container')})
+            gone = True if len(popup_matches)==0 else False
+            time.sleep(1) # wait for a hot sec
+
         
     ############################################################################
     def close(self):
@@ -30,7 +58,7 @@ class Transfermarkt():
         """
         self.driver.close()
         self.driver.quit()
-        
+
         
     ############################################################################
     def get_club_links(self, year, league):
@@ -48,7 +76,6 @@ class Transfermarkt():
         : list
             List of the club URL's
         """
-        print("Gathering club links.")
         check_season(year, league, 'Transfermarkt')
         
         competition_links = {
@@ -75,11 +102,12 @@ class Transfermarkt():
             'MLS': 'https://www.transfermarkt.us/major-league-soccer/startseite/wettbewerb/MLS1'
         }
         
-        # go to the selected year
+        # Go to the selected year
+        print('Gathering club links.')
         url = '{}/plus/?saison_id={}'.format(competition_links[league], year-1)
         self.driver.get(url)
         
-        # get the club links
+        # Get the club links
         club_links = set()
         table = self.driver.find_elements(By.CLASS_NAME, 'items')[0]
         for el in table.find_elements(By.TAG_NAME, 'td'):
@@ -106,15 +134,14 @@ class Transfermarkt():
         : list
             List of the player URL's
         """
-        print("Gathering player links.")
         check_season(year, league, 'Transfermarkt')
         
         player_links = set()
         club_links = self.get_club_links(year, league)
-        for club_link in tqdm(club_links):
+        for club_link in tqdm(club_links, desc='Gathering player links'):
             self.driver.get(club_link)
             
-            # get players from the table on the club page
+            # Get players from the table on the club page
             table = self.driver.find_elements(By.CLASS_NAME, 'items')[0]
             for el in table.find_elements(By.CLASS_NAME, 'hauptlink'):
                 try:
@@ -149,7 +176,9 @@ class Transfermarkt():
         
         player_links = self.get_player_links(year, league)
         df = pd.DataFrame()
-        for player_link in tqdm(player_links):
+        repr = tqdm(player_links)
+        for player_link in repr:
+            repr.set_description(f'Gathering player {player_link}')
             player = TransfermarktPlayer(player_link)
             new_row = pd.Series(dtype=object)
             new_row["Name"] = player.name
@@ -170,7 +199,7 @@ class Transfermarkt():
             new_row["Contract expires"] = player.contract_expires
             new_row["Market value history"] = player.market_value_history
             new_row["Transfer history"] = player.transfer_history
-            df = df.append(new_row, ignore_index=True)
+            df = pd.concat([df, new_row.to_frame().T], axis=0, ignore_index=True)
         return df
     
 
@@ -191,11 +220,11 @@ class TransfermarktPlayer():
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.content, 'html.parser')
         
-        #### Name ####
+        # Name
         data_header_el = soup.find("h1", {"class": "data-header__headline-wrapper"})
         self.name = data_header_el.getText().split('\n')[-1].strip()
         
-        #### Value ####
+        # Value
         try:
             self.value = soup.find("a", {"class": "data-header__market-value-wrapper"}).text.split(" ")[0]
             self.value_last_updated = soup.find("a", {"class": "data-header__market-value-wrapper"}).text.split("Last update: ")[-1]
@@ -203,19 +232,19 @@ class TransfermarktPlayer():
             self.value = None
             self.value_last_updated = None
             
-        #### DOB and age ####
+        # DOB and age
         dob_el = soup.find("span", {"itemprop": "birthDate"})
         self.dob = ' '.join(dob_el.getText().strip().split(' ')[:3])
         self.age = int(dob_el.getText().strip().split(' ')[-1].replace('(','').replace(')',''))
         
-        #### Height ####
+        # Height
         height_el = soup.find("span", {"itemprop": "height"})
         try:
             self.height_meters = float(height_el.getText().replace("m", "").replace(",", "."))
         except AttributeError:
             self.height_meters = None
        
-        #### Citizenship ####
+        # Citizenship
         nationality_el = soup.find("span", {"itemprop": "nationality"})
         self.nationality = nationality_el.getText().replace("\n","").strip()
         citizenship_els = soup.find_all("span", {"class": "info-table__content info-table__content--bold"})
@@ -223,14 +252,17 @@ class TransfermarktPlayer():
             for flag_el in el.find_all("img", {"class": "flaggenrahmen"})]
         self.citizenship = list(set([el["title"] for el in flag_els]))
         
-        #### Position ####
-        self.position = soup.find("dd", {"class": "detail-position__position"}).getText()
+        # Position
+        position_el = soup.find("dd", {"class": "detail-position__position"})
+        if position_el is None:
+            position_el = [el for el in soup.find_all('li', {'class': 'data-header__label'}) if 'position' in el.text.lower()][0].find('span')
+        self.position = position_el.text.strip()
         try:
             self.other_positions = [el.getText() for el in soup.find("div", {"class": "detail-position__position"}).find_all("dd")]
         except AttributeError:
             self.other_positions = None
         
-        #### Team & Contract ####
+        # Team & Contract
         try:
             self.team = soup.find("span", {"class": "data-header__club"}).find("a")["title"]
         except TypeError:
@@ -246,7 +278,7 @@ class TransfermarktPlayer():
                 for el in soup.find_all("span", {"class": "data-header__label"}) \
                 if "expires" in el.text.lower()][0]
         
-        #### Market value history ####
+        # Market value history
         try:
             script = [s for s in soup.find_all("script", {"type": "text/javascript"}) \
                       if "var chart = new Highcharts.Chart" in str(s)][0]
@@ -257,26 +289,12 @@ class TransfermarktPlayer():
         except IndexError:
             self.market_value_history = None
         
-        #### Transfer History ####
-        rows = soup.find_all("div", {"class": "tm-player-transfer-history-grid"})
-        self.transfer_history = pd.DataFrame(columns=["Season", "Date", "Left", "Joined", "MV", "Fee"])
-        reached_prev_transfers = True # Assume we've reached past transfers
-        for row in rows[1:-1]:
-            fields = [s.strip() for s in row.getText().split("\n\n") if s!=""]
-            if "Upcoming transfer" in fields:
-                # The next row will be a future transfer
-                reached_prev_transfers = False
-            if reached_prev_transfers:
-                new_row = pd.Series({
-                    "Season": fields[0],
-                    "Date": fields[1],
-                    "Left": fields[2],
-                    "Joined": fields[3],
-                    "MV": fields[4],
-                    "Fee": fields[5]
-                })
-                self.transfer_history = self.transfer_history.append(new_row, ignore_index=True)
-            if "Transfer history" in fields:
-                # Now we've reached past transfers
-                reached_prev_transfers = True
+        # Transfer History
+        rows = soup.find_all("div", {"class": "grid tm-player-transfer-history-grid"})
+        self.transfer_history = pd.DataFrame(
+            data=[[s.strip() for s in row.getText().split("\n\n") if s!=""] for row in rows],
+            columns=['Season', 'Date', 'Left', 'Joined', 'MV', 'Fee', '']
+        ).drop(
+            columns=['']
+        )
         
