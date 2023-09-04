@@ -5,7 +5,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
 from webdriver_manager.chrome import ChromeDriverManager
-from ScraperFC.shared_functions import *
+from ScraperFC.shared_functions import get_source_comp_info
 from tqdm import tqdm
 import requests
 from bs4 import BeautifulSoup
@@ -47,10 +47,7 @@ class Transfermarkt():
             List of the club URL's
         """
         print("Gathering club links.")
-        error, valid = check_season(year, league, 'Transfermarkt')
-        if not valid:
-            print(error)
-            return -1
+        _ = get_source_comp_info(year, league, 'Transfermarkt')
         
         competition_links = {
             'EPL': 'https://www.transfermarkt.us/premier-league/startseite/wettbewerb/GB1',
@@ -108,10 +105,7 @@ class Transfermarkt():
             List of the player URL's
         """
         print("Gathering player links.")
-        error, valid = check_season(year, league, 'Transfermarkt')
-        if not valid:
-            print(error)
-            return -1
+        _ = get_source_comp_info(year, league, 'Transfermarkt')
         
         player_links = set()
         club_links = self.get_club_links(year, league)
@@ -149,10 +143,7 @@ class Transfermarkt():
             Each row is a player and contains some of the information from their\
             Transfermarkt player profile.
         """
-        error, valid = check_season(year, league, 'Transfermarkt')
-        if not valid:
-            print(error)
-            return -1
+        _ = get_source_comp_info(year, league, 'Transfermarkt')
         
         player_links = self.get_player_links(year, league)
         df = pd.DataFrame()

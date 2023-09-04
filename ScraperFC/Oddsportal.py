@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 import re
-from ScraperFC.shared_functions import *
+from ScraperFC.shared_functions import xpath_soup, get_source_comp_info
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -38,14 +38,14 @@ class Oddsportal:
         """
         year=None for current season
         """
-        check_season(year, league, 'Oddsportal')
+        source_comp_info = get_source_comp_info(year, league, "Oddsportal")
 
         if not year:
             # current season
-            url = sources['Oddsportal'][league]['url'] + '/results/'
+            url = source_comp_info["Oddsportal"][league]["url"] + "/results/"
         else:
             # previous season
-            url = sources['Oddsportal'][league]['url'] + f'-{year-1}-{year}/results/'
+            url = source_comp_info["Oddsportal"][league]["url"] + f"-{year-1}-{year}/results/"
 
         # Go the season's page, scroll down and back up to render everything
         self.driver.get(url)
@@ -103,9 +103,9 @@ class Oddsportal:
                 # Find any new links
                 soup = BeautifulSoup(self.driver.page_source, "html.parser")
                 page_links += [
-                    el['href'] for el in soup.find_all('a',{'class': re.compile('flex-col')}, href=True)
-                    if sources['Oddsportal'][league]['finder'] in el['href']
-                    and el['href'] not in page_links
+                    el["href"] for el in soup.find_all("a",{"class": re.compile("flex-col")}, href=True)
+                    if source_comp_info["Oddsportal"][league]["finder"] in el["href"]
+                    and el["href"] not in page_links
                 ]
 
             # Append links from this page to list of all links

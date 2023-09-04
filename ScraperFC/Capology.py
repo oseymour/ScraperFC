@@ -8,7 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 from IPython.display import clear_output
 
-from ScraperFC.shared_functions import *
+from ScraperFC.shared_functions import get_source_comp_info, InvalidCurrencyException
 
 class Capology():
 
@@ -73,7 +73,7 @@ class Capology():
         : Pandas DataFrame
             The salaries of all players in the given league season
         """
-        check_season(year, league, 'Capology')
+        _ = get_source_comp_info(year, league, 'Capology')
         if currency not in self.valid_currencies:
             raise InvalidCurrencyException()
 
@@ -147,7 +147,7 @@ class Capology():
         : Pandas DataFrame
             The payrolls of all teams in the given league season
         """
-        check_season(year, league, 'Capology')
+        _ = get_source_comp_info(year, league, 'Capology')
         if currency not in self.valid_currencies:
             raise InvalidCurrencyException()
 
