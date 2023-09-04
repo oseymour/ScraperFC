@@ -2,7 +2,7 @@ import datetime
 import json
 import numpy as np
 import pandas as pd
-from ScraperFC.shared_functions import check_season
+from ScraperFC.shared_functions import get_source_comp_info
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -71,7 +71,7 @@ class Understat:
         : list
             List of match links of the chosen league season
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
          
         base_url = "https://understat.com/"
         lg = league.replace(" ","_")
@@ -306,7 +306,7 @@ class Understat:
         filename : str
             If save=True, the filename the DataFrame was saved to
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         season = str(year-1)+'-'+str(year)
         links = self.get_match_links(year, league)
@@ -347,7 +347,7 @@ class Understat:
         : Pandas DataFrame
             The league table of the chosen league season.
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         url = self.get_season_link(year, league) # link to the selected league/season
         self.driver.get(url)
@@ -399,7 +399,7 @@ class Understat:
         away : Pandas DataFrame
             Away league table
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         url = self.get_season_link(year, league) # link to the selected league/season
         self.driver.get(url)
@@ -463,7 +463,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the situations
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -524,7 +524,7 @@ class Understat:
             Keys are each team. Values are more dicts with keys for each formation\
             and values are stats for each formation.
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -582,7 +582,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the game states
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -657,7 +657,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the timing stats
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -733,7 +733,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the shot zones data
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -809,7 +809,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the attack speeds of each team
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -884,7 +884,7 @@ class Understat:
         : Pandas DataFrame
             DataFrame containing the shot results data
         """
-        check_season(year,league,'Understat')
+        _ = get_source_comp_info(year,league,'Understat')
         
         # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
@@ -961,10 +961,7 @@ class Understat:
             Dataframe if save=False and format=json
             Str if save=True. Filetype is determined by format argument
         """
-        check_season(year,league,'Understat')
-
-        if format not in ['json', 'dataframe']:
-            raise ValueError('Format must be one of "json" or "dataframe".')
+        _ = get_source_comp_info(year,league,'Understat')
         
         season = str(year-1)+'-'+str(year)
         links = self.get_match_links(year, league)
