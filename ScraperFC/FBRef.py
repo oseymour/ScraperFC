@@ -116,7 +116,7 @@ class FBRef:
         : str
             URL to the FBRef page of the chosen league season 
         """
-        _ = get_source_comp_info(year,league,"FBRef")
+        source_comp_info = get_source_comp_info(year,league,"FBRef")
         
         url = source_comp_info["FBRef"][league]["url"]
         finder = source_comp_info["FBRef"][league]["finder"]
@@ -151,7 +151,7 @@ class FBRef:
         : list
             FBRef links to all matches for the chosen league season
         """
-        _ = get_source_comp_info(year,league,'FBRef')
+        source_comp_info = get_source_comp_info(year,league,'FBRef')
 
         print('Gathering match links.')
         season_link = self.get_season_link(year, league)

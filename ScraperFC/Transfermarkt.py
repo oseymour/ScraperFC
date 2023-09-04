@@ -20,7 +20,7 @@ class Transfermarkt():
         options = Options()
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
-        self.driver = webdriver.Chrome(options=options)#
+        self.driver = webdriver.Chrome(options=options)
 
         # Deal with Accept All popup
         self.driver.get('https://www.transfermarkt.us')
