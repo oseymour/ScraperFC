@@ -195,7 +195,7 @@ class Understat:
         date = soup.find('div', {'class': 'page-wrapper'}).find_all('li')[-1].text
         date = datetime.datetime.strptime(date,'%b %d %Y').date()
 
-        # Shots data
+        # Shots data ===================================================================================================
         shots_script = soup.find('div', {'class':'scheme-block', 'data-scheme':'chart'}).parent.find('script').text
         shots_data = shots_script.split('JSON.parse(\'')[1].split('\')')[0]
         shots_data = shots_data.encode('unicode_escape').replace(b'\\\\',b'\\').decode('unicode-escape')
@@ -211,10 +211,12 @@ class Understat:
         assert len(stats_scheme_block) == 1
         stats_scheme_block = stats_scheme_block[0]
         # Team Names
-        home_team, away_team = [
-            x.text for x in 
-            stats_scheme_block.find('div', {'class':'progress-bar teams-titles'}).find_all('div', {'class': 'progress-value'})
-        ]
+        team_titles = stats_scheme_block.find(
+            'div', {'class':'progress-bar teams-titles'}
+        ).find_all(
+            'div', {'class': 'progress-value'}
+        )
+        home_team, away_team = [x.text for x in team_titles]
         # Chances
         chances_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[1]
         home_chance = float(chances_bar.find('div', {'class':'progress-home'})['title'].replace('%',''))
@@ -313,7 +315,7 @@ class Understat:
         matches = pd.DataFrame()
         
         for link in tqdm(links):
-            match   = self.scrape_match(link)
+            match = self.scrape_match(link)
             matches = pd.concat([matches, match], ignore_index=True, axis=0)
             time.sleep(2)
         
