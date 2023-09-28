@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from IPython.display import clear_output
 from zipfile import ZipFile
-from ScraperFC.shared_functions import check_season, xpath_soup
+from ScraperFC.shared_functions import get_source_comp_info, xpath_soup
 import time
 from bs4 import BeautifulSoup
 
@@ -65,9 +65,7 @@ class FiveThirtyEight:
         filename : str
             If save=True, filename of the CSV that the stats were saved to 
         """
-        # if not check_season(year,league,'FiveThirtyEight'):
-        #     return -1
-        check_season(year,league,'FiveThirtyEight')
+        _ = get_source_comp_info(year,league,'FiveThirtyEight')
         
         # Load URL
         self.driver.get('https://data.fivethirtyeight.com/#soccer-spi')
