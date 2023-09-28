@@ -158,7 +158,8 @@ class Understat:
         None
         """
         # Show the options popup
-        self.driver.find_elements(By.CLASS_NAME, "options-button")[0].click()
+        options_button = self.driver.find_elements(By.CLASS_NAME, "options-button")[0]
+        self.driver.execute_script("arguments[0].click()", options_button)
         
         # Iterate across all stats and show the ones that aren't in columns
         for el in self.driver.find_elements(By.CLASS_NAME, "table-options-row"):
