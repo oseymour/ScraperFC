@@ -9,7 +9,7 @@
   <a href="https://pypi.org/project/ScraperFC/"><img src="https://img.shields.io/pypi/dd/ScraperFC.svg" alt="dailypypi downloads badge"/></a>
   <a href="https://scraperfc.readthedocs.io/en/latest/"><img src="https://readthedocs.org/projects/nrc4d/badge/?version=latest" alt="documentation status badge"/></a>
   <a href="https://github.com/oseymour/ScraperFC"><img src="http://hits.dwyl.com/oseymour/scraperfc.svg?style=flat"></a>
-  [![Discord](https://img.shields.io/discord/667044843901681675.svg?color=768AD4&label=discord&logo=https%3A%2F%2Fdiscordapp.com%2Fassets%2F8c9701b98ad4372b58f13fd9f65f966e.svg)](https://discord.com/invite/C5N8dqCJAq)
+  <a href=https://discord.com/invite/C5N8dqCJAq><img src="https://img.shields.io/discord/1111313406809612349?color=768AD4&label=discord&logo=https%3A%2F%2Fdiscordapp.com%2Fassets%2F8c9701b98ad4372b58f13fd9f65f966e.svg"></a>
 </p>
 
 This is ScraperFC, a Python package that I hope will give more people access to soccer data. Gone are the days of downloading spreadsheets one-by-one, copy-pasting, or entering data into spreadsheets by hand. I try to make ScraperFC as easy-to-use as possible so that anybody with a bit of Python experience can use it.
