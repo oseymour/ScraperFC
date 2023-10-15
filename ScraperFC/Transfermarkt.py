@@ -73,7 +73,6 @@ class Transfermarkt():
         : list
             List of the club URL's
         """
-        print("Gathering club links.")
         _ = get_source_comp_info(year, league, 'Transfermarkt')
         
         competition_links = {
@@ -101,7 +100,6 @@ class Transfermarkt():
         }
         
         # Go to the selected year
-        print('Gathering club links.')
         url = '{}/plus/?saison_id={}'.format(competition_links[league], year-1)
         self.driver.get(url)
         
@@ -132,7 +130,6 @@ class Transfermarkt():
         : list
             List of the player URL's
         """
-        print("Gathering player links.")
         _ = get_source_comp_info(year, league, 'Transfermarkt')
         
         player_links = set()
@@ -175,9 +172,9 @@ class Transfermarkt():
         
         player_links = self.get_player_links(year, league)
         df = pd.DataFrame()
-        repr = tqdm(player_links)
-        for player_link in repr:
-            repr.set_description(f'Gathering player {player_link}')
+        iter = tqdm(player_links)
+        for player_link in iter:
+            iter.set_description(f'Scraping player {player_link}')
             player = TransfermarktPlayer(player_link)
             new_row = pd.Series(dtype=object)
             new_row["Name"] = player.name
