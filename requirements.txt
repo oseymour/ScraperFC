@@ -8,3 +8,4 @@ bs4
 lxml
 tqdm
 ScraperFC
+sphinx_rtd_theme
