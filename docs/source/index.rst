@@ -8,7 +8,7 @@ Welcome to ScraperFC's documentation!
 =====================================
 
 .. raw:: html
-   :file: ./images/ScraperFC-Logo-Final-2023-10-11 copy-Full-Color.svg
+   :file: ../../ScraperFC-Logo-Final-2023-10-11 copy-Full-Color.svg
 
 .. toctree::
    :maxdepth: 2
