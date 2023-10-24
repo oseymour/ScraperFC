@@ -112,8 +112,8 @@ class SofaScore:
         }
         return tournaments_ids
 
-    def get_seasons(self, season, tournament):
-        """Returns the SofaScore seasons id (that appears on the URL)
+    def get_seasons(self, year, tournament):
+        """Returns the SofaScore season id (that appears on the URL)
         Example: https://www.sofascore.com/tournament/football/argentina/copa-de-la-liga-profesional/13475#47644 --> 47644 is the season id
         Seasons may vary if the leagues start on January or June/July.
 
@@ -136,8 +136,10 @@ class SofaScore:
             '2018/19': 17359,
             '2019': 23108
         }
+
+        season = season_ids[year]
         
-        return season_ids
+        return season
     
     def get_positions(self, selected_positions):
         """Returns a string for the parameter filters of the scrape_league_stats() request.
