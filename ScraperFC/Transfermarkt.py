@@ -293,4 +293,20 @@ class TransfermarktPlayer():
         ).drop(
             columns=['']
         )
+
+
+class TransferHistory():
+    def __init__():
+        self.url = url
+        headers = {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+\
+                'AppleWebKit/537.36 (KHTML, like Gecko) '+\
+                'Chrome/55.0.2883.87 Safari/537.36'
+        }
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Name
+        data_header_el = soup.find("h1", {"class": "data-header__headline-wrapper"})
+        self.name = data_header_el.getText().split('\n')[-1].strip()
         
