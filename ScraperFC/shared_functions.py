@@ -40,8 +40,12 @@ class InvalidYearException(Exception):
         self.source = source
         self.source_comp_info = source_comp_info
     def __str__(self):
-        return f"{self.year} invalid for source {self.source} and league {self.league}. " +\
-            f"Must be {self.source_comp_info[self.source][self.league]['first valid year']} or later."
+        if self.source == "Sofascore":
+            return f"{self.year} invalid for source {self.source} and league {self.league}. " +\
+                f"Must be one of {list(self.source_comp_info[self.source][self.league]['seasons'].keys())}."
+        else:
+            return f"{self.year} invalid for source {self.source} and league {self.league}. " +\
+                f"Must be {self.source_comp_info[self.source][self.league]['first valid year']} or later."
 
 ########################################################################################################################
 class InvalidCurrencyException(Exception):
@@ -307,7 +311,6 @@ def get_source_comp_info(year, league, source):
             "Serie A":  {"first valid year": 2017,},
             "Ligue 1":  {"first valid year": 2017,},
         },
-        # "SofaScore": {"USL League One":  {"first valid year": 2019,}},
         "Capology": {
             "Bundesliga":  {"first valid year": 2014,},
             "2.Bundesliga":  {"first valid year": 2020,},
@@ -375,6 +378,92 @@ def get_source_comp_info(year, league, source):
                 "finder": "laliga",
             },
         },
+        "Sofascore": {
+            # European continental club comps
+            "Champions League": {
+                "id": 7,
+                "seasons": {
+                    "23/24": 52162,
+                },
+            },
+            "Europa League": {
+                "id": 679,
+                "seasons": {
+                    "23/24": 53654,
+                },
+            },
+            "Europa Conference League": {
+                "id": 17015,
+                "seasons": {
+                    "23/24": 52327,
+                },
+            },
+            # European domestic leagues
+            "EPL": {
+                "id": 17,
+                "seasons": {
+                    "93/94": 25680, "23/24": 52186,
+                },
+            },
+            "La Liga": {
+                "id": 8,
+                "seasons": {
+                    "93/94": 25687, "23/24": 52376,
+                },
+            },
+            "Bundesliga": {
+                "id": 35,
+                "seasons": {
+                    "92/93": 13088, "23/24": 52608,
+                },
+            },
+            "Serie A": {
+                "id": 23,
+                "seasons": {
+                    "97/98": 85, "23/24": 52760,
+                },
+            },
+            "Ligue 1": {
+                "id": 34,
+                "seasons": {
+                    "97/98": 65, "23/24": 52571,
+                },
+            },
+            # South America
+            "Argentina Liga Profesional": {
+                "id": 155,
+                "seasons": {
+                    "2023": 47647, 
+                },
+            },
+            "Argentina Copa de la Liga Profesional": {
+                "id": 13475,
+                "seasons": {
+                    "2023": 47644,
+                },
+            },
+            # USA
+            "MLS": {},
+            "USL Championship": {
+                "id": 13363,
+                "seasons": {
+                    "2023": 48258,
+                },
+            },
+            "USL1": {
+                "id": 13362,
+                "seasons": {
+                    "2019": 22635, "2020": 26862, "2021": 36019, "2022": 40280, 
+                    "2023": 48265,
+                },
+            },
+            "USL2": {
+                "id": 13546,
+                "seasons": {
+                    "2023": 49265,
+                },
+            },
+        },
     }
 
     # Check source
@@ -394,6 +483,11 @@ def get_source_comp_info(year, league, source):
         if type(year) not in [type(None), int]:
             raise TypeError("For Oddsportal, the year must be an integer or `None` for the current season.")
         if type(year) == int and year < source_comp_info[source][league]["first valid year"]:
+            raise InvalidYearException(year, league, source, source_comp_info)
+    elif source == "Sofascore":
+        if type(year) != str:
+            raise TypeError("For Sofascore, the year must be a string.")
+        if year not in source_comp_info[source][league]["seasons"].keys():
             raise InvalidYearException(year, league, source, source_comp_info)
     else:
         if type(year) != int and source != "Oddsportal":
