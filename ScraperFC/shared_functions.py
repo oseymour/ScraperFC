@@ -209,6 +209,16 @@ def get_source_comp_info(year, league, source):
                 "url": "https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons",
                 "finder": ["Primeira-Liga"],
             },
+            "Jupiler Pro League": {
+                "first valid year": 2004,
+                "url": 'https://fbref.com/en/comps/37/history/Belgian-Pro-League-Seasons',
+                "finder": ["Belgian-Pro-League"],
+            },
+            "Argentina Liga Profesional": {
+                "first valid year": 2014,
+                "url": 'https://fbref.com/en/comps/21/history/Primera-Division-Seasons',
+                "finder": ['Primera-Division'],
+            },
             ####################################
             # Men"s domestic league - 2nd tier #
             ####################################
@@ -216,6 +226,26 @@ def get_source_comp_info(year, league, source):
                 "first valid year": 2002,
                 "url": "https://fbref.com/en/comps/10/history/Championship-Seasons",
                 "finder": ["First-Division", "Championship"],
+            },
+            "La Liga 2": {
+                "first valid year": 2002,
+                "url": 'https://fbref.com/en/comps/17/history/Segunda-Division-Seasons',
+                "finder": ["Segunda-Division"],
+            },
+            "2. Bundesliga": {
+                "first valid year": 2004,
+                "url": 'https://fbref.com/en/comps/33/history/2-Bundesliga-Seasons',
+                "finder": ['2-Bundesliga'],
+            },
+            "Ligue 2": {
+                "first valid year": 2010,
+                "url": 'https://fbref.com/en/comps/60/history/Ligue-2-Seasons',
+                "finder": ["Ligue-2"],
+            },
+            "Serie B": {
+                "first valid year": 2002,
+                "url": 'https://fbref.com/en/comps/18/history/Serie-B-Seasons',
+                "finder": ["Serie-B"],
             },
             ##############################################
             # Men"s domestic league - 3rd tier and lower #
