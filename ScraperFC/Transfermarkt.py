@@ -309,4 +309,5 @@ class TransferHistory():
         # Name
         data_header_el = soup.find("h1", {"class": "data-header__headline-wrapper"})
         self.name = data_header_el.getText().split('\n')[-1].strip()
+        # put history first
         
