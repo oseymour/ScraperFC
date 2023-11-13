@@ -295,19 +295,48 @@ class TransfermarktPlayer():
         )
 
 
-class TransferHistory():
-    def __init__():
-        self.url = url
-        headers = {
-            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+\
-                'AppleWebKit/537.36 (KHTML, like Gecko) '+\
-                'Chrome/55.0.2883.87 Safari/537.36'
-        }
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.content, 'html.parser')
-        
-        # Name
-        data_header_el = soup.find("h1", {"class": "data-header__headline-wrapper"})
-        self.name = data_header_el.getText().split('\n')[-1].strip()
-        # put history first
+
+################################################################################
+class TransfermarktStaff():
+    def __init__(self, team_url):
+        self.team_url = team_url
+        self.driver = self.initialize_webdriver()
+        self.staff_data = self.get_staff_data()
+
+    def initialize_webdriver(self):
+        # Initialize the WebDriver using shared function if available
+        return initialize_webdriver()  # assuming such a function exists in shared_functions.py
+
+    def get_staff_data(self):
+        # Logic to scrape staff data
+        # Use shared functions wherever possible for consistency
+        pass
+
+    def close_driver(self):
+        # Close the WebDriver
+        self.driver.quit()
+
+
+################################################################################
+class TransfermarktTransferHistory():
+    def __init__(self, team_url):
+        self.team_url = team_url
+        self.driver = self.initialize_webdriver()
+        self.transfer_data = self.get_transfer_history()
+
+    def initialize_webdriver(self):
+        # Similar to TransfermarktStaff, use shared function to initialize WebDriver
+        return initialize_webdriver()
+
+    def get_transfer_history(self):
+        # Logic to scrape transfer history data
+        # Utilize shared functions for consistent approach
+        pass
+
+    def close_driver(self):
+        # Close the WebDriver
+        self.driver.quit()
+
+    # Additional methods as necessary
+
         
