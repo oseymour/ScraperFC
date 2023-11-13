@@ -304,16 +304,41 @@ class TransfermarktStaff():
         self.staff_data = self.get_staff_data()
 
     def initialize_webdriver(self):
-        # Initialize the WebDriver using shared function if available
-        return initialize_webdriver()  # assuming such a function exists in shared_functions.py
+        options = Options()
+        options.add_argument('--headless')  # Run in headless mode for efficiency
+        # Add other necessary options and preferences
+        driver = webdriver.Chrome(options=options)
+        return driver
 
     def get_staff_data(self):
-        # Logic to scrape staff data
-        # Use shared functions wherever possible for consistency
-        pass
+        self.driver.get(self.team_url)
+        # Wait for necessary elements to load
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "your_xpath_here"))
+            )
+        except TimeoutException:
+            print("Timed out waiting for page to load")
+            self.driver.quit()
+
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+        # Example scraping logic (adjust according to actual page structure)
+        staff_members = []
+        staff_elements = soup.find_all('your_selector_here')
+        for element in staff_elements:
+            name = element.find('your_name_selector').get_text().strip()
+            position = element.find('your_position_selector').get_text().strip()
+            # Extract other staff details as needed
+            staff_members.append({
+                'Name': name,
+                'Position': position,
+                # Include other details here
+            })
+
+        return pd.DataFrame(staff_members)
 
     def close_driver(self):
-        # Close the WebDriver
         self.driver.quit()
 
 
