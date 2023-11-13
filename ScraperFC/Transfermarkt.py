@@ -198,6 +198,16 @@ class Transfermarkt():
             df = pd.concat([df, new_row.to_frame().T], axis=0, ignore_index=True)
         return df
     
+    ############################################################################
+    # TODO: Placeholder
+    def get_transfer_history():
+        pass
+
+    ############################################################################
+    # TODO: Placeholder
+    def get_staff_history():
+        pass
+    
 
 ################################################################################
 class TransfermarktPlayer():
