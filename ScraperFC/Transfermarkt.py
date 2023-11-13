@@ -350,18 +350,41 @@ class TransfermarktTransferHistory():
         self.transfer_data = self.get_transfer_history()
 
     def initialize_webdriver(self):
-        # Similar to TransfermarktStaff, use shared function to initialize WebDriver
-        return initialize_webdriver()
+        options = Options()
+        options.add_argument('--headless')  # Run in headless mode for efficiency
+        # Add other necessary options and preferences
+        driver = webdriver.Chrome(options=options)
+        return driver
 
     def get_transfer_history(self):
-        # Logic to scrape transfer history data
-        # Utilize shared functions for consistent approach
-        pass
+        self.driver.get(self.team_url)
+        # Wait for necessary elements to load
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "your_xpath_here"))
+            )
+        except TimeoutException:
+            print("Timed out waiting for page to load")
+            self.driver.quit()
+
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+
+        # Example scraping logic (adjust according to actual page structure)
+        transfers = []
+        transfer_elements = soup.find_all('your_selector_here')
+        for element in transfer_elements:
+            player_name = element.find('your_player_name_selector').get_text().strip()
+            transfer_fee = element.find('your_transfer_fee_selector').get_text().strip()
+            # Extract other transfer details as needed
+            transfers.append({
+                'Player Name': player_name,
+                'Transfer Fee': transfer_fee,
+                # Include other details here
+            })
+
+        return pd.DataFrame(transfers)
 
     def close_driver(self):
-        # Close the WebDriver
         self.driver.quit()
-
-    # Additional methods as necessary
 
         
