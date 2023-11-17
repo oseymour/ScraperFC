@@ -202,11 +202,6 @@ class Transfermarkt():
     # TODO: Placeholder
     def get_transfer_history():
         pass
-
-    ############################################################################
-    # TODO: Placeholder
-    def get_staff_history():
-        pass
     
 
 ################################################################################
