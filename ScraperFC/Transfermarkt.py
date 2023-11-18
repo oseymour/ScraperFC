@@ -198,7 +198,8 @@ class Transfermarkt():
             df = pd.concat([df, new_row.to_frame().T], axis=0, ignore_index=True)
         return df
     
-
+    
+    ############################################################################
     def _get_team_transfer_history(self, URL):
         response = requests.get(URL, headers=self._header)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -240,9 +241,13 @@ class Transfermarkt():
                 except ValueError as e:
                     pass
 
+
+    ############################################################################                
     def get_all_transfer_url(url):
         return url.replace("startseite", "alletransfers").split('saison_id')[0]
     
+
+    ############################################################################
     def get_transfer_history(self, year, league):
         club_links = [self.get_all_transfer_url(x) for x in self.get_club_links(year, league)]
         dfs = []
@@ -251,6 +256,7 @@ class Transfermarkt():
             dfs.append(df)
         final_df = pd.concat(dfs, ignore_index=True)
         return final_df
+
 
 ################################################################################
 class TransfermarktPlayer():
