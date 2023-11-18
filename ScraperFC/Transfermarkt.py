@@ -198,13 +198,59 @@ class Transfermarkt():
             df = pd.concat([df, new_row.to_frame().T], axis=0, ignore_index=True)
         return df
     
-    ############################################################################
-    def get_transfer_history(self, year, league):
-        _ = get_source_comp_info(year, league, 'Transfermarkt')
-        trans_history_spider = TransfermarktTransferHistory()
-        trans_history = trans_history_spider.get_league_transfer_history(year, league)
-        return trans_history
+
+    def _get_team_transfer_history(self, URL):
+        response = requests.get(URL, headers=self._header)
+        soup = BeautifulSoup(response.content, 'html.parser')
+
+        dfs = []  # To store individual dataframes
+        
+        # Get the club name
+        observe_club = soup.find(class_='data-header__headline-container').get_text(strip=True)
+
+        # Loop through each 'large-6' div and then find 'box' inside
+        for large_div in soup.find_all('div', class_='large-6'):
+            for box in large_div.find_all('div', class_='box'):
+
+                # Extract content from 'content-box-headline' and split it
+                header = box.find('h2', class_='content-box-headline').text.strip().split(' ')
+                arrival_departure, season = header[0], header[1]
+
+                # Extract table data
+                try:
+                    rows = box.find('table').find_all('tr')
+                    table_data = []
+                    for row in rows[1:]:  # Skip the header
+                        columns = row.find_all('td')
+                        player_data = [col.text.strip() for col in columns]
+                        if len(player_data)>1:
+                            player_data.pop(1)
+                        table_data.append(player_data)
+
+                    # Extract column headers; this assumes that the first 'tr' contains the header
+                    headers = [header.text.strip() for header in rows[0].find_all('th')]
+
+                    # Convert to DataFrame
+                    df = pd.DataFrame(table_data[0:len(table_data)-2], columns=headers)
+                    df['Arrival/Departure'] = arrival_departure
+                    df['Season'] = season
+                    df['Observe Club'] = observe_club
+
+                    dfs.append(df)
+                except ValueError as e:
+                    pass
+
+    def get_all_transfer_url(url):
+        return url.replace("startseite", "alletransfers").split('saison_id')[0]
     
+    def get_transfer_history(self, year, league):
+        club_links = self.get_club_links(year, league)
+        dfs = []
+        for URL in club_links:
+            df = self.get_transfer_history(URL)
+            dfs.append(df)
+        final_df = pd.concat(dfs, ignore_index=True)
+        return final_df
 
 ################################################################################
 class TransfermarktPlayer():
@@ -300,76 +346,5 @@ class TransfermarktPlayer():
         ).drop(
             columns=['']
         )
-
-
-################################################################################
-class TransfermarktTransferHistory():
-    def __init__(self):
-        self.driver = self.initialize_webdriver()
-        self._header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
-
-    def initialize_webdriver(self):
-        options = Options()
-        driver = webdriver.Chrome(options=options)
-        return driver
-    
-    def get_all_transfer_url(url):
-        return url.replace("startseite", "alletransfers").split('saison_id')[0]
-
-    def get_transfer_history(self, URL):
-        response = requests.get(URL, headers=self._header)
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        dfs = []  # To store individual dataframes
-        
-        # Get the club name
-        observe_club = soup.find(class_='data-header__headline-container').get_text(strip=True)
-
-        # Loop through each 'large-6' div and then find 'box' inside
-        for large_div in soup.find_all('div', class_='large-6'):
-            for box in large_div.find_all('div', class_='box'):
-
-                # Extract content from 'content-box-headline' and split it
-                header = box.find('h2', class_='content-box-headline').text.strip().split(' ')
-                arrival_departure, season = header[0], header[1]
-
-                # Extract table data
-                try:
-                    rows = box.find('table').find_all('tr')
-                    table_data = []
-                    for row in rows[1:]:  # Skip the header
-                        columns = row.find_all('td')
-                        player_data = [col.text.strip() for col in columns]
-                        if len(player_data)>1:
-                            player_data.pop(1)
-                        table_data.append(player_data)
-
-                    # Extract column headers; this assumes that the first 'tr' contains the header
-                    headers = [header.text.strip() for header in rows[0].find_all('th')]
-
-                    # Convert to DataFrame
-                    df = pd.DataFrame(table_data[0:len(table_data)-2], columns=headers)
-                    df['Arrival/Departure'] = arrival_departure
-                    df['Season'] = season
-                    df['Observe Club'] = observe_club
-
-                    dfs.append(df)
-                except ValueError as e:
-                    pass
-    
-
-    def get_league_transfer_history(self, year, league):
-        tm = Transfermarkt()
-        club_links = tm.get_club_links(year, league)
-        dfs = []
-        for URL in club_links:
-            df = self.get_transfer_history(URL)
-            dfs.append(df)
-        final_df = pd.concat(dfs, ignore_index=True)
-        return final_df
-    
-    
-    def close_driver(self):
-        self.driver.quit()
 
         
