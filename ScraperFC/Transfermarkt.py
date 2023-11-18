@@ -200,8 +200,11 @@ class Transfermarkt():
     
     ############################################################################
     # TODO: Placeholder
-    def get_transfer_history():
-        pass
+    def get_transfer_history(self, year, league):
+        _ = get_source_comp_info(year, league, 'Transfermarkt')
+        trans_history_spider = TransfermarktTransferHistory()
+        trans_history = trans_history_spider.get_league_transfer_history(year, league)
+        return trans_history
     
 
 ################################################################################
@@ -300,95 +303,74 @@ class TransfermarktPlayer():
         )
 
 
-
-################################################################################
-class TransfermarktStaff():
-    def __init__(self, team_url):
-        self.team_url = team_url
-        self.driver = self.initialize_webdriver()
-        self.staff_data = self.get_staff_data()
-
-    def initialize_webdriver(self):
-        options = Options()
-        options.add_argument('--headless')  # Run in headless mode for efficiency
-        # Add other necessary options and preferences
-        driver = webdriver.Chrome(options=options)
-        return driver
-
-    def get_staff_data(self):
-        self.driver.get(self.team_url)
-        # Wait for necessary elements to load
-        try:
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "your_xpath_here"))
-            )
-        except TimeoutException:
-            print("Timed out waiting for page to load")
-            self.driver.quit()
-
-        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-
-        # Example scraping logic (adjust according to actual page structure)
-        staff_members = []
-        staff_elements = soup.find_all('your_selector_here')
-        for element in staff_elements:
-            name = element.find('your_name_selector').get_text().strip()
-            position = element.find('your_position_selector').get_text().strip()
-            # Extract other staff details as needed
-            staff_members.append({
-                'Name': name,
-                'Position': position,
-                # Include other details here
-            })
-
-        return pd.DataFrame(staff_members)
-
-    def close_driver(self):
-        self.driver.quit()
-
-
 ################################################################################
 class TransfermarktTransferHistory():
-    def __init__(self, team_url):
-        self.team_url = team_url
+    def __init__(self):
         self.driver = self.initialize_webdriver()
         self.transfer_data = self.get_transfer_history()
+        self._header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
 
     def initialize_webdriver(self):
         options = Options()
-        options.add_argument('--headless')  # Run in headless mode for efficiency
-        # Add other necessary options and preferences
         driver = webdriver.Chrome(options=options)
         return driver
+    
+    def get_all_transfer_url(url):
+        return url.replace("startseite", "alletransfers").split('saison_id')[0]
 
-    def get_transfer_history(self):
-        self.driver.get(self.team_url)
-        # Wait for necessary elements to load
-        try:
-            WebDriverWait(self.driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, "your_xpath_here"))
-            )
-        except TimeoutException:
-            print("Timed out waiting for page to load")
-            self.driver.quit()
+    def get_transfer_history(self, URL):
+        response = requests.get(URL, headers=self._header)
+        soup = BeautifulSoup(response.content, 'html.parser')
 
-        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        dfs = []  # To store individual dataframes
+        
+        # Get the club name
+        observe_club = soup.find(class_='data-header__headline-container').get_text(strip=True)
 
-        # Example scraping logic (adjust according to actual page structure)
-        transfers = []
-        transfer_elements = soup.find_all('your_selector_here')
-        for element in transfer_elements:
-            player_name = element.find('your_player_name_selector').get_text().strip()
-            transfer_fee = element.find('your_transfer_fee_selector').get_text().strip()
-            # Extract other transfer details as needed
-            transfers.append({
-                'Player Name': player_name,
-                'Transfer Fee': transfer_fee,
-                # Include other details here
-            })
+        # Loop through each 'large-6' div and then find 'box' inside
+        for large_div in soup.find_all('div', class_='large-6'):
+            for box in large_div.find_all('div', class_='box'):
 
-        return pd.DataFrame(transfers)
+                # Extract content from 'content-box-headline' and split it
+                header = box.find('h2', class_='content-box-headline').text.strip().split(' ')
+                arrival_departure, season = header[0], header[1]
 
+                # Extract table data
+                try:
+                    rows = box.find('table').find_all('tr')
+                    table_data = []
+                    for row in rows[1:]:  # Skip the header
+                        columns = row.find_all('td')
+                        player_data = [col.text.strip() for col in columns]
+                        if len(player_data)>1:
+                            player_data.pop(1)
+                        table_data.append(player_data)
+
+                    # Extract column headers; this assumes that the first 'tr' contains the header
+                    headers = [header.text.strip() for header in rows[0].find_all('th')]
+
+                    # Convert to DataFrame
+                    df = pd.DataFrame(table_data[0:len(table_data)-2], columns=headers)
+                    df['Arrival/Departure'] = arrival_departure
+                    df['Season'] = season
+                    df['Observe Club'] = observe_club
+
+                    dfs.append(df)
+                except ValueError as e:
+                    pass
+    
+
+    def get_league_transfer_history(self, year, league):
+        tm = Transfermarkt()
+        club_links = tm.get_club_links(year, league)
+        dfs = []
+        for URL in club_links:
+            df = self.get_transfer_history(URL)
+            dfs.append(df)
+        final_df = pd.concat(dfs, ignore_index=True)
+        return final_df
+    
+    
     def close_driver(self):
         self.driver.quit()
 
