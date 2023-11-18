@@ -199,7 +199,6 @@ class Transfermarkt():
         return df
     
     ############################################################################
-    # TODO: Placeholder
     def get_transfer_history(self, year, league):
         _ = get_source_comp_info(year, league, 'Transfermarkt')
         trans_history_spider = TransfermarktTransferHistory()
