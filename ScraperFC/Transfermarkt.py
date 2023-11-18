@@ -306,7 +306,6 @@ class TransfermarktPlayer():
 class TransfermarktTransferHistory():
     def __init__(self):
         self.driver = self.initialize_webdriver()
-        self.transfer_data = self.get_transfer_history()
         self._header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
 
     def initialize_webdriver(self):
