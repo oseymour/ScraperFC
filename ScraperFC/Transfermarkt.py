@@ -244,7 +244,7 @@ class Transfermarkt():
         return url.replace("startseite", "alletransfers").split('saison_id')[0]
     
     def get_transfer_history(self, year, league):
-        club_links = self.get_club_links(year, league)
+        club_links = [get_all_transfer_url(x) for x in self.get_club_links(year, league)]
         dfs = []
         for URL in club_links:
             df = self.get_transfer_history(URL)
