@@ -202,7 +202,7 @@ class Transfermarkt():
     
     
     ############################################################################
-    def _get_team_transfer_history(self, URL):
+    def team_transfer_history(self, URL):
         response = requests.get(URL, headers=self._HEADERS)
         soup = BeautifulSoup(response.content, 'html.parser')
 
@@ -247,23 +247,77 @@ class Transfermarkt():
                     pass
         final_df = pd.concat(dfs, ignore_index=True)
         return final_df
+    
+
+    ############################################################################ 
+    @staticmethod
+    def transfer_value_extract(v):
+        v = v[v.find("€")+1:]
+        if v[-1] == "m":
+            return float(v[:-1]) * 1000000
+        elif v[-1] == "k":
+            return float(v[:-1]) * 1000
+        else:
+            return float(v[:-1].replace(" ", ""))
+
 
     ############################################################################  
     @staticmethod              
-    def get_all_transfer_url(url):
+    def find_all_transfer_url(url):
         return url.replace("startseite", "alletransfers").split('saison_id')[0]
     
 
     ############################################################################
-    def get_all_transfer_history(self, year, league):
-        club_links = [self.get_all_transfer_url(x) for x in self.get_club_links(year, league)]
+    def raw_league_transfer_history(self, year, league):
+        club_links = [self.find_all_transfer_url(x) for x in self.get_club_links(year, league)]
         dfs = []
         for URL in club_links:
-            df = self._get_team_transfer_history(URL)
+            df = self.team_transfer_history(URL)
             dfs.append(df)
         final_df = pd.concat(dfs, ignore_index=True)
         return final_df
+
+
+    ############################################################################
+    def format_transfer_history(self, history):
+        Type = []
+        Value = []
+        for v in history["Transfer sum"].values:
+            if "Loan fee" in v:
+                Type.append("Loan")
+                Value.append(self.transfer_value_extract(v))
+            elif "free transfer" in v:
+                Type.append("Transfer")
+                Value.append(0)
+            elif "?" in v:
+                Type.append("Unknown")
+                Value.append(0)
+            elif "-" in v:
+                Type.append("Transfer")
+                Value.append(0)
+            elif "End of loan" in v:
+                Type.append("End of Loan")
+                Value.append(0)
+            elif "loan transfer" in v:
+                Type.append("Loan")
+                Value.append(0)
+            elif v == "":
+                Type.append("Unknown")
+                Value.append(0)
+            elif "draft" in v:
+                Type.append("Transfer")
+                Value.append(0)
+            else:
+                Type.append("Transfer")
+                Value.append(self.transfer_value_extract(v))
+        history["Type"] = Type
+        history["Value"] = Value
+        return history
     
+    ############################################################################
+    def get_league_transfer_history(self, year, league):
+        history = self.raw_league_transfer_history(year, league)
+        return self.format_transfer_history(history)
 
    
 
