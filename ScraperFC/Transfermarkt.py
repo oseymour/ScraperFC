@@ -28,27 +28,27 @@ class Transfermarkt():
         self._HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
         # Switch to the iframe popup
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-        # iframe = self.driver.find_element(
-        #     By.XPATH, 
-        #     xpath_soup(soup.find('div', {'id': re.compile('sp_message_container')}).find('iframe'))
-        # )
-        # self.driver.switch_to.frame(iframe)
-        # # Press the ACCEPT ALL button
-        # soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-        # accept_all_button = self.driver.find_element(
-        #     By.XPATH,
-        #     xpath_soup(soup.find('button', {'aria-label': 'ACCEPT ALL'}))
-        # )
-        # self.driver.execute_script('arguments[0].click()', accept_all_button)
-        # # Switch back to the main window
-        # self.driver.switch_to.default_content()
-        # # Wait until popup is gone from HTML
-        # gone = False
-        # while not gone:
-        #     soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-        #     popup_matches = soup.find_all('div', {'id': re.compile('sp_message_container')})
-        #     gone = True if len(popup_matches)==0 else False
-        #     time.sleep(1) # wait for a hot sec
+        iframe = self.driver.find_element(
+            By.XPATH, 
+            xpath_soup(soup.find('div', {'id': re.compile('sp_message_container')}).find('iframe'))
+        )
+        self.driver.switch_to.frame(iframe)
+        # Press the ACCEPT ALL button
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        accept_all_button = self.driver.find_element(
+            By.XPATH,
+            xpath_soup(soup.find('button', {'aria-label': 'Accept and Continue'}))
+        )
+        self.driver.execute_script('arguments[0].click()', accept_all_button)
+        # Switch back to the main window
+        self.driver.switch_to.default_content()
+        # Wait until popup is gone from HTML
+        gone = False
+        while not gone:
+            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            popup_matches = soup.find_all('div', {'id': re.compile('sp_message_container')})
+            gone = True if len(popup_matches)==0 else False
+            time.sleep(1) # wait for a hot sec
 
         
     ############################################################################
@@ -316,6 +316,30 @@ class Transfermarkt():
     
     ############################################################################
     def get_league_transfer_history(self, year, league):
+        """
+        Gathers and formats transfer history for a specified football league and given season. 
+        This method consolidates individual team transfer data into a league-wide perspective, 
+        providing insights into player movements, types of transfers, and transfer values.
+
+        Args
+        ----
+        year : int
+            This parameter helps identify the relevant season of league.
+            The year in which the football season ends. 
+            For instance, for the 2022/23 season, the year would be 2023. 
+        league : str
+            The name of the football league from which transfer data is to be extracted. 
+            The available leagues can be found in 'shared_functions.py', and this parameter 
+            specifies which league's transfer data is to be analyzed.
+
+        Returns
+        -------
+        : Pandas DataFrame
+            A DataFrame containing detailed transfer information for each player in the specified league 
+            and season. Each row corresponds to a player, encompassing data such as transfer type, 
+            transfer value, and other relevant details extracted from their Transfermarkt player profile. 
+            This structured format facilitates further analysis of transfer trends and patterns in the league.
+        """
         history = self.raw_league_transfer_history(year, league)
         return self.format_transfer_history(history)
 
