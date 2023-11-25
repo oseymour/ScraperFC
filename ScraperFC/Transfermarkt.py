@@ -24,29 +24,31 @@ class Transfermarkt():
 
         # Deal with Accept All popup
         self.driver.get('https://www.transfermarkt.us')
+        # Define a default header for Requests
+        self._HEADERS = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.0.0 Safari/537.36'}
         # Switch to the iframe popup
         soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-        iframe = self.driver.find_element(
-            By.XPATH, 
-            xpath_soup(soup.find('div', {'id': re.compile('sp_message_container')}).find('iframe'))
-        )
-        self.driver.switch_to.frame(iframe)
-        # Press the ACCEPT ALL button
-        soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-        accept_all_button = self.driver.find_element(
-            By.XPATH,
-            xpath_soup(soup.find('button', {'aria-label': 'ACCEPT ALL'}))
-        )
-        self.driver.execute_script('arguments[0].click()', accept_all_button)
-        # Switch back to the main window
-        self.driver.switch_to.default_content()
-        # Wait until popup is gone from HTML
-        gone = False
-        while not gone:
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-            popup_matches = soup.find_all('div', {'id': re.compile('sp_message_container')})
-            gone = True if len(popup_matches)==0 else False
-            time.sleep(1) # wait for a hot sec
+        # iframe = self.driver.find_element(
+        #     By.XPATH, 
+        #     xpath_soup(soup.find('div', {'id': re.compile('sp_message_container')}).find('iframe'))
+        # )
+        # self.driver.switch_to.frame(iframe)
+        # # Press the ACCEPT ALL button
+        # soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        # accept_all_button = self.driver.find_element(
+        #     By.XPATH,
+        #     xpath_soup(soup.find('button', {'aria-label': 'ACCEPT ALL'}))
+        # )
+        # self.driver.execute_script('arguments[0].click()', accept_all_button)
+        # # Switch back to the main window
+        # self.driver.switch_to.default_content()
+        # # Wait until popup is gone from HTML
+        # gone = False
+        # while not gone:
+        #     soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+        #     popup_matches = soup.find_all('div', {'id': re.compile('sp_message_container')})
+        #     gone = True if len(popup_matches)==0 else False
+        #     time.sleep(1) # wait for a hot sec
 
         
     ############################################################################
@@ -201,14 +203,13 @@ class Transfermarkt():
     
     ############################################################################
     def _get_team_transfer_history(self, URL):
-        response = requests.get(URL, headers=self._header)
+        response = requests.get(URL, headers=self._HEADERS)
         soup = BeautifulSoup(response.content, 'html.parser')
 
         dfs = []  # To store individual dataframes
         
         # Get the club name
         observe_club = soup.find(class_='data-header__headline-container').get_text(strip=True)
-
         # Loop through each 'large-6' div and then find 'box' inside
         for large_div in soup.find_all('div', class_='large-6'):
             for box in large_div.find_all('div', class_='box'):
@@ -216,6 +217,9 @@ class Transfermarkt():
                 # Extract content from 'content-box-headline' and split it
                 header = box.find('h2', class_='content-box-headline').text.strip().split(' ')
                 arrival_departure, season = header[0], header[1]
+                table = box.find('table')
+                if not table:
+                    continue
 
                 # Extract table data
                 try:
@@ -238,25 +242,30 @@ class Transfermarkt():
                     df['Observe Club'] = observe_club
 
                     dfs.append(df)
+            
                 except ValueError as e:
                     pass
+        final_df = pd.concat(dfs, ignore_index=True)
+        return final_df
 
-
-    ############################################################################                
+    ############################################################################  
+    @staticmethod              
     def get_all_transfer_url(url):
         return url.replace("startseite", "alletransfers").split('saison_id')[0]
     
 
     ############################################################################
-    def get_transfer_history(self, year, league):
+    def get_all_transfer_history(self, year, league):
         club_links = [self.get_all_transfer_url(x) for x in self.get_club_links(year, league)]
         dfs = []
         for URL in club_links:
-            df = self.get_transfer_history(URL)
+            df = self._get_team_transfer_history(URL)
             dfs.append(df)
         final_df = pd.concat(dfs, ignore_index=True)
         return final_df
+    
 
+   
 
 ################################################################################
 class TransfermarktPlayer():
