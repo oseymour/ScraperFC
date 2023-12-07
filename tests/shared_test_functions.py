@@ -10,12 +10,13 @@ import numpy as np
 def get_random_league_seasons(source, sample_size):
     """
     """
-    if source not in sfc.sources.keys():
+    source_comp_info = sfc.get_source_comp_info(None, None, None)
+    if source not in source_comp_info:
         raise ValueError(f'Source needs to be one of {list(sfc.sources.keys())}')
     
-    leagues = sfc.sources[source].keys()
+    leagues = source_comp_info[source].keys()
     years = range(
-        min([sfc.sources[source][k]['first valid year'] for k in sfc.sources[source]]), 
+        min([source_comp_info[source][k]['first valid year'] for k in source_comp_info[source]]), 
         datetime.datetime.now().year + 1
     )
     all_iterator = list(itertools.product(leagues, years))
@@ -40,10 +41,10 @@ def get_random_league_seasons(source, sample_size):
             random_idx = np.random.choice(len(all_iterator), size=1, replace=False)[0]
             league, year = np.array(all_iterator)[random_idx]
             league, year = str(league), int(year)
-            if year < sfc.sources[source][league]['first valid year']:
+            if year < source_comp_info[source][league]['first valid year']:
                 # all_iterator spans minimum first valid year for all leagues from source
                 continue
-            sfc.shared_functions.check_season(year, league, source)
+            sfc.shared_functions.get_source_comp_info(year, league, source)
             if (league,year) not in iter:
                 iter.append((year,league))
 

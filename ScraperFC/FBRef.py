@@ -1,7 +1,8 @@
 from IPython.display import clear_output
 import numpy as np
 import pandas as pd
-from ScraperFC.shared_functions import get_source_comp_info, xpath_soup
+from ScraperFC.shared_functions import get_source_comp_info, xpath_soup, \
+    NoMatchLinksException, UnavailableSeasonException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
@@ -12,7 +13,8 @@ from tqdm.auto import tqdm
 import time
 import re
 from datetime import datetime
-
+from io import StringIO
+import warnings
 
 class FBRef:
     """ ScraperFC module for FBRef
@@ -153,7 +155,7 @@ class FBRef:
         """
         source_comp_info = get_source_comp_info(year,league,'FBRef')
 
-        print('Gathering match links.')
+        print(f'Gathering {year} {league} match links.')
         season_link = self.get_season_link(year, league)
         if season_link == -1:
             return None
@@ -195,10 +197,9 @@ class FBRef:
         Returns
         -------
         : Pandas DataFrame
-            If league is not MLS, dataframe of the scraped league table
+            DataFrame may be empty if the league has no tables. Otherwise, the league table.
         : tuple
-            If the league is MLS, a tuple of (west conference table, east conference table). Both tables are \
-            dataframes.
+            If the league has multiple tables (e.g. Champions League, Liga MX, MLS) then a tuple of DataFrames will be returned.
         """
         _ = get_source_comp_info(year,league,'FBRef')
 
@@ -209,18 +210,49 @@ class FBRef:
         soup = BeautifulSoup(response.content, 'html.parser')
         
         lg_table_html = soup.find_all('table', {'id': re.compile('overall')})
+        
+        if league == 'Ligue 2' and year == '2018':
+            # 2018 Ligue 2 page has a small sub-table of the playoff qualifiers for some dumb reason
+            lg_table_html = lg_table_html[:1]
 
-        if league != 'MLS':
-            assert len(lg_table_html) == 1
-            lg_table_html = lg_table_html[0]
-            lg_table = pd.read_html(str(lg_table_html))[0]
-            return lg_table
-
+        if len(lg_table_html) == 0:
+            # Some compeitions have no tables (e.g. early women's champions league)
+            warnings.warn(f'No league/group tables found for {year} {league}.')
+            lg_table = pd.DataFrame()
+        elif len(lg_table_html) == 1:
+            # This will apply to most leagues
+            lg_table = pd.read_html(StringIO(str(lg_table_html[0])))[0]
         else:
-            assert len(lg_table_html) == 2
-            east_table = pd.read_html(str(lg_table_html[0]))[0]
-            west_table = pd.read_html(str(lg_table_html[1]))[0]
-            return (east_table, west_table)
+            # Some comps have multiple tables (champions league, liga mx, mls)
+            warnings.warn(f'Multiple league/group tables found for {year} {league}.')
+            lg_table = [pd.read_html(StringIO(str(html)))[0] for html in lg_table_html]
+
+        return lg_table
+
+        # if league == 'MLS':
+        #     assert len(lg_table_html) == 2
+        #     east_table = pd.read_html(StringIO(str(lg_table_html[0])))[0]
+        #     west_table = pd.read_html(StringIO(str(lg_table_html[1])))[0]
+        #     return (east_table, west_table)
+        # elif league == 'Liga MX':
+        #     apertura = pd.read_html(StringIO(str(lg_table_html[0])))[0]
+        #     clausura = pd.read_html(StringIO(str(lg_table_html[1])))[0]
+        #     lg_table = pd.read_html(StringIO(str(lg_table_html[2])))[0]
+        #     rel_table = pd.read_html(StringIO(str(lg_table_html[3])))[0]
+        #     return (apertura, clausura, lg_table, rel_table)
+        # elif league == 'Ligue 2' and year == '2018':
+        #     # 2018 Ligue 2 page has a small sub-table of the playoff qualifiers for some dumb reason
+        #     lg_table_html = lg_table_html[0]
+        #     lg_table = pd.read_html(StringIO(str(lg_table_html)))[0]
+        #     return lg_table
+        # elif league == 'Women Champions League' and year < 2024:
+        #     warnings.warn('Women\'s Champions League has no group stage prior to 2024.')
+        #     return pd.DataFrame()
+        # else:
+        #     assert len(lg_table_html) == 1
+        #     lg_table_html = lg_table_html[0]
+        #     lg_table = pd.read_html(StringIO(str(lg_table_html)))[0]
+        #     return lg_table
         
     ####################################################################################################################
     def scrape_stats(self, year, league, stat_category, normalize=False):

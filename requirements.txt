@@ -9,3 +9,5 @@ lxml
 tqdm
 ScraperFC
 sphinx_rtd_theme
+io
+warnings

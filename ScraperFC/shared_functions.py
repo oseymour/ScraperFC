@@ -583,6 +583,10 @@ def get_source_comp_info(year, league, source):
         },
     }
 
+    # If all args are None then return full source comp info (used in unit tests)
+    if year==None and league==None and source==None:
+        return source_comp_info
+
     # Check source
     if type(source) != str:
         raise TypeError("Source must be a string.")
