@@ -26,29 +26,25 @@ class FBRef:
         self.wait_time = 6 # in seconds, as of 30-Oct-2022 FBRef blocks if requesting more than 20 requests/minute
 
         options = Options()
-        options.add_argument(
-            'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+\
-            'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 '+\
-            'Safari/537.36'
-        )
+        options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+\
+                             'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 '+\
+                             'Safari/537.36')
         options.add_argument('--incognito')
         prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
         options.add_experimental_option('prefs', prefs)
         self.driver = webdriver.Chrome(options=options) 
 
-        self.stats_categories = {
-            'standard': {'url': 'stats', 'html': 'standard',},
-            'goalkeeping': {'url': 'keepers', 'html': 'keeper',},
-            'advanced goalkeeping': {'url': 'keepersadv','html': 'keeper_adv',},
-            'shooting': {'url': 'shooting', 'html': 'shooting',},
-            'passing': {'url': 'passing', 'html': 'passing',},
-            'pass types': {'url': 'passing_types', 'html': 'passing_types',},
-            'goal and shot creation': {'url': 'gca', 'html': 'gca',},
-            'defensive': {'url': 'defense', 'html': 'defense',},
-            'possession':  {'url': 'possession', 'html': 'possession',},
-            'playing time': {'url': 'playingtime', 'html': 'playing_time',},
-            'misc': {'url': 'misc', 'html': 'misc',},
-        }
+        self.stats_categories = {'standard': {'url': 'stats', 'html': 'standard',},
+                                 'goalkeeping': {'url': 'keepers', 'html': 'keeper',},
+                                 'advanced goalkeeping': {'url': 'keepersadv','html': 'keeper_adv',},
+                                 'shooting': {'url': 'shooting', 'html': 'shooting',},
+                                 'passing': {'url': 'passing', 'html': 'passing',},
+                                 'pass types': {'url': 'passing_types', 'html': 'passing_types',},
+                                 'goal and shot creation': {'url': 'gca', 'html': 'gca',},
+                                 'defensive': {'url': 'defense', 'html': 'defense',},
+                                 'possession':  {'url': 'possession', 'html': 'possession',},
+                                 'playing time': {'url': 'playingtime', 'html': 'playing_time',},
+                                 'misc': {'url': 'misc', 'html': 'misc',},}
       
     ####################################################################################################################
     def close(self):
@@ -176,11 +172,8 @@ class FBRef:
         
         # find all of the match links from the scores and fixtures page that have the sources finder
         finders = source_comp_info["FBRef"][league]["finder"]
-        match_links = [
-            "https://fbref.com"+t["href"] 
-            for t in scores_links 
-            if t and np.any([f in t["href"] for f in finders])
-        ]
+        match_links = ["https://fbref.com"+t["href"] for t in scores_links 
+                       if t and np.any([f in t["href"] for f in finders])]
         
         return match_links
 
@@ -279,10 +272,8 @@ class FBRef:
         
         # Verify valid stat category
         if stat_category not in self.stats_categories.keys():
-            raise Exception(
-                f'"{stat_category}" is not a valid FBRef stats category. '+\
-                f'Must be one of {list(self.stats_categories.keys())}.'
-            )
+            raise Exception(f'"{stat_category}" is not a valid FBRef stats category. '+\
+                            f'Must be one of {list(self.stats_categories.keys())}.')
         
         season_url = self.get_season_link(year, league)
         
@@ -325,25 +316,16 @@ class FBRef:
             # Gather stats table tags
             squad_stats_tag = squads_soup.find('table', {'id': re.compile('for')})
             opponent_stats_tag = squads_soup.find('table', {'id': re.compile('against')})
-            player_stats_tag = players_soup.find(
-                'table', 
-                {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')}
-            )
+            player_stats_tag = players_soup.find('table', {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')})
 
             # Gather squad and opponent squad IDs
             # These are 'td' elements for Big 5
-            squad_ids = [
-                tag.find('a')['href'].split('/')[3] 
-                for tag 
-                in squad_stats_tag.find_all('td', {'data-stat': 'team'})
-                if tag and tag.find('a')
-            ]
-            opponent_ids = [
-                tag.find('a')['href'].split('/')[3] 
-                for tag 
-                in opponent_stats_tag.find_all('td', {'data-stat': 'team'})
-                if tag and tag.find('a')
-            ]
+            squad_ids = [tag.find('a')['href'].split('/')[3] for tag 
+                         in squad_stats_tag.find_all('td', {'data-stat': 'team'})
+                         if tag and tag.find('a')]
+            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag 
+                            in opponent_stats_tag.find_all('td', {'data-stat': 'team'})
+                            if tag and tag.find('a')]
 
         else:
             # Get URL to stat category
@@ -368,55 +350,42 @@ class FBRef:
             # Gather stats table tags
             squad_stats_tag = soup.find('table', {'id': re.compile('for')})
             opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
-            player_stats_tag = soup.find(
-                'table', 
-                {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')}
-            )
+            player_stats_tag = soup.find('table', {'id': re.compile(f'stats_{self.stats_categories[stat_category]["html"]}')})
 
             # Gather squad and opponent squad IDs
             # These are 'th' elements for all other leagues
-            squad_ids = [
-                tag.find('a')['href'].split('/')[3] 
-                for tag 
-                in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
-                if tag and tag.find('a')
-            ]
-            opponent_ids = [
-                tag.find('a')['href'].split('/')[3] 
-                for tag 
-                in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
-                if tag and tag.find('a')
-            ]
+            squad_ids = [tag.find('a')['href'].split('/')[3] for tag 
+                         in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+                         if tag and tag.find('a')]
+            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag 
+                            in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
+                            if tag and tag.find('a')]
             
         # Get stats dataframes
-        squad_stats = pd.read_html(str(squad_stats_tag))[0] if squad_stats_tag is not None else None
-        opponent_stats = pd.read_html(str(opponent_stats_tag))[0] if opponent_stats_tag is not None else None
-        player_stats = pd.read_html(str(player_stats_tag))[0] if player_stats_tag is not None else None
+        squad_stats = pd.read_html(StringIO(str(squad_stats_tag)))[0] if squad_stats_tag is not None else None
+        opponent_stats = pd.read_html(StringIO(str(opponent_stats_tag)))[0] if opponent_stats_tag is not None else None
+        player_stats = pd.read_html(StringIO(str(player_stats_tag)))[0] if player_stats_tag is not None else None
 
-        # Drop rows that contain duplicated table headers
-        squad_drop_mask = ~squad_stats.loc[:, (slice(None), 'Squad')].isna() & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
-        squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
-
-        opponent_drop_mask = ~opponent_stats.loc[:, (slice(None), 'Squad')].isna() & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
-        opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
-
-        keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values
-        player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
-
-        # Add team IDs
+        # Drop rows that contain duplicated table headers, add team/player IDs
         if squad_stats is not None:
+            squad_drop_mask = ~squad_stats.loc[:, (slice(None), 'Squad')].isna() & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
+            squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
             squad_stats['Team ID'] = squad_ids
+        
         if opponent_stats is not None:
+            opponent_drop_mask = ~opponent_stats.loc[:, (slice(None), 'Squad')].isna() & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')
+            opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
             opponent_stats['Team ID'] = opponent_ids
+
+        if player_stats is not None:
+            keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values
+            player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
         
         # Add player links and ID's
         if player_stats is not None:
-            player_links = [
-                'https://fbref.com' + tag.find('a')['href']
-                for tag 
-                in player_stats_tag.find_all('td', {'data-stat': 'player'})
-                if tag and tag.find('a')
-            ]
+            player_links = ['https://fbref.com' + tag.find('a')['href'] for tag 
+                            in player_stats_tag.find_all('td', {'data-stat': 'player'})
+                            if tag and tag.find('a')]
             player_stats['Player Link'] = player_links
             player_stats['Player ID'] = [l.split('/')[-2] for l in player_links]
         
@@ -528,12 +497,9 @@ class FBRef:
             stage = stage_text
 
         # Team names and ids ===========================================================================================
-        team_els = [
-            el.find('a') \
-            for el 
-            in soup.find('div', {'class': 'scorebox'}).find_all('strong') \
-            if el.find('a', href=True) is not None
-        ][:2]
+        team_els = [el.find('a') for el 
+                    in soup.find('div', {'class': 'scorebox'}).find_all('strong')
+                    if el.find('a', href=True) is not None][:2]
         home_team_name = team_els[0].getText()
         home_team_id   = team_els[0]['href'].split('/')[3]
         away_team_name = team_els[1].getText()
@@ -552,33 +518,33 @@ class FBRef:
 
             summary_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_summary')})
             assert len(summary_tag) < 2
-            summary_df = pd.read_html(str(summary_tag[0]))[0] if len(summary_tag)==1 else None
+            summary_df = pd.read_html(StringIO(str(summary_tag[0])))[0] if len(summary_tag)==1 else None
 
             gk_tag = soup.find_all('table', {'id': re.compile(f'keeper_stats_{team_id}')})
             assert len(gk_tag) < 2
-            gk_df = pd.read_html(str(gk_tag[0]))[0] if len(gk_tag)==1 else None
+            gk_df = pd.read_html(StringIO(str(gk_tag[0])))[0] if len(gk_tag)==1 else None
 
             passing_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing$')})
             assert len(passing_tag) < 2
-            passing_df = pd.read_html(str(passing_tag[0]))[0] if len(passing_tag)==1 else None
+            passing_df = pd.read_html(StringIO(str(passing_tag[0])))[0] if len(passing_tag)==1 else None
 
             pass_types_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing_types')})
             assert len(pass_types_tag) < 2
-            pass_types_df = pd.read_html(str(pass_types_tag[0]))[0] if len(pass_types_tag)==1 else None
+            pass_types_df = pd.read_html(StringIO(str(pass_types_tag[0])))[0] if len(pass_types_tag)==1 else None
 
             defense_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_defense')})
             assert len(defense_tag) < 2
-            defense_df = pd.read_html(str(defense_tag[0]))[0] if len(defense_tag)==1 else None
+            defense_df = pd.read_html(StringIO(str(defense_tag[0])))[0] if len(defense_tag)==1 else None
 
             possession_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_possession')})
             assert len(possession_tag) < 2
-            possession_df = pd.read_html(str(possession_tag[0]))[0] if len(possession_tag)==1 else None
+            possession_df = pd.read_html(StringIO(str(possession_tag[0])))[0] if len(possession_tag)==1 else None
 
             misc_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_misc')})
             assert len(misc_tag) < 2
-            misc_df = pd.read_html(str(misc_tag[0]))[0] if len(misc_tag)==1 else None
+            misc_df = pd.read_html(StringIO(str(misc_tag[0])))[0] if len(misc_tag)==1 else None
             
-            lineup_df = pd.read_html(str(lineup_tags[i]))[0] if len(lineup_tags)!=0 else None
+            lineup_df = pd.read_html(StringIO(str(lineup_tags[i])))[0] if len(lineup_tags)!=0 else None
             
             # Field player ID's for the stats tables -------------------------------------------------------------------
             # Note: if a coach gets a yellow/red card, they appear in the player stats tables, in their own row, at the 
@@ -609,44 +575,34 @@ class FBRef:
 
             # GK ID's --------------------------------------------------------------------------------------------------
             if gk_df is not None:
-                gk_ids = [
-                    tag.find('a')['href'].split('/')[3]
-                    for tag 
-                    in gk_tag[0].find_all('th', {'data-stat': 'player'})
-                    if tag.find('a')
-                ]
-                
+                gk_ids = [tag.find('a')['href'].split('/')[3] for tag 
+                          in gk_tag[0].find_all('th', {'data-stat': 'player'})
+                          if tag.find('a')]
                 gk_df['Player ID'] = gk_ids
 
             # Build player stats dict ----------------------------------------------------------------------------------
             # This will be turned into a Series and then put into the match dataframe
-            player_stats[team] = {
-                'Team Sheet': lineup_df,
-                'Summary': summary_df,
-                'GK': gk_df,
-                'Passing': passing_df,
-                'Pass Types': pass_types_df,
-                'Defense': defense_df,
-                'Possession': possession_df,
-                'Misc': misc_df,
-            }
+            player_stats[team] = {'Team Sheet': lineup_df, 'Summary': summary_df,
+                                  'GK': gk_df, 'Passing': passing_df,
+                                  'Pass Types': pass_types_df, 'Defense': defense_df,
+                                  'Possession': possession_df, 'Misc': misc_df,}
             
         # Shots ========================================================================================================
         both_shots = soup.find_all('table', {'id': 'shots_all'})
         if len(both_shots) == 1:
-            both_shots = pd.read_html(str(both_shots[0]))[0]
+            both_shots = pd.read_html(StringIO(str(both_shots[0])))[0]
             both_shots = both_shots[~both_shots.isna().all(axis=1)]
         else:
             both_shots = None
         home_shots = soup.find_all('table', {'id': f'shots_{home_team_id}'})
         if len(home_shots) == 1:
-            home_shots = pd.read_html(str(home_shots[0]))[0]
+            home_shots = pd.read_html(StringIO(str(home_shots[0])))[0]
             home_shots = home_shots[~home_shots.isna().all(axis=1)]
         else:
             home_shots = None
         away_shots = soup.find_all('table', {'id': f'shots_{away_team_id}'})
         if len(away_shots) == 1:
-            away_shots = pd.read_html(str(away_shots[0]))[0]
+            away_shots = pd.read_html(StringIO(str(away_shots[0])))[0]
             away_shots = away_shots[~away_shots.isna().all(axis=1)]
         else:
             away_shots = None
@@ -671,14 +627,10 @@ class FBRef:
         match['Away Team'] = away_team_name
         match['Home Team ID'] = home_team_id
         match['Away Team ID'] = away_team_id
-        match['Home Formation'] = (
-            player_stats['Home']['Team Sheet'].columns[0].split('(')[-1].replace(')','').strip()
-            if player_stats['Home']['Team Sheet'] is not None else None
-        )
-        match['Away Formation'] = (
-            player_stats['Away']['Team Sheet'].columns[0].split('(')[-1].replace(')','').strip()
-            if player_stats['Away']['Team Sheet'] is not None else None
-        )
+        match['Home Formation'] = (player_stats['Home']['Team Sheet'].columns[0].split('(')[-1].replace(')','').strip()
+                                   if player_stats['Home']['Team Sheet'] is not None else None)
+        match['Away Formation'] = (player_stats['Away']['Team Sheet'].columns[0].split('(')[-1].replace(')','').strip()
+                                   if player_stats['Away']['Team Sheet'] is not None else None)
         match['Home Goals'] = int(scores[0].getText()) if scores[0].getText().isdecimal() else None
         match['Away Goals'] = int(scores[1].getText()) if scores[1].getText().isdecimal() else None
         match['Home Ast'] = player_stats['Home']['Summary'][('Performance','Ast')].values[-1]
@@ -783,7 +735,7 @@ class FBRef:
 
             # Load and prelim clean of complete report
             soup = BeautifulSoup(requests.get(complete_report_link).content, 'lxml')
-            complete_report = pd.read_html(str(soup.find('table', {'id': re.compile('scout_full')})))[0] # load report
+            complete_report = pd.read_html(StringIO(str(soup.find('table', {'id': re.compile('scout_full')}))))[0] # load report
             complete_report.columns = complete_report.columns.get_level_values(1) # drop top level column name
             complete_report.dropna(axis=0, inplace=True) # drop nan rows
             complete_report.reset_index(inplace=True, drop=True) # reset index
@@ -798,10 +750,7 @@ class FBRef:
             category_ends = list(np.where(header_row_mask)[0]-1) + [complete_report.shape[0]-1]
             for i in range(len(stats_categories)):
                 temp = complete_report.loc[category_starts[i]:category_ends[i],:]
-                temp.index = pd.MultiIndex.from_product([
-                    (stats_categories[i],),
-                    temp['Statistic'],
-                ])
+                temp.index = pd.MultiIndex.from_product([(stats_categories[i],), temp['Statistic']])
                 cleaned_complete_report = pd.concat([cleaned_complete_report,temp])
             # drop statistic name column, it's in the multiindex now
             cleaned_complete_report.drop(columns='Statistic', inplace=True)
