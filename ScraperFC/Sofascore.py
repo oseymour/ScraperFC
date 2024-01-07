@@ -81,7 +81,7 @@ class Sofascore:
         """
         # this can also be found in the 'id' key of the dict returned from 
         # get_match_data(), if the format of the match url ever changes
-        match_id = match_url.split('#')[-1]
+        match_id = match_url.split(':')[-1]
         return match_id
     
     ############################################################################
