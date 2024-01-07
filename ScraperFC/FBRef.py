@@ -248,6 +248,15 @@ class FBRef:
         #     return lg_table
         
     ####################################################################################################################
+    def epl_team_stats(self):
+        url = "https://fbref.com/en/comps/9/Premier-League-Stats"
+        self.get(url)
+        soup = BeautifulSoup(self.driver.page_source, 'html.parser') # get initial soup
+
+        squad_stats_tag = soup.find('table', {'id': re.compile('home_away')})
+        return pd.read_html(str(squad_stats_tag))[0] if squad_stats_tag is not None else None
+
+    ####################################################################################################################
     def scrape_stats(self, year, league, stat_category, normalize=False):
         """ Scrapes a single stats category
         
