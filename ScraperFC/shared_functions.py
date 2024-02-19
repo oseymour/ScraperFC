@@ -523,6 +523,12 @@ def get_source_comp_info(year, league, source):
                     "2023": 47644,
                 },
             },
+            "Peru Liga 1": {
+                "id": 406,
+                "seasons": {
+                    "2022": 40118 , "2023": 48078 , "2024": 57741,
+                },
+            },
             # USA
             "MLS": {},
             "USL Championship": {
