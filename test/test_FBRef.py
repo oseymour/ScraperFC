@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../')
+sys.path.append('./src/')
 from ScraperFC import FBRef, get_source_comp_info, NoMatchLinksException, \
     UnavailableSeasonException
 from shared_test_functions import get_random_league_seasons
