@@ -523,6 +523,15 @@ def get_source_comp_info(year, league, source):
                     "2023": 47644,
                 },
             },
+            # GRONESTATS
+
+            "Copa Libertadores": {
+                "id" : 384,
+                "seasons": {
+                    "2024" : 57296,
+                },
+            },
+
             "Peru Liga 1": {
                 "id": 406,
                 "seasons": {
