@@ -1,63 +1,49 @@
 import sys
 sys.path.append('./src/')
-from ScraperFC import FBRef, get_source_comp_info, NoMatchLinksException, \
-    UnavailableSeasonException
-from shared_test_functions import get_random_league_seasons
+from ScraperFC import FBRef
+from ScraperFC.FBRef import comps
 import random
-from pandas import DataFrame
+import numpy as np
+import pandas as pd
 
 class TestFBRef:
 
+    def test_get_match_links(self):
+        fbref = FBRef()
+        league = random.sample(list(comps.keys()), 1)[0]
+        year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
+        print(year, league)
+        match_links = fbref.get_match_links(year, league)
+        assert type(match_links) is list, 'match links must be a list'
+        assert np.all([type(x) is str for x in match_links]), 'all of the match links should be strings'
+        assert len(match_links) > 0, 'there should be more than 0 match links'
+
+    def test_scrape_league_table(self):
+        fbref = FBRef()
+        league = random.sample(list(comps.keys()), 1)[0]
+        year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
+        print(year, league)
+        lg_table = fbref.scrape_league_table(year, league)
+        assert type(lg_table) is list, 'league tables should be a list'
+        assert np.all([type(x) is pd.DataFrame for x in lg_table]), 'all tables should be dataframes'
+
+    def test_scrape_matches(self):
+        fbref = FBRef()
+        league = random.sample(list(comps.keys()), 1)[0]
+        year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
+        print(year, league)
+        matches = fbref.scrape_matches(year, league)
+        assert type(matches) is pd.DataFrame, 'matches must be a dataframe'
+        assert matches.shape[0] > 0, 'matches must have more than 1 row'
+
+
+    
     # def test_get_season_link(self):
     #     year, league = get_random_league_seasons('FBRef', 1)[0]
     #     try:
     #         fbref = FBRef()
     #         season_link = fbref.get_season_link(year, league)
     #         assert type(season_link) is str
-    #     except UnavailableSeasonException:
-    #         pass
-    #     finally:
-    #         fbref.close()
-
-    # def test_get_match_links_type(self):
-    #     year, league = get_random_league_seasons('FBRef', 1)[0]
-    #     try:
-    #         fbref = FBRef()
-    #         match_links = fbref.get_match_links(year, league)
-    #         assert type(match_links) is list
-    #     except (NoMatchLinksException, UnavailableSeasonException):
-    #         pass
-    #     finally:
-    #         fbref.close()
-
-    # def test_get_match_link_contents(self):
-    #     year, league = get_random_league_seasons('FBRef', 1)[0]
-    #     try:
-    #         fbref = FBRef()
-    #         match_links = fbref.get_match_links(year, league)
-    #         link = random.sample(match_links, 1)[0]
-    #         finder = get_source_comp_info(year, league, 'FBRef')['FBRef'][league]['finder']
-    #         assert type(link) is str
-    #         if type(finder) is list:
-    #             for f in finder:
-    #                 assert f in link
-    #         else:
-    #             assert finder in link
-    #         assert 'fbref.com' in link
-    #     except (NoMatchLinksException, UnavailableSeasonException):
-    #         pass
-    #     finally:
-    #         fbref.close()
-
-    # def test_scrape_league_table(self):
-    #     year, league = get_random_league_seasons('FBRef', 1)[0]
-    #     try:
-    #         fbref = FBRef()
-    #         lgtbl = fbref.scrape_league_table(year, league)
-    #         assert type(lgtbl) in (list, DataFrame)
-    #         if type(lgtbl) is list:
-    #             for x in lgtbl:
-    #                 assert type(x) is DataFrame
     #     except UnavailableSeasonException:
     #         pass
     #     finally:
@@ -83,6 +69,7 @@ class TestFBRef:
 
     # def test_scrape_all_stats_normalized(self):
     #     year, league = get_random_league_seasons('FBRef', 1)[0]
+    #     print(year, league)
     #     try:
     #         fbref = FBRef()
     #         stats = fbref.scrape_all_stats(year, league, normalize=True)
@@ -94,15 +81,3 @@ class TestFBRef:
     #         pass
     #     finally:
     #         fbref.close()
-
-    def test_scrape_matches(self):
-        year, league = get_random_league_seasons('FBRef', 1)[0]
-        try:
-            fbref = FBRef()
-            matches = fbref.scrape_matches(year, league)
-            assert type(matches) is DataFrame
-            assert matches.shape[0] > 0
-        except UnavailableSeasonException:
-            pass
-        finally:
-            fbref.close()
