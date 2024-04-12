@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
-from ScraperFC.scraperfc_exceptions import InvalidYearException, InvalidLeagueException
+from ScraperFC.scraperfc_exceptions import (
+    InvalidYearException, InvalidLeagueException, NoMatchLinksException)
 import time
 import numpy as np
 import pandas as pd
@@ -22,113 +23,151 @@ stats_categories = {'standard': {'url': 'stats', 'html': 'standard'},
                     'pass types': {'url': 'passing_types', 'html': 'passing_types'},
                     'goal and shot creation': {'url': 'gca', 'html': 'gca'},
                     'defensive': {'url': 'defense', 'html': 'defense'},
-                    'possession':  {'url': 'possession', 'html': 'possession'},
+                    'possession': {'url': 'possession', 'html': 'possession'},
                     'playing time': {'url': 'playingtime', 'html': 'playing_time'},
                     'misc': {'url': 'misc', 'html': 'misc'}}
 
 comps = {
     # #############################
     # Men's club international cups
-    'Copa Libertadores': {'history url': 'https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons',
-                          'finders': ['Copa-Libertadores']},
-    'Champions League': {'history url': 'https://fbref.com/en/comps/8/history/Champions-League-Seasons',
-                         'finders': ['European-Cup', 'Champions-League']},
-    'Europa League': {'history url': 'https://fbref.com/en/comps/19/history/Europa-League-Seasons',
-                      'finders': ['UEFA-Cup', 'Europa-League']},
-    'Europa Conference League': {'history url': 'https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons',
-                                 'finders': ['Europa-Conference-League']},
+    'Copa Libertadores': {
+        'history url': 'https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons',
+        'finders': ['Copa-Libertadores']},
+    'Champions League': {
+        'history url': 'https://fbref.com/en/comps/8/history/Champions-League-Seasons',
+        'finders': ['European-Cup', 'Champions-League']},
+    'Europa League': {
+        'history url': 'https://fbref.com/en/comps/19/history/Europa-League-Seasons',
+        'finders': ['UEFA-Cup', 'Europa-League']},
+    'Europa Conference League': {
+        'history url': 'https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons',
+        'finders': ['Europa-Conference-League']},
     # ################################
     # Men's national team competitions
-    'World Cup': {'history url': 'https://fbref.com/en/comps/1/history/World-Cup-Seasons',
-                  'finders': ['World-Cup']},
-    'Copa America': {'history url': 'https://fbref.com/en/comps/685/history/Copa-America-Seasons',
-                     'finders': ['Copa-America']},
-    'Euros': {'history url': 'https://fbref.com/en/comps/676/history/European-Championship-Seasons',
-              'finders': ['UEFA-Euro', 'European-Championship']},
+    'World Cup': {
+        'history url': 'https://fbref.com/en/comps/1/history/World-Cup-Seasons',
+        'finders': ['World-Cup']},
+    'Copa America': {
+        'history url': 'https://fbref.com/en/comps/685/history/Copa-America-Seasons',
+        'finders': ['Copa-America']},
+    'Euros': {
+        'history url': 'https://fbref.com/en/comps/676/history/European-Championship-Seasons',
+        'finders': ['UEFA-Euro', 'European-Championship']},
     # ############
     # Men's big 5
-    'Big 5 combined': {'history url': 'https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons',
-                       'finders': ['Big-5-European-Leagues']},
-    'EPL': {'history url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
-            'finders': ['Premier-League']},
-    'Ligue 1': {'history url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
-                'finders': ['Ligue-1', 'Division-1']},
-    'Bundesliga': {'history url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
-                   'finders': ['Bundesliga']},
-    'Serie A': {'history url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
-                'finders': ['Serie-A']},
-    'La Liga': {'history url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
-                'finders': ['La-Liga']},
+    'Big 5 combined': {
+        'history url': 'https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons',
+        'finders': ['Big-5-European-Leagues']},
+    'EPL': {
+        'history url': 'https://fbref.com/en/comps/9/history/Premier-League-Seasons',
+        'finders': ['Premier-League', 'First-Division']},
+    'Ligue 1': {
+        'history url': 'https://fbref.com/en/comps/13/history/Ligue-1-Seasons',
+        'finders': ['Ligue-1', 'Division-1']},
+    'Bundesliga': {
+        'history url': 'https://fbref.com/en/comps/20/history/Bundesliga-Seasons',
+        'finders': ['Bundesliga']},
+    'Serie A': {
+        'history url': 'https://fbref.com/en/comps/11/history/Serie-A-Seasons',
+        'finders': ['Serie-A']},
+    'La Liga': {
+        'history url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
+        'finders': ['La-Liga']},
     # ##################################
     # Men's domestic leagues - 1st tier
-    'MLS': {'history url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
-            'finders': ['Major-League-Soccer']},
-    'Brazilian Serie A': {'history url': 'https://fbref.com/en/comps/24/history/Serie-A-Seasons',
-                          'finders': ['Serie-A']},
-    'Eredivisie': {'history url': 'https://fbref.com/en/comps/23/history/Eredivisie-Seasons',
-                   'finders': ['Eredivisie']},
-    'Liga MX': {'history url': 'https://fbref.com/en/comps/31/history/Liga-MX-Seasons',
-                'finders': ['Primera-Division', 'Liga-MX']},
-    'Primeira Liga': {'history url': 'https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons',
-                      'finders': ['Primeira-Liga']},
-    'Jupiler Pro League': {'history url': 'https://fbref.com/en/comps/37/history/Belgian-Pro-League-Seasons',
-                           'finders': ['Belgian-Pro-League', 'Belgian-First-Division']},
-    'Argentina Liga Profesional': {'history url': 'https://fbref.com/en/comps/21/history/Primera-Division-Seasons',
-                                   'finders': ['Primera-Division']},
+    'MLS': {
+        'history url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
+        'finders': ['Major-League-Soccer']},
+    'Brazilian Serie A': {
+        'history url': 'https://fbref.com/en/comps/24/history/Serie-A-Seasons',
+        'finders': ['Serie-A']},
+    'Eredivisie': {
+        'history url': 'https://fbref.com/en/comps/23/history/Eredivisie-Seasons',
+        'finders': ['Eredivisie']},
+    'Liga MX': {
+        'history url': 'https://fbref.com/en/comps/31/history/Liga-MX-Seasons',
+        'finders': ['Primera-Division', 'Liga-MX']},
+    'Primeira Liga': {
+        'history url': 'https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons',
+        'finders': ['Primeira-Liga']},
+    'Belgian Pro League': {
+        'history url': 'https://fbref.com/en/comps/37/history/Belgian-Pro-League-Seasons',
+        'finders': ['Belgian-Pro-League', 'Belgian-First-Division']},
+    'Argentina Liga Profesional': {
+        'history url': 'https://fbref.com/en/comps/21/history/Primera-Division-Seasons',
+        'finders': ['Primera-Division']},
     # #################################
     # Men's domestic league - 2nd tier
-    'EFL Championship': {'history url': 'https://fbref.com/en/comps/10/history/Championship-Seasons',
-                         'finders': ['First-Division', 'Championship']},
-    'La Liga 2': {'history url': 'https://fbref.com/en/comps/17/history/Segunda-Division-Seasons',
-                  'finders': ['Segunda-Division']},
-    '2. Bundesliga': {'history url': 'https://fbref.com/en/comps/33/history/2-Bundesliga-Seasons',
-                      'finders': ['2-Bundesliga']},
-    'Ligue 2': {'history url': 'https://fbref.com/en/comps/60/history/Ligue-2-Seasons',
-                'finders': ['Ligue-2']},
-    'Serie B': {'history url': 'https://fbref.com/en/comps/18/history/Serie-B-Seasons',
-                'finders': ['Serie-B']},
+    'EFL Championship': {
+        'history url': 'https://fbref.com/en/comps/10/history/Championship-Seasons',
+        'finders': ['First-Division', 'Championship']},
+    'La Liga 2': {
+        'history url': 'https://fbref.com/en/comps/17/history/Segunda-Division-Seasons',
+        'finders': ['Segunda-Division']},
+    '2. Bundesliga': {
+        'history url': 'https://fbref.com/en/comps/33/history/2-Bundesliga-Seasons',
+        'finders': ['2-Bundesliga']},
+    'Ligue 2': {
+        'history url': 'https://fbref.com/en/comps/60/history/Ligue-2-Seasons',
+        'finders': ['Ligue-2']},
+    'Serie B': {
+        'history url': 'https://fbref.com/en/comps/18/history/Serie-B-Seasons',
+        'finders': ['Serie-B']},
     # ######################################
     # Women's internation club competitions
-    'Women Champions League': {'history url': 'https://fbref.com/en/comps/181/history/Champions-League-Seasons',
-                               'finders': ['Champions-League']},
+    'Womens Champions League': {
+        'history url': 'https://fbref.com/en/comps/181/history/Champions-League-Seasons',
+        'finders': ['Champions-League']},
     # ##################################
     # Women's national team competitions
-    'Womens World Cup': {'history url': 'https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons',
-                         'finders': ['Womens-World-Cup']},
-    'Womens Euros': {'history url': 'https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons',
-                     'finders': ['UEFA-Womens-Euro']},
+    'Womens World Cup': {
+        'history url': 'https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons',
+        'finders': ['Womens-World-Cup']},
+    'Womens Euros': {
+        'history url': 'https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons',
+        'finders': ['UEFA-Womens-Euro']},
     # #########################
     # Women's domestic leagues
-    'NWSL': {'history url': 'https://fbref.com/en/comps/182/history/NWSL-Seasons',
-             'finders': ['NWSL']},
-    'A-League Women': {'history url': 'https://fbref.com/en/comps/196/history/A-League-Women-Seasons',
-                       'finders': ['A-League-Women', 'W-League']},
-    'WSL': {'history url': 'https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons',
-            'finders': ['Womens-Super-League']},
-    'D1 Feminine': {'history url': 'https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons',
-                    'finders': ['Division-1-Feminine']},
-    'Womens Bundesliga': {'history url': 'https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons',
-                          'finders': ['Frauen-Bundesliga']},
-    'Womens Serie A': {'history url': 'https://fbref.com/en/comps/208/history/Serie-A-Seasons',
-                       'finders': ['Serie-A']},
-    'Liga F': {'history url': 'https://fbref.com/en/comps/230/history/Liga-F-Seasons',
-               'finders': ['Liga-F']},
+    'NWSL': {
+        'history url': 'https://fbref.com/en/comps/182/history/NWSL-Seasons',
+        'finders': ['NWSL']},
+    'A-League Women': {
+        'history url': 'https://fbref.com/en/comps/196/history/A-League-Women-Seasons',
+        'finders': ['A-League-Women', 'W-League']},
+    'WSL': {
+        'history url': 'https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons',
+        'finders': ['Womens-Super-League']},
+    'D1 Feminine': {
+        'history url': 'https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons',
+        'finders': ['Division-1-Feminine']},
+    'Womens Bundesliga': {
+        'history url': 'https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons',
+        'finders': ['Frauen-Bundesliga']},
+    'Womens Serie A': {
+        'history url': 'https://fbref.com/en/comps/208/history/Serie-A-Seasons',
+        'finders': ['Serie-A']},
+    'Liga F': {
+        'history url': 'https://fbref.com/en/comps/230/history/Liga-F-Seasons',
+        'finders': ['Liga-F']},
     # ######################
     # Women's domestic cups
-    'NWSL Challenge Cup': {'history url': 'https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons',
-                           'finders': ['NWSL-Challenge-Cup']},
-    'NWSL Fall Series': {'history url': 'https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons',
-                         'finders': ['NWSL-Fall-Series']},
+    'NWSL Challenge Cup': {
+        'history url': 'https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons',
+        'finders': ['NWSL-Challenge-Cup']},
+    'NWSL Fall Series': {
+        'history url': 'https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons',
+        'finders': ['NWSL-Fall-Series']},
 }
 
 
 class FBRef():
 
-    # ==========================================================================
+    # ==============================================================================================
     def __init__(self):
-        self.wait_time = 3  # FBRef's scraping limit, https://www.sports-reference.com/bot-traffic.html
+        # FBRef's scraping limit, https://www.sports-reference.com/bot-traffic.html
+        self.wait_time = 4
 
-    # ==========================================================================
+    # ==============================================================================================
     def _driver_init(self):
         """ Private, creates a headless selenium webdriver
         """
@@ -139,12 +178,12 @@ class FBRef():
         options.add_experimental_option('prefs', prefs)
         self.driver = webdriver.Chrome(options=options)
 
-    # ==========================================================================
+    # ==============================================================================================
     def _driver_close(self):
         self.driver.close()
         self.driver.quit()
 
-    # ==========================================================================
+    # ==============================================================================================
     def _get(self, url):
         """ Private, calls requests.get() and enforces FBRef's wait time.
         """
@@ -152,14 +191,14 @@ class FBRef():
         time.sleep(self.wait_time)
         return response
     
-    # ==========================================================================
+    # ==============================================================================================
     def _driver_get(self, url):
         """ Private, calls driver.get() and enforces FBRef's wait time.
         """
         self.driver.get(url)
         time.sleep(self.wait_time)
 
-    # ==========================================================================
+    # ==============================================================================================
     def get_valid_seasons(self, league):
         """ Finds all of the valid years and their URLs for a given competition
 
@@ -189,7 +228,7 @@ class FBRef():
 
         return season_urls
 
-    # ==========================================================================
+    # ==============================================================================================
     def get_season_link(self, year, league):
         """ Returns the URL for the chosen league season.
 
@@ -214,7 +253,7 @@ class FBRef():
             raise TypeError('`league` must be a string.')
         if league not in comps:
             raise InvalidLeagueException(league=league, module='FBRef')
-
+        
         seasons = self.get_valid_seasons(league)
 
         if year not in seasons:
@@ -222,7 +261,7 @@ class FBRef():
 
         return 'https://fbref.com/' + seasons[year]
 
-    # ==========================================================================
+    # ==============================================================================================
     def get_match_links(self, year, league):
         """ Gets all match links for the chosen league season.
 
@@ -247,6 +286,8 @@ class FBRef():
             raise TypeError('`league` must be a string.')
         if league not in comps:
             raise InvalidLeagueException(league=league, module='FBRef')
+        if year not in self.get_valid_seasons(league):
+            raise InvalidYearException(year, league)
 
         season_link = self.get_season_link(year, league)
 
@@ -261,14 +302,18 @@ class FBRef():
         # Identify match links
         match_urls = list()
         possible_els = soup.find_all('td', {'class': True, 'data-stat': True})
+        if len(possible_els) == 0:
+            raise NoMatchLinksException(year, league, fixtures_url)
         for x in possible_els:
             a = x.find('a')
-            if a is not None and 'match' in a['href'] and np.any([f in a['href'] for f in comps[league]['finders']]):
+            if (a is not None 
+                    and 'match' in a['href'] 
+                    and np.any([f in a['href'] for f in comps[league]['finders']])):
                 match_urls.append('https://fbref.com' + a['href'])
         match_urls = list(set(match_urls))
         return match_urls
     
-    # ==========================================================================
+    # ==============================================================================================
     def scrape_league_table(self, year, league):
         """ Scrapes the league table of the chosen league season
 
@@ -300,7 +345,7 @@ class FBRef():
                 tables.append(df)
         return tables
     
-    # ==========================================================================
+    # ==============================================================================================
     def scrape_match(self, link):
         """ Scrapes an FBRef match page.
         
@@ -362,7 +407,8 @@ class FBRef():
             passing_df = (pd.read_html(StringIO(str(passing_tag[0])))[0]
                           if len(passing_tag) == 1 else None)
 
-            pass_types_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing_types')})
+            pass_types_tag = soup.find_all('table', 
+                                           {'id': re.compile(f'stats_{team_id}_passing_types')})
             assert len(pass_types_tag) < 2
             pass_types_df = (pd.read_html(StringIO(str(pass_types_tag[0])))[0]
                              if len(pass_types_tag) == 1 else None)
@@ -372,7 +418,8 @@ class FBRef():
             defense_df = (pd.read_html(StringIO(str(defense_tag[0])))[0]
                           if len(defense_tag) == 1 else None)
 
-            possession_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_possession')})
+            possession_tag = soup.find_all('table', 
+                                           {'id': re.compile(f'stats_{team_id}_possession')})
             assert len(possession_tag) < 2
             possession_df = (pd.read_html(StringIO(str(possession_tag[0])))[0]
                              if len(possession_tag) == 1 else None)
@@ -464,29 +511,38 @@ class FBRef():
         match['Away Team'] = away_team_name
         match['Home Team ID'] = home_team_id
         match['Away Team ID'] = away_team_id
-        match['Home Formation'] = (player_stats['Home']['Team Sheet'].columns[0].split('(')[-1].replace(')', '').strip()
+        match['Home Formation'] = (player_stats['Home']['Team Sheet'].columns[0].split('(')[-1]
+                                   .replace(')', '').strip()
                                    if player_stats['Home']['Team Sheet'] is not None else None)
-        match['Away Formation'] = (player_stats['Away']['Team Sheet'].columns[0].split('(')[-1].replace(')', '').strip()
+        match['Away Formation'] = (player_stats['Away']['Team Sheet'].columns[0].split('(')[-1]
+                                   .replace(')', '').strip()
                                    if player_stats['Away']['Team Sheet'] is not None else None)
         match['Home Goals'] = int(scores[0].getText()) if scores[0].getText().isdecimal() else None
         match['Away Goals'] = int(scores[1].getText()) if scores[1].getText().isdecimal() else None
         match['Home Ast'] = player_stats['Home']['Summary'][('Performance', 'Ast')].values[-1]
         match['Away Ast'] = player_stats['Away']['Summary'][('Performance', 'Ast')].values[-1]
-        match['Home xG'] = player_stats['Home']['Summary'][('Expected', 'xG')].values[-1] if expected else None
-        match['Away xG'] = player_stats['Away']['Summary'][('Expected', 'xG')].values[-1] if expected else None
-        match['Home npxG'] = player_stats['Home']['Summary'][('Expected', 'npxG')].values[-1] if expected else None
-        match['Away npxG'] = player_stats['Away']['Summary'][('Expected', 'npxG')].values[-1] if expected else None
-        match['Home xAG'] = player_stats['Home']['Summary'][('Expected', 'xAG')].values[-1] if expected else None
-        match['Away xAG'] = player_stats['Away']['Summary'][('Expected', 'xAG')].values[-1] if expected else None
+        match['Home xG'] = (player_stats['Home']['Summary'][('Expected', 'xG')].values[-1] 
+                            if expected else None)
+        match['Away xG'] = (player_stats['Away']['Summary'][('Expected', 'xG')].values[-1] 
+                            if expected else None)
+        match['Home npxG'] = (player_stats['Home']['Summary'][('Expected', 'npxG')].values[-1] 
+                              if expected else None)
+        match['Away npxG'] = (player_stats['Away']['Summary'][('Expected', 'npxG')].values[-1] 
+                              if expected else None)
+        match['Home xAG'] = (player_stats['Home']['Summary'][('Expected', 'xAG')].values[-1] 
+                             if expected else None)
+        match['Away xAG'] = (player_stats['Away']['Summary'][('Expected', 'xAG')].values[-1] 
+                             if expected else None)
         match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame().T
         match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame().T
-        match['Shots'] = pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots}).to_frame().T
+        match['Shots'] = (pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots})
+                          .to_frame().T)
 
         match = match.to_frame().T  # series to dataframe
 
         return match
 
-    # ==========================================================================
+    # ==============================================================================================
     def scrape_matches(self, year, league):
         """ Scrapes the FBRef standard stats page of the chosen league season.
             
@@ -520,7 +576,7 @@ class FBRef():
 
         return matches_df
 
-    # ==========================================================================
+    # ==============================================================================================
     def scrape_stats(self, year, league, stat_category):
         """ Scrapes a single stats category
         
@@ -546,8 +602,8 @@ class FBRef():
         
         # Verify valid stat category
         if stat_category not in stats_categories.keys():
-            raise Exception((f'"{stat_category}" is not a valid FBRef stats category. '
-                            f'Must be one of {list(stats_categories.keys())}.'))
+            raise ValueError((f'"{stat_category}" is not a valid FBRef stats category. '
+                              f'Must be one of {list(stats_categories.keys())}.'))
         
         season_url = self.get_season_link(year, league)
         
@@ -557,8 +613,10 @@ class FBRef():
             first_half = '/'.join(season_url.split('/')[:-1])
             second_half = season_url.split('/')[-1]
             stats_category_url_filler = stats_categories[stat_category]['url']
-            players_stats_url = '/'.join([first_half, stats_category_url_filler, 'players', second_half])
-            squads_stats_url  = '/'.join([first_half, stats_category_url_filler, 'squads', second_half])
+            players_stats_url = '/'.join([first_half, stats_category_url_filler, 'players', 
+                                          second_half])
+            squads_stats_url = '/'.join([first_half, stats_category_url_filler, 'squads', 
+                                         second_half])
 
             # Get the soups from the 2 pages
             players_soup = BeautifulSoup(self._get(players_stats_url).content, 'html.parser')
@@ -567,7 +625,9 @@ class FBRef():
             # Gather stats table tags
             squad_stats_tag = squads_soup.find('table', {'id': re.compile('for')})
             opponent_stats_tag = squads_soup.find('table', {'id': re.compile('against')})
-            player_stats_tag = players_soup.find('table', {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')})
+            player_stats_tag = players_soup.find(
+                'table', 
+                {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')})
 
             # Gather squad and opponent squad IDs
             # These are 'td' elements for Big 5
@@ -585,18 +645,21 @@ class FBRef():
             new_url = season_url.replace(old_suffix, new_suffix)
 
             self._driver_init()
-            self._driver_get(new_url)
-            # Wait until player stats table is loaded
-            (WebDriverWait(self.driver, 10)
-             .until(EC.visibility_of_element_located((By.XPATH, f'//table[contains(@id, "stats_{stats_categories[stat_category]["html"]}")]')))
-            )
-            soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-            self._driver_close()
+            try:
+                self._driver_get(new_url)
+                # Wait until player stats table is loaded
+                WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((
+                    By.XPATH, 
+                    f'//table[contains(@id, "stats_{stats_categories[stat_category]["html"]}")]')))
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            finally:
+                self._driver_close()
 
             # Gather stats table tags
             squad_stats_tag = soup.find('table', {'id': re.compile('for')})
             opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
-            player_stats_tag = soup.find('table', {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')})
+            player_stats_tag = soup.find(
+                'table', {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')})
 
             # Gather squad and opponent squad IDs
             # These are 'th' elements for all other leagues
@@ -608,9 +671,12 @@ class FBRef():
                             if tag and tag.find('a')]
             
         # Get stats dataframes
-        squad_stats = pd.read_html(StringIO(str(squad_stats_tag)))[0] if squad_stats_tag is not None else None
-        opponent_stats = pd.read_html(StringIO(str(opponent_stats_tag)))[0] if opponent_stats_tag is not None else None
-        player_stats = pd.read_html(StringIO(str(player_stats_tag)))[0] if player_stats_tag is not None else None
+        squad_stats = (pd.read_html(StringIO(str(squad_stats_tag)))[0] 
+                       if squad_stats_tag is not None else None)
+        opponent_stats = (pd.read_html(StringIO(str(opponent_stats_tag)))[0] 
+                          if opponent_stats_tag is not None else None)
+        player_stats = (pd.read_html(StringIO(str(player_stats_tag)))[0] 
+                        if player_stats_tag is not None else None)
 
         # Drop rows that contain duplicated table headers, add team/player IDs
         if squad_stats is not None:
@@ -635,11 +701,11 @@ class FBRef():
                             in player_stats_tag.find_all('td', {'data-stat': 'player'})
                             if tag and tag.find('a')]
             player_stats['Player Link'] = player_links
-            player_stats['Player ID'] = [l.split('/')[-2] for l in player_links]
+            player_stats['Player ID'] = [x.split('/')[-2] for x in player_links]
         
         return squad_stats, opponent_stats, player_stats
     
-    # ==========================================================================
+    # ==============================================================================================
     def scrape_all_stats(self, year, league):
         """ Scrapes all stat categories
         
