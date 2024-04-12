@@ -9,6 +9,7 @@ class ClubElo:
     # ==========================================================================
     def scrape_team_on_date(self, team, date):
         """ Scrapes a team's ELO score on a given date.
+
         Args
         ----
         team : str

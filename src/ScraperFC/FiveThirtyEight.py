@@ -5,48 +5,47 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import os
 import pandas as pd
-import numpy as np
-from IPython.display import clear_output
 from zipfile import ZipFile
 from ScraperFC.shared_functions import get_source_comp_info, xpath_soup
 import time
 from bs4 import BeautifulSoup
 
+
 class FiveThirtyEight:
     
-    ############################################################################
+    # ==========================================================================
     def __init__(self):
         options = Options()
         options.add_argument('--headless')
-        prefs = {"download.default_directory" : os.getcwd()}
-        options.add_experimental_option("prefs",prefs)
+        prefs = {'download.default_directory': os.getcwd()}
+        options.add_experimental_option('prefs', prefs)
         self.driver = webdriver.Chrome(options=options)
         
-    ############################################################################    
+    # ==========================================================================    
     def close(self):
-        """ Closes and quits the Selenium WebDriver instance.
-        """
+        ''' Closes and quits the Selenium WebDriver instance.
+        '''
         self.driver.close()
         self.driver.quit()
         
-    ############################################################################    
+    # ==========================================================================    
     def up_season(self, string):
-        """ Increments a string of the season year
+        ''' Increments a string of the season year
         
         Args
         ----
         string : str
-            String of a calendar year (e.g. "2022")
+            String of a calendar year (e.g. '2022')
         Returns
         -------
         : str
             Incremented calendar year
-        """
+        '''
         return str(int(string) + 1)
         
-    ############################################################################  
+    # ==========================================================================  
     def scrape_matches(self, year, league, save=False):
-        """ Scrapes matches for the given league season
+        ''' Scrapes matches for the given league season
 
         Args
         ----
@@ -64,8 +63,8 @@ class FiveThirtyEight:
             league season
         filename : str
             If save=True, filename of the CSV that the stats were saved to 
-        """
-        _ = get_source_comp_info(year,league,'FiveThirtyEight')
+        '''
+        _ = get_source_comp_info(year, league, 'FiveThirtyEight')
         
         # Load URL
         self.driver.get('https://data.fivethirtyeight.com/#soccer-spi')
@@ -92,22 +91,22 @@ class FiveThirtyEight:
         os.remove('soccer-spi.zip')
         
         # Pick the chosen league
-        if league == "EPL":
+        if league == 'EPL':
             df = df[df['league'] == 'Barclays Premier League']
-        elif league == "La Liga":
+        elif league == 'La Liga':
             df = df[df['league'] == 'Spanish Primera Division']
-        elif league == "Bundesliga":
+        elif league == 'Bundesliga':
             df = df[df['league'] == 'German Bundesliga']
-        elif league == "Serie A":
+        elif league == 'Serie A':
             df = df[df['league'] == 'Italy Serie A']
-        elif league == "Ligue 1":
+        elif league == 'Ligue 1':
             df = df[df['league'] == 'French Ligue 1']
         
         # Add one to season column
         df['season'] = df['season'].apply(self.up_season)
         
         # Only keep the season requested
-        df = df[df['season']==str(year)].reset_index(drop=True)
+        df = df[df['season'] == str(year)].reset_index(drop=True)
         
         # Save to CSV if requested by user
         if save:
@@ -117,4 +116,3 @@ class FiveThirtyEight:
             return filename
         else:
             return df
-        
