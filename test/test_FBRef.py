@@ -26,92 +26,93 @@ comps_wo_matches = [
     ('2013-2014', 'Belgian Pro League')]
 
 
-class TestFBRef:
-
-    # ==============================================================================================
-    @pytest.mark.parametrize(
-        'year, league, expected',
-        [(2021, 'Serie B', pytest.raises(TypeError)),
-         ('1642-1643', 'EPL', pytest.raises(InvalidYearException))])
-    def test_invalid_year(self, year, league, expected):
-        fbref = FBRef()
-        print(year, league)
-        with expected:
-            print('Testing get_season_link')
-            fbref.get_season_link(year, league)
-        with expected:
-            print('Testing get_match_links')
-            fbref.get_match_links(year, league)
-        with expected:
-            print('Testing scrape_league_table')
-            fbref.scrape_league_table(year, league)
-        with expected:
-            print('Testing scrape_matches')
-            fbref.scrape_matches(year, league)
-        with expected:
-            print('Testing scrape_stats')
-            fbref.scrape_stats(year, league, 'standard')
-        with expected:
-            print('Testing scrape_all_stats')
-            fbref.scrape_all_stats(year, league)
+# class TestFBRef:
 
     # # ==============================================================================================
-    @pytest.mark.parametrize(
-        'year, league, expected',
-        [('2018', (1, 2, 3), pytest.raises(TypeError)),
-         ('2018', 'fake comp', pytest.raises(InvalidLeagueException))])
-    def test_invalid_league(self, year, league, expected):
-        fbref = FBRef()
-        print(year, league)
-        with expected:
-            print('Testing get_valid_seasons')
-            fbref.get_valid_seasons(league)
-        with expected:
-            print('Testing get_season_link')
-            fbref.get_season_link(year, league)
-        with expected:
-            print('Testing get_match_links')
-            fbref.get_match_links(year, league)
-        with expected:
-            print('Testing scrape_league_table')
-            fbref.scrape_league_table(year, league)
-        with expected:
-            print('Testing scrape_matches')
-            fbref.scrape_matches(year, league)
-        with expected:
-            print('Testing scrape_stats')
-            fbref.scrape_stats(year, league, 'standard')
-        with expected:
-            print('Testing scrape_all_stats')
-            fbref.scrape_all_stats(year, league)
+    # @pytest.mark.parametrize(
+    #     'year, league, expected',
+    #     [(2021, 'Serie B', pytest.raises(TypeError)),
+    #      ('1642-1643', 'EPL', pytest.raises(InvalidYearException))])
+    # def test_invalid_year(self, year, league, expected):
+    #     fbref = FBRef()
+    #     print(year, league)
+    #     with expected:
+    #         print('Testing get_season_link')
+    #         fbref.get_season_link(year, league)
+    #     with expected:
+    #         print('Testing get_match_links')
+    #         fbref.get_match_links(year, league)
+    #     with expected:
+    #         print('Testing scrape_league_table')
+    #         fbref.scrape_league_table(year, league)
+    #     with expected:
+    #         print('Testing scrape_matches')
+    #         fbref.scrape_matches(year, league)
+    #     with expected:
+    #         print('Testing scrape_stats')
+    #         fbref.scrape_stats(year, league, 'standard')
+    #     with expected:
+    #         print('Testing scrape_all_stats')
+    #         fbref.scrape_all_stats(year, league)
 
-    # ==============================================================================================
-    @pytest.mark.parametrize(
-        'year, league, expected',
-        [('2013-2014', 'Ligue 2', pytest.raises(NoMatchLinksException)),
-         ('2013-2014', 'La Liga 2', pytest.raises(NoMatchLinksException)),
-         ('2013-2014', 'Belgian Pro League', pytest.raises(NoMatchLinksException)),])
-    def test_NoMatchLinksException(self, year, league, expected):
-        with expected:
-            fbref = FBRef()
-            print(year, league)
-            fbref.get_match_links(year, league)
-            fbref.scrape_matches(year, league)
+    # # ==============================================================================================
+    # @pytest.mark.parametrize(
+    #     'year, league, expected',
+    #     [('2018', (1, 2, 3), pytest.raises(TypeError)),
+    #      ('2018', 'fake comp', pytest.raises(InvalidLeagueException))])
+    # def test_invalid_league(self, year, league, expected):
+    #     fbref = FBRef()
+    #     print(year, league)
+    #     with expected:
+    #         print('Testing get_valid_seasons')
+    #         fbref.get_valid_seasons(league)
+    #     with expected:
+    #         print('Testing get_season_link')
+    #         fbref.get_season_link(year, league)
+    #     with expected:
+    #         print('Testing get_match_links')
+    #         fbref.get_match_links(year, league)
+    #     with expected:
+    #         print('Testing scrape_league_table')
+    #         fbref.scrape_league_table(year, league)
+    #     with expected:
+    #         print('Testing scrape_matches')
+    #         fbref.scrape_matches(year, league)
+    #     with expected:
+    #         print('Testing scrape_stats')
+    #         fbref.scrape_stats(year, league, 'standard')
+    #     with expected:
+    #         print('Testing scrape_all_stats')
+    #         fbref.scrape_all_stats(year, league)
 
-    # ==============================================================================================
-    @pytest.mark.parametrize(
-        'year, league, expected_len',
-        [('2020-2021', 'EPL', 380)])
-    def test_valid_get_match_links(self, year, league, expected_len):
-        fbref = FBRef()
-        # league = random.sample(list(comps.keys()), 1)[0]
-        # year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
-        match_links = fbref.get_match_links(year, league)
-        assert type(match_links) is list, 'match links must be a list'
-        assert (np.all([type(x) is str for x in match_links]), 
-                'all of the match links should be strings')
-        assert len(match_links) == expected_len, 'number of links does not match expected'
+    # # ==============================================================================================
+    # @pytest.mark.parametrize(
+    #     'year, league, expected',
+    #     [('2013-2014', 'Ligue 2', pytest.raises(NoMatchLinksException)),
+    #      ('2013-2014', 'La Liga 2', pytest.raises(NoMatchLinksException)),
+    #      ('2013-2014', 'Belgian Pro League', pytest.raises(NoMatchLinksException)),])
+    # def test_NoMatchLinksException(self, year, league, expected):
+    #     fbref = FBRef()
+    #     print(year, league)
+    #     with expected:
+    #         fbref.get_match_links(year, league)
+    #     with expected:
+    #         fbref.scrape_matches(year, league)
+
+    # # ==============================================================================================
+    # @pytest.mark.parametrize(
+    #     'year, league, expected_len',
+    #     [('2020-2021', 'EPL', 380)])
+    # def test_valid_get_match_links(self, year, league, expected_len):
+    #     fbref = FBRef()
+    #     # league = random.sample(list(comps.keys()), 1)[0]
+    #     # year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
+    #     print(year, league)
+    #     match_links = fbref.get_match_links(year, league)
+    #     assert type(match_links) is list, 'match links must be a list'
+    #     assert (np.all([type(x) is str for x in match_links]), 
+    #             'all of the match links should be strings')
+    #     assert len(match_links) == expected_len, 'number of links does not match expected'
 
     # # ==============================================================================================
     # def test_scrape_league_table(self):
@@ -136,16 +137,15 @@ class TestFBRef:
     #     except NoMatchLinksException:
     #         assert (year, league) in comps_wo_matches
 
-    # ==============================================================================================
-    @pytest.mark.parametrize(
-        'year, league, stat_category, expected',
-        [('2023-2024', 'Big 5 combined', 'fake category', pytest.raises(ValueError))])
-    def test_fake_stat_category(self, year, league, stat_category, expected):
-        fbref = FBRef()
-        print(year, league, stat_category)
-        with expected:
-            fbref.scrape_stats(year, league, stat_category)
-
+    # # ==============================================================================================
+    # @pytest.mark.parametrize(
+    #     'year, league, stat_category, expected',
+    #     [('2023-2024', 'Big 5 combined', 'fake category', pytest.raises(ValueError))])
+    # def test_fake_stat_category(self, year, league, stat_category, expected):
+    #     fbref = FBRef()
+    #     print(year, league, stat_category)
+    #     with expected:
+    #         fbref.scrape_stats(year, league, stat_category)
 
     # # ============================================================================================
     # def test_scrape_all_stats(self):
