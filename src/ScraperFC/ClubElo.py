@@ -2,6 +2,8 @@ from datetime import datetime
 from io import StringIO
 import pandas as pd
 import requests
+from .scraperfc_exceptions import ClubEloInvalidTeamException
+import warnings
 
 
 class ClubElo:
@@ -13,9 +15,8 @@ class ClubElo:
         Args
         ----
         team : str
-            To get the appropriate team name, go to clubelo.com and find the\
-            team you're looking for. Copy and past the team's name as it\
-            appears in the URL.
+            To get the appropriate team name, go to clubelo.com and find the team you're looking 
+            for. Copy and past the team's name as it appears in the URL.
         date : str
             Must be formatted as YYYY-MM-DD
         Returns
@@ -25,18 +26,28 @@ class ClubElo:
         -1 : int
             -1 if the team has no score on the given date
         """
-        date = datetime.strptime(date, '%Y-%m-%d')
+        # Check inputs
+        if type(team) is not str:
+            raise TypeError('`team` must be a string.')
+        if type(date) is not str:
+            raise TypeError('`date` must be a string.')
+        try:
+            date = datetime.strptime(date, '%Y-%m-%d')
+        except Exception as E:
+            warnings.warn(f'The date {date} is not formatted as YYYY-MM-DD.')
+            raise E
 
         # use ClubElo API to get team data as Pandas DataFrame
         url = f'http://api.clubelo.com/{team}'
-        done = False
-        while not done:
+        while 1:
             try:
                 r = requests.get(url)
-                done = True
+                break
             except requests.exceptions.ConnectionError:
-                done = False
+                pass
         df = pd.read_csv(StringIO(r.text), sep=',')
+        if df.shape[0] == 0:
+            raise ClubEloInvalidTeamException(team)
 
         # find row that given date falls in
         for i in df.index:
