@@ -42,3 +42,12 @@ class ClubEloInvalidTeamException(Exception):
             f'{self.team} is an invalid team for ClubElo. Please check clubelo.com for valid team'
             ' names.'
         )
+    
+
+class InvalidCurrencyException(Exception):
+    """ Raised when an invalid currency is used with the Capology module.
+    """
+    def __init__(self):
+        super().__init__()
+    def __str__():
+        return 'Currency must be one of "eur", "gbp", or "usd".'
