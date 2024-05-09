@@ -70,6 +70,19 @@ class Sofascore:
         return '~'.join(abbreviations)
     
     ############################################################################
+    def add_url(self, row):
+        """ Work for get_fixture, don't use
+        Row is a series.array this is row from get_fixture
+        """
+
+        homeSlug = row['homeTeam'].get('slug') if isinstance(row['homeTeam'], dict) else None
+        awaySlug = row['awayTeam'].get('slug') if isinstance(row['awayTeam'], dict) else None
+        customId = row['customId']
+        id_val = row['id']
+        url = f'https://www.sofascore.com/{homeSlug}-{awaySlug}/{customId}#id:{id_val}'
+        return url
+
+    ############################################################################
     def get_match_id(self, match_url):
         """Get match id from a Sofascore match url
 
@@ -80,8 +93,8 @@ class Sofascore:
             string: Match id for a SofaScore match. Used in Urls
         """
         # this can also be found in the 'id' key of the dict returned from 
-        # get_match_data(), if the format of the match url ever changes
-        match_id = match_url.split('#')[-1]
+        # get_match_info(), if the format of the match url ever changes
+        match_id = match_url.split('#id:')[-1]
         return match_id
     
     ############################################################################
@@ -115,7 +128,40 @@ class Sofascore:
         return player_ids
     
     ############################################################################
-    def get_match_data(self, match_url):
+    def get_fixture(self, year, league):
+        """Get league all matches data
+        
+        Args:
+            season/year (string): Season selected
+            tournament/league (string): Name of the competition
+
+        Returns:
+            DataFrame: DataFrame with each row represents generic data of the 
+                agreed matches of the entire season 
+        """
+
+        source_comp_info = get_source_comp_info(year, league, "Sofascore")
+        
+        league_id = source_comp_info['Sofascore'][league]['id']
+        season_id = source_comp_info['Sofascore'][league]['seasons'][year]
+
+        partidos = pd.DataFrame()
+        i = 0
+        while(True):
+            response = requests.get(
+                f'https://api.sofascore.com/api/v1/unique-tournament/{league_id}/season/{season_id}/events/last/{i}',  
+                headers = self.requests_headers)
+
+            if (response.status_code != 200):
+                partidos['link'] = partidos.apply(self.add_url, axis=1)
+                return partidos
+
+            data = response.json()
+            i+= 1
+            partidos = pd.concat([pd.DataFrame(data['events']), partidos], ignore_index=True)
+    
+    ############################################################################
+    def get_match_info(self, match_url):
         """Get match general data
 
         Args:
@@ -142,7 +188,7 @@ class Sofascore:
             strings: Name of home and away team.
         """
 
-        data = self.get_match_data(match_url)
+        data = self.get_match_info(match_url)
 
         home_team = data['homeTeam']['name']
         away_team = data['awayTeam']['name']
@@ -158,8 +204,8 @@ class Sofascore:
         SofaScore.
 
         Args:
-            tournament (string): Name of the competition
-            season (string): Season selected
+            season/year (string): Season selected
+            tournament/league (string): Name of the competition
             accumulation (str, optional): Value of the filter accumulation. Can 
                 be "per90", "perMatch", or "total". Defaults to 'total'.
             selected_positions (list, optional): Value of the filter positions. 
@@ -218,7 +264,7 @@ class Sofascore:
         return match_momentum_df
 
     ############################################################################
-    def get_general_match_stats(self, match_url):
+    def get_match_stats(self, match_url):
         """Get general match statistics (possession, passes, duels) by teams.
 
         Args:
