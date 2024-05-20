@@ -48,15 +48,6 @@ class InvalidYearException(Exception):
                 f"Must be {self.source_comp_info[self.source][self.league]['first valid year']} or later."
 
 ########################################################################################################################
-class InvalidCurrencyException(Exception):
-    """ Raised when an invalid currency is used with the Capology module.
-    """
-    def __init__(self):
-        super().__init__()
-    def __str__():
-        return "Currency must be one of 'eur', 'gbp', or 'usd'."
-
-########################################################################################################################
 class UnavailableSeasonException(Exception):
     """ Raised when a given year and league is unavailable from a source.
     """

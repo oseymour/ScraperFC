@@ -5,6 +5,6 @@ from .Sofascore import Sofascore
 from .ClubElo import ClubElo
 from .Capology import Capology
 from .Transfermarkt import Transfermarkt
-from .Oddsportal import Oddsportal
+# from .Oddsportal import Oddsportal
 from .shared_functions import *
 from .scraperfc_exceptions import *
