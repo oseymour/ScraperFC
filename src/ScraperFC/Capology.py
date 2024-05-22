@@ -200,12 +200,15 @@ class Capology():
             df = pd.read_html(StringIO(table_html))[0]
             if df.shape[1] == 13:
                 df = df.drop(columns=[1])
-                df.columns = ['Player', 'Weekly Gross', 'Annual Gross', 'Expiration',
-                            'Length', 'Total Gross', 'Status', 'Pos. group', 'Pos.',
-                            'Age', 'Country', 'Club']
+                df.columns = [
+                    'Player', 'Weekly Gross', 'Annual Gross', 'Expiration', 'Length', 'Total Gross', 
+                    'Status', 'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
+                ]
             else:
-                df.columns = ['Player', 'Weekly Gross', 'Annual Gross', 'Adj. Gross',
-                            'Pos. group', 'Age', 'Country', 'Club']
+                df.columns = [
+                    'Player', 'Weekly Gross', 'Annual Gross', 'Adj. Gross', 'Pos. group', 'Age', 
+                    'Country', 'Club'
+                ]
 
             return df
         finally:
