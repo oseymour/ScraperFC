@@ -2,7 +2,7 @@ import sys
 sys.path.append('./src/')
 from ScraperFC import Sofascore
 from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from ScraperFC.Sofascore import comps
+from ScraperFC.sofascore import comps
 
 import pytest
 from contextlib import nullcontext as does_not_raise

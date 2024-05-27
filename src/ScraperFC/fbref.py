@@ -15,20 +15,21 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
-stats_categories = {'standard': {'url': 'stats', 'html': 'standard'},
-                    'goalkeeping': {'url': 'keepers', 'html': 'keeper'},
-                    'advanced goalkeeping': {'url': 'keepersadv', 'html': 'keeper_adv'},
-                    'shooting': {'url': 'shooting', 'html': 'shooting'},
-                    'passing': {'url': 'passing', 'html': 'passing'},
-                    'pass types': {'url': 'passing_types', 'html': 'passing_types'},
-                    'goal and shot creation': {'url': 'gca', 'html': 'gca'},
-                    'defensive': {'url': 'defense', 'html': 'defense'},
-                    'possession': {'url': 'possession', 'html': 'possession'},
-                    'playing time': {'url': 'playingtime', 'html': 'playing_time'},
-                    'misc': {'url': 'misc', 'html': 'misc'}}
+stats_categories = {
+    'standard': {'url': 'stats', 'html': 'standard'},
+    'goalkeeping': {'url': 'keepers', 'html': 'keeper'},
+    'advanced goalkeeping': {'url': 'keepersadv', 'html': 'keeper_adv'},
+    'shooting': {'url': 'shooting', 'html': 'shooting'},
+    'passing': {'url': 'passing', 'html': 'passing'},
+    'pass types': {'url': 'passing_types', 'html': 'passing_types'},
+    'goal and shot creation': {'url': 'gca', 'html': 'gca'},
+    'defensive': {'url': 'defense', 'html': 'defense'},
+    'possession': {'url': 'possession', 'html': 'possession'},
+    'playing time': {'url': 'playingtime', 'html': 'playing_time'},
+    'misc': {'url': 'misc', 'html': 'misc'}
+}
 
 comps = {
-    # #############################
     # Men's club international cups
     'Copa Libertadores': {
         'history url': 'https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons',
@@ -42,7 +43,6 @@ comps = {
     'Europa Conference League': {
         'history url': 'https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons',
         'finders': ['Europa-Conference-League']},
-    # ################################
     # Men's national team competitions
     'World Cup': {
         'history url': 'https://fbref.com/en/comps/1/history/World-Cup-Seasons',
@@ -53,7 +53,6 @@ comps = {
     'Euros': {
         'history url': 'https://fbref.com/en/comps/676/history/European-Championship-Seasons',
         'finders': ['UEFA-Euro', 'European-Championship']},
-    # ############
     # Men's big 5
     'Big 5 combined': {
         'history url': 'https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons',
@@ -73,7 +72,6 @@ comps = {
     'La Liga': {
         'history url': 'https://fbref.com/en/comps/12/history/La-Liga-Seasons',
         'finders': ['La-Liga']},
-    # ##################################
     # Men's domestic leagues - 1st tier
     'MLS': {
         'history url': 'https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons',
@@ -96,7 +94,6 @@ comps = {
     'Argentina Liga Profesional': {
         'history url': 'https://fbref.com/en/comps/21/history/Primera-Division-Seasons',
         'finders': ['Primera-Division']},
-    # #################################
     # Men's domestic league - 2nd tier
     'EFL Championship': {
         'history url': 'https://fbref.com/en/comps/10/history/Championship-Seasons',
@@ -113,12 +110,10 @@ comps = {
     'Serie B': {
         'history url': 'https://fbref.com/en/comps/18/history/Serie-B-Seasons',
         'finders': ['Serie-B']},
-    # ######################################
     # Women's internation club competitions
     'Womens Champions League': {
         'history url': 'https://fbref.com/en/comps/181/history/Champions-League-Seasons',
         'finders': ['Champions-League']},
-    # ##################################
     # Women's national team competitions
     'Womens World Cup': {
         'history url': 'https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons',
@@ -126,7 +121,6 @@ comps = {
     'Womens Euros': {
         'history url': 'https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons',
         'finders': ['UEFA-Womens-Euro']},
-    # #########################
     # Women's domestic leagues
     'NWSL': {
         'history url': 'https://fbref.com/en/comps/182/history/NWSL-Seasons',
@@ -149,7 +143,6 @@ comps = {
     'Liga F': {
         'history url': 'https://fbref.com/en/comps/230/history/Liga-F-Seasons',
         'finders': ['Liga-F']},
-    # ######################
     # Women's domestic cups
     'NWSL Challenge Cup': {
         'history url': 'https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons',
@@ -160,11 +153,11 @@ comps = {
 }
 
 
-class FBRef():
+class FBref():
 
     # ==============================================================================================
     def __init__(self):
-        # FBRef's scraping limit, https://www.sports-reference.com/bot-traffic.html
+        # FBref's scraping limit, https://www.sports-reference.com/bot-traffic.html
         self.wait_time = 4
 
     # ==============================================================================================

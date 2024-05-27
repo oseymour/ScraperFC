@@ -1,15 +1,17 @@
 import sys
 sys.path.append('./src/')
-from ScraperFC import FBRef
-from ScraperFC.FBRef import comps, stats_categories
-from ScraperFC.scraperfc_exceptions import (NoMatchLinksException, InvalidLeagueException, 
-                                            InvalidYearException)
+from ScraperFC import FBref
+from ScraperFC.fbref import comps, stats_categories
+from ScraperFC.scraperfc_exceptions import (
+    NoMatchLinksException, InvalidLeagueException, InvalidYearException
+)
+
 import random
 import numpy as np
 import pandas as pd
 import pytest
 
-# These leagues and years do not have match links on FBRef
+# These leagues and years do not have match links on FBref
 comps_wo_matches = [
     ('2009-2010', 'Ligue 2'), ('2010-2011', 'Ligue 2'), ('2011-2012', 'Ligue 2'), 
     ('2012-2013', 'Ligue 2'), ('2013-2014', 'Ligue 2'), ('2013-2014', 'La Liga 2'),
@@ -26,7 +28,7 @@ comps_wo_matches = [
 ]
 
 
-class TestFBRef:
+class TestFBref:
 
     # ==============================================================================================
     @pytest.mark.parametrize(
@@ -34,7 +36,7 @@ class TestFBRef:
         [(2021, 'Serie B', pytest.raises(TypeError)),
          ('1642-1643', 'EPL', pytest.raises(InvalidYearException))])
     def test_invalid_year(self, year, league, expected):
-        fbref = FBRef()
+        fbref = FBref()
         print(year, league)
         with expected:
             print('Testing get_season_link')
@@ -61,7 +63,7 @@ class TestFBRef:
         [('2018', (1, 2, 3), pytest.raises(TypeError)),
          ('2018', 'fake comp', pytest.raises(InvalidLeagueException))])
     def test_invalid_league(self, year, league, expected):
-        fbref = FBRef()
+        fbref = FBref()
         print(year, league)
         with expected:
             print('Testing get_valid_seasons')
@@ -92,7 +94,7 @@ class TestFBRef:
          ('2013-2014', 'La Liga 2', pytest.raises(NoMatchLinksException)),
          ('2013-2014', 'Belgian Pro League', pytest.raises(NoMatchLinksException)),])
     def test_NoMatchLinksException(self, year, league, expected):
-        fbref = FBRef()
+        fbref = FBref()
         print(year, league)
         with expected:
             fbref.get_match_links(year, league)
@@ -104,7 +106,7 @@ class TestFBRef:
         'year, league, expected_len',
         [('2020-2021', 'EPL', 380)])
     def test_valid_get_match_links(self, year, league, expected_len):
-        fbref = FBRef()
+        fbref = FBref()
         # league = random.sample(list(comps.keys()), 1)[0]
         # year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
         print(year, league)
@@ -115,7 +117,7 @@ class TestFBRef:
 
     # ==============================================================================================
     def test_scrape_league_table(self):
-        fbref = FBRef()
+        fbref = FBref()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
         print(year, league)
@@ -125,7 +127,7 @@ class TestFBRef:
 
     # ==============================================================================================
     def test_scrape_matches(self):
-        fbref = FBRef()
+        fbref = FBref()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
         print(year, league)
@@ -142,14 +144,14 @@ class TestFBRef:
         'year, league, stat_category, expected',
         [('2023-2024', 'Big 5 combined', 'fake category', pytest.raises(ValueError))])
     def test_fake_stat_category(self, year, league, stat_category, expected):
-        fbref = FBRef()
+        fbref = FBref()
         print(year, league, stat_category)
         with expected:
             fbref.scrape_stats(year, league, stat_category)
 
     # ==============================================================================================
     def test_scrape_all_stats(self):
-        fbref = FBRef()
+        fbref = FBref()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
         print(year, league)

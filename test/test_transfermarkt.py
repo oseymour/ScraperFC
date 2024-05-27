@@ -1,7 +1,7 @@
 import sys
 sys.path.append('./src/')
 from ScraperFC import Transfermarkt
-from ScraperFC.Transfermarkt import comps
+from ScraperFC.transfermarkt import comps
 from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 import random
 import pandas as pd

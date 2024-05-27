@@ -1,7 +1,7 @@
 import sys
 sys.path.append('./src/')
 from ScraperFC import Understat
-from ScraperFC.Understat import comps
+from ScraperFC.understat import comps
 import random
 import pandas as pd
 

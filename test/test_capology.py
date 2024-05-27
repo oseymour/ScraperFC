@@ -1,7 +1,7 @@
 import sys
 sys.path.append('./src/')
 from ScraperFC import Capology
-from ScraperFC.Capology import comps
+from ScraperFC.capology import comps
 from ScraperFC.scraperfc_exceptions import InvalidYearException, InvalidLeagueException
 
 import pytest
