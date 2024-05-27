@@ -2,7 +2,7 @@
 import json
 import pandas as pd
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from botasaurus import request, AntiDetectRequests
+from botasaurus.request import request, Request
 import numpy as np
 
 """ These are the status codes for Sofascore events. Found in event['status'] key.
@@ -36,39 +36,19 @@ comps = {
     "Women's World Cup": 290
 }
 
-@request(use_stealth=True, output=None, create_error_logs=False)
-def _botasaurus_get(request: AntiDetectRequests, url):
-    """ Sofascore introduced some anti-scraping measures. Using Botasaurus gets aroudn them.
+@request(output=None, create_error_logs=False)
+def _botasaurus_get(request: Request, url):
+    """ Sofascore introduced some anti-scraping measures. Using Botasaurus gets around them.
     """
-    if type(url) is not str:
+    if not isinstance(url, str):
         raise TypeError('`url` must be a string.')
     response = request.get(url)
     return response
 
+
 class Sofascore:
-    
     # ==============================================================================================
     def __init__(self):
-        # self.requests_headers = {
-        #     'authority': 'api.sofascore.com',
-        #     'accept': '*/*',
-        #     'accept-language': 'en-US,en;q=0.9',
-        #     'cache-control': 'max-age=0',
-        #     'dnt': '1',
-        #     'if-none-match': 'W/"4bebed6144"',
-        #     'origin': 'https://www.sofascore.com',
-        #     'referer': 'https://www.sofascore.com/',
-        #     'sec-ch-ua': '"Not.A/Brand";v="8", "Chromium";v="114"',
-        #     'sec-ch-ua-mobile': '?0',
-        #     'sec-ch-ua-platform': '"macOS"',
-        #     'sec-fetch-dest': 'empty',
-        #     'sec-fetch-mode': 'cors',
-        #     'sec-fetch-site': 'same-site',
-        #     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) '+ \
-        #         'AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 '+ \
-        #         'Safari/537.36',
-        #     }
-        
         self.league_stats_fields = [
             'goals', 'yellowCards', 'redCards', 'groundDuelsWon', 'groundDuelsWonPercentage', 
             'aerialDuelsWon', 'aerialDuelsWonPercentage', 'successfulDribbles',
@@ -99,7 +79,7 @@ class Sofascore:
                 Key : season string
                 Value: season ID
         """
-        if type(league) is not str:
+        if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Sofascore')
@@ -122,7 +102,7 @@ class Sofascore:
             matches (list[dict]): list of dicts, each element being a single game of the competition
         """
         valid_seasons = self.get_valid_seasons(league)
-        if type(year) is not str:
+        if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
         if year not in valid_seasons.keys():
             raise InvalidYearException(year, league)
@@ -130,8 +110,10 @@ class Sofascore:
         matches = list()
         i = 0
         while 1:
-            
-            response = _botasaurus_get(f'{API_PREFIX}/unique-tournament/{comps[league]}/season/{valid_seasons[year]}/events/last/{i}')
+            response = _botasaurus_get(
+                f'{API_PREFIX}/unique-tournament/{comps[league]}/season/{valid_seasons[year]}/'+\
+                f'events/last/{i}'
+            )
             if response.status_code != 200:
                 break
             matches += response.json()['events']
@@ -151,59 +133,56 @@ class Sofascore:
         Returns:
             string: Match id for a SofaScore match. Used in Urls
         """
-        if type(match_url) is not str:
+        if not isinstance(match_url, str):
             raise TypeError('`match_url` must be a string.')
-        
         match_id = int(match_url.split('#id:')[-1])
         return match_id
 
     # ==============================================================================================
-    def get_match_dict(self, match_id):
-        """ Get match data dict from a Sofascore match ID.
+    def get_match_url_from_id(self, match_id):
+        """ Get the Sofascore match URL for a given match ID
 
         Args:
             match_id (int): Sofascore match ID
 
-        Returns:
-            dict: Generic data about a match
+        Returns
+            str: URL to the Sofascore match
         """
-        if type(match_id) is not int:
-            raise TypeError('`match_id` must be an int.')
+        match_dict = self.get_match_dict(match_id)
+        return f"https://www.sofascore.com/{match_dict['homeTeam']['slug']}-"+\
+            f"{match_dict['awayTeam']['slug']}/{match_dict['customId']}#id:{match_dict['id']}"
 
-        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}')
-        data = response.json()['event']
-
-        return data
-    
-    def get_match_dict_from_url(self, match_url):  # ===============================================
-        """ Get match data dict from a Sofascore URL.
+    # ==============================================================================================
+    def get_match_dict(self, match):
+        """ Get match data dict for a single match
 
         Args:
-            match_url (string): Full link to a SofaScore match
+            match (str | int): URL to Sofascore match OR Sofascore match ID
 
         Returns:
             dict: Generic data about a match
         """
-        match_id = self.get_match_id_from_url(match_url)
-        return self.get_match_dict(match_id)
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}')
+        data = response.json()['event']
+        return data
 
-    # # ==============================================================================================
-    # def get_team_names(self, match_url):
-    #     """ Get the team names for the home and away teams
+    # ==============================================================================================
+    def get_team_names(self, match):
+        """ Get the team names for the home and away teams
 
-    #     Args:
-    #         match_url (string): Full link to a Sofascore match
+        Args:
+            match (str | int): URL to Sofascore match OR Sofascore match ID
 
-    #     Returns:
-    #         strings: Name of home and away team.
-    #     """
-    #     data = self.get_match_data(match_url)
-
-    #     home_team = data['homeTeam']['name']
-    #     away_team = data['awayTeam']['name']
-
-    #     return home_team, away_team
-
+        Returns:
+            strings: Name of home and away team.
+        """
+        data = self.get_match_dict(match)
+        home_team = data['homeTeam']['name']
+        away_team = data['awayTeam']['name']
+        return home_team, away_team
     
     # ==============================================================================================
     def get_positions(self, selected_positions):
@@ -216,9 +195,9 @@ class Sofascore:
             str: joined abbreviations for the chosen positions
         """
         positions = {'Goalkeepers': 'G', 'Defenders': 'D', 'Midfielders': 'M', 'Forwards': 'F'}
-        if type(selected_positions) is not list:
+        if not isinstance(selected_positions, list):
             raise TypeError('`selected_positions` must be a list.')
-        if not np.all([type(x) is str for x in selected_positions]):
+        if not np.all([isinstance(x, str) for x in selected_positions]):
             raise TypeError('All items in `selected_positions` must be strings.')
         if not np.isin(selected_positions, list(positions.keys())).all():
             raise ValueError(f'All items in `selected_positions` must be in {positions.keys()}')
@@ -227,229 +206,233 @@ class Sofascore:
         return '~'.join(abbreviations)
     
     # ==============================================================================================
-    def get_player_ids(self, match_id):
-        """ Get the player IDs for a match from the match ID
+    def get_player_ids(self, match):
+        """ Get the player IDs for a match
         
-        Args:
-            match_id (int): Sofascore match ID
+        Parameters:
+            match (str | int): URL to Sofascore match OR Sofascore match ID
 
         Returns:
-            dict: Name and ids of every player in the match
-                Key: Name
-                Value: Id
+            dict
+                Name and ID of every player in the match, "{name: id, ...}"
         """
-        if type(match_id) is not int:
-            raise TypeError('`match_id` must be an int.')
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
+
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
         response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/lineups')
-
         teams = ['home', 'away']
-        player_ids = {}
-        for team in teams:
-            data = response.json()[team]['players']
-
-            for item in data:
-                player_data = item['player']
-                player_ids[player_data['name']] = player_data['id']
+        if response.status_code == 200:
+            player_ids = dict()
+            for team in teams:
+                data = response.json()[team]['players']
+                for item in data:
+                    player_data = item['player']
+                    player_ids[player_data['name']] = player_data['id']
+        else:
+            player_ids = dict()
 
         return player_ids
-        
-    def get_player_ids_from_url(self, match_url):  # ===============================================
-        """Get the player ids for a Sofascore match from the match URL
-
-        Args:
-            match_url (string): Full link to a SofaScore match
-
-        Returns:
-            dict: Name and ids of every player in the match
-                Key: Name
-                Value: Id
-        """
-        match_id = self.get_match_id_from_url(match_url)
-        return self.get_player_ids(match_id)
     
     # ==============================================================================================
-    def scrape_player_stats(
+    def scrape_player_league_stats(
         self, year, league, accumulation='total', 
         selected_positions=['Goalkeepers', 'Defenders', 'Midfielders', 'Forwards']
     ):
-        """ Get every player statistic that can be asked in league pages on 
-        SofaScore.
+        """ Get every player statistic that can be asked in league pages on Sofascore.
 
         Args:
             tournament (string): Name of the competition
             season (string): Season selected
             accumulation (str, optional): Value of the filter accumulation. Can be "per90", 
                 "perMatch", or "total". Defaults to 'total'.
-            selected_positions (list, optional): Value of the filter positions. Defaults to [
-                'Goalkeepers', 'Defenders', 'Midfielders','Forwards'].
+            selected_positions (list, optional): Value of the filter positions. Defaults to 
+                ['Goalkeepers', 'Defenders', 'Midfielders','Forwards'].
 
         Returns:
             DataFrame: DataFrame with each row corresponding to a player and 
                 the columns are the fields defined on self.concatenated_fields
         """
-        if type(accumulation) is not str:
+        if not isinstance(year, str):
+            raise TypeError('`year` must be a string.')
+        valid_seasons = self.get_valid_seasons(league)
+        if year not in valid_seasons.keys():
+            raise InvalidYearException(year, league)
+        if not isinstance(accumulation, str):
             raise TypeError('`accumulation` must be a string.')
         valid_accumulations = ['total', 'per90', 'perMatch']
         if accumulation not in valid_accumulations:
             raise ValueError(f'`accumulation` must be one of {valid_accumulations}')
         
         positions = self.get_positions(selected_positions)
-        season_id = self.get_valid_seasons(league)[year]
+        season_id = valid_seasons[year]
         league_id = comps[league]
         
+        # Get all player stats from Sofascore API
         offset = 0
-        df = pd.DataFrame()
+        results = list()
         while 1:
-            request_url = f'https://api.sofascore.com/api/v1' +\
+            request_url = f'https://api.sofascore.com/api/v1'+\
                 f'/unique-tournament/{league_id}/season/{season_id}/statistics'+\
                 f'?limit=100&offset={offset}'+\
-                f'&accumulation={accumulation}' +\
+                f'&accumulation={accumulation}'+\
                 f'&fields={self.concatenated_fields}'+\
                 f'&filters=position.in.{positions}'
             response = _botasaurus_get(request_url)
-            new_df = pd.DataFrame(response.json()['results'])
-            new_df['player'] = new_df.player.apply(pd.Series)['name']
-            new_df['team'] = new_df.team.apply(pd.Series)['name']
-            df = pd.concat([df, new_df])
-            
-            if response.json().get('page') == response.json().get('pages'):
+            results += response.json()['results']
+            if (response.json()['page'] == response.json()['pages']) or\
+                    (response.json()['pages'] == 0):
                 break
             offset += 100
+
+        # Convert the player dicts to a dataframe. Dataframe will be empty if there aren't any 
+        # player stats
+        if len(results) == 0:
+            df = pd.DataFrame()
+        else:
+            df = pd.DataFrame.from_dict(results)
+            df['player id'] = df['player'].apply(pd.Series)['id']
+            df['player'] = df['player'].apply(pd.Series)['name']
+            df['team id'] = df['team'].apply(pd.Series)['id']
+            df['team'] = df['team'].apply(pd.Series)['name']
         
         return df
 
     # ==============================================================================================
-    def scrape_match_momentum_from_url(self, match_url):
+    def scrape_match_momentum(self, match):
         """Get the match momentum values
 
         Args:
-            match_url (str): Full link to a SofaScore match
+            match (str | int): URL to Sofascore match OR Sofascore match ID
 
         Returns:
-            fig, ax: Plot of match momentum and fig/axes for further customization
+            DataFrame: Dataframe of match momentum values. Will be empty if the match does not have
+                match momentum data.
         """
-        match_id = self.get_match_id_from_url(match_url)
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
+
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
         response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/graph')
-        match_momentum_df = pd.DataFrame(response.json()['graphPoints'])
+        match_momentum_df = pd.DataFrame(response.json()['graphPoints']) if \
+            response.status_code == 200 else pd.DataFrame()
 
         return match_momentum_df
 
-    # ############################################################################
-    # def get_general_match_stats(self, match_url):
-    #     """Get general match statistics (possession, passes, duels) by teams.
+    # ==============================================================================================
+    def scrape_team_match_stats(self, match):
+        """ Scrape team stats for a match
 
-    #     Args:
-    #         match_url (str): Full link to a SofaScore match
+        Args:
+            match (str | int): URL to Sofascore match OR Sofascore match ID
 
-    #     Returns:
-    #         DataFrame: Each row is a general statistic and the columns show the 
-    #             values for home and away Teams.
-    #     """
-    #     match_id = self.get_match_id(match_url)
+        Returns:
+            DataFrame
+        """
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
 
-    #     response = requests.get(
-    #         f'https://api.sofascore.com/api/v1/event/{match_id}/statistics', 
-    #         headers=self.requests_headers
-    #     )
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/statistics')
+        if response.status_code == 200:
+            df = pd.DataFrame()
+            for period in response.json()['statistics']:
+                period_name = period['period']
+                for group in period['groups']:
+                    group_name = group['groupName']
+                    temp = pd.DataFrame.from_dict(group['statisticsItems'])
+                    temp['period'] = [period_name,] * temp.shape[0]
+                    temp['group'] = [group_name,] * temp.shape[0]
+                    df = pd.concat([df, temp], ignore_index=True)
+        else:
+            df = pd.DataFrame()
+        return df
 
-    #     df = pd.DataFrame()
-    #     for i in range(len(response.json()['statistics'][0]['groups'])):
-    #         df_valores = pd.DataFrame(response.json()['statistics'][0]['groups'][i]['statisticsItems'])
-    #         df = pd.concat([df,df_valores])
-    #     df = df[['name', 'home', 'homeValue', 'homeTotal','away', 'awayValue', 'awayTotal']]
-    #     return df
+    # ==============================================================================================
+    def scrape_player_match_stats(self, match):
+        """ Scrape player stats for a match
+
+        Args:
+            match (str | int): URL to Sofascore match OR Sofascore match ID
+
+        Returns:
+            DataFrame
+        """
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
+
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/lineups')
+        if response.status_code == 200:
+            players = response.json()['home']['players'] + response.json()['away']['players']
+            temp = pd.DataFrame(players)
+            columns = list()
+            for c in temp.columns:
+                if isinstance(temp.loc[0,c], dict):
+                    # Break dicts into series
+                    columns.append(temp[c].apply(pd.Series, dtype=object))
+                else:
+                    # Else they're already series
+                    columns.append(temp[c])
+            df = pd.concat(columns, axis=1)
+        else:
+            df = pd.DataFrame()
+        return df
+
     
-    # ############################################################################
-    # def get_players_match_stats(self, match_url):
-    #     """Returns match data for each player.
+    # ==============================================================================================
+    def scrape_player_average_positions(self, match):
+        """Return player averages positions for each team
 
-    #     Args:
-    #         match_url (str): Full link to a SofaScore match
+        Args:
+            match (str | int): URL to Sofascore match OR Sofascore match ID
 
-    #     Returns:
-    #         DataFrames: A DataFrame for home and away teams with each row being 
-    #             a player and in each columns a different statistic or data of 
-    #             the player
-    #     """
+        Returns:
+            DataFrame: Each row is a player and columns averageX and averageY denote their average 
+                position on the match.
+        """
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
 
-    #     match_id = self.get_match_id(match_url)
-    #     home_name, away_name = self.get_team_names(match_url)
-        
-    #     response = requests.get(
-    #         f'https://api.sofascore.com/api/v1/event/{match_id}/lineups', 
-    #         headers=self.requests_headers
-    #     )
-        
-    #     names = {'home': home_name, 'away': away_name}
-    #     dataframes = {}
-    #     for team in names.keys():
-    #         data = pd.DataFrame(response.json()[team]['players'])
-    #         columns_list = [
-    #             data['player'].apply(pd.Series), data['shirtNumber'], 
-    #             data['jerseyNumber'], data['position'], data['substitute'], 
-    #             data['statistics'].apply(pd.Series, dtype=object), 
-    #             data['captain']
-    #         ]
-    #         df = pd.concat(columns_list, axis=1)
-    #         df['team'] = names[team]
-    #         dataframes[team] = df
-        
-    #     return dataframes['home'], dataframes['away']
+        home_name, away_name = self.get_team_names(match)
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/average-positions')
+        if response.status_code == 200:
+            df = pd.DataFrame()
+            for key, name in [('home', home_name), ('away', away_name)]:
+                temp = pd.DataFrame(response.json()[key])
+                temp['team'] = [name,] * temp.shape[0]
+                temp = pd.concat(
+                    [temp['player'].apply(pd.Series), temp.drop(columns=['player'])],
+                    axis=1
+                )
+                df = pd.concat([df, temp], axis=0, ignore_index=True)
+        else:
+            df = pd.DataFrame()
+        return df
     
-    # ############################################################################
-    # def get_players_average_positions(self, match_url):
-    #     """Return player averages positions for each team
+    # ==============================================================================================
+    def scrape_heatmaps(self, match):
+        """ Get the x-y coordinates to create a player heatmap for all players in the match.
+            Coordinates are returned as a list of tuples for each player.
 
-    #     Args:
-    #         match_url (str): Full link to a SofaScore match
+        Players who didn't play will have an empty list of coordinates.
 
-    #     Returns:
-    #         DataFrame: Each row is a player and columns averageX and averageY 
-    #             denote their average position on the match.
-    #     """
-    #     match_id = self.get_match_id(match_url)
-    #     home_name, away_name = self.get_team_names(match_url)
+        Args:
+            match (str | int): URL to Sofascore match OR Sofascore match ID
 
-    #     response = requests.get(
-    #         f'https://api.sofascore.com/api/v1/event/{match_id}/average-positions', 
-    #         headers=self.requests_headers
-    #     )
+        Returns:
+            Dict: {player name: {'id': player_id, 'heatmap': heatmap}, ...}
+        """
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
 
-    #     names = {'home': home_name, 'away': away_name}
-    #     dataframes = {}
-    #     for team in names.keys():
-    #         data = pd.DataFrame(response.json()[team])
-    #         df = pd.concat(
-    #             [data['player'].apply(pd.Series), data.drop(columns=['player'])],
-    #             axis=1
-    #         )
-    #         df['team'] = names[team]
-    #         dataframes[team] = df
-            
-    #     return dataframes['home'], dataframes['away']
-    
-    # ############################################################################
-    # def get_player_heatmap(self, match_url, player):
-    #     """ Get the x-y coordinates to create a player heatmap. Use Seaborn's
-    #     `kdeplot()` to create the heatmap image.
-
-    #     Args:
-    #         match_url (str): Full link to a SofaScore match
-    #         player (str): Name of the player (must be the SofaScore one). Use
-    #             Sofascore.get_player_ids()
-
-    #     Returns:
-    #         DataFrame: Pandas dataframe with x-y coordinates for the player
-    #     """
-    #     match_id = self.get_match_id(match_url)
-
-    #     player_ids = self.get_player_ids(match_url)
-    #     player_id = player_ids[player]
-
-    #     response = requests.get(
-    #         f'https://api.sofascore.com/api/v1/event/{match_id}/player/{player_id}/heatmap', 
-    #         headers=self.requests_headers
-    #     )
-    #     heatmap = pd.DataFrame(response.json()['heatmap'])
-        
-    #     return heatmap
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        players = self.get_player_ids(match)
+        for player in players:
+            player_id = players[player]
+            response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap')
+            heatmap = [(z['x'], z['y']) for z in response.json()['heatmap']]\
+                if response.status_code == 200 else []    
+            players[player] = {'id': player_id, 'heatmap': heatmap}
+        return players
