@@ -12,8 +12,8 @@ class ClubElo:
     def scrape_team_on_date(self, team, date):
         """ Scrapes a team's ELO score on a given date.
 
-        Args
-        ----
+        Parameters
+        ----------
         team : str
             To get the appropriate team name, go to clubelo.com and find the team you're looking 
             for. Copy and past the team's name as it appears in the URL.
@@ -22,9 +22,8 @@ class ClubElo:
         Returns
         -------
         elo : int
-            ELO score of the given team on the given date
-        -1 : int
-            -1 if the team has no score on the given date
+            ELO score of the given team on the given date. Will be -1 if the team has no score on
+            that date.
         """
         # Check inputs
         if type(team) is not str:

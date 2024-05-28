@@ -38,19 +38,19 @@ class Transfermarkt():
     # ==============================================================================================
     def get_valid_seasons(self, league):
         """ Return valid seasons for the chosen league
-        Args
-        ----
+        Parameters
+        ----------
         league : str
             The league to gather valid seasons for
         Returns
         -------
-        : list
+        : list of str
             List of valid season strings
         """
         if type(league) is not str:
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
-            raise InvalidLeagueException(league, 'Transfermarkt')
+            raise InvalidLeagueException(league, 'Transfermarkt', list(comps.keys()))
         
         scraper = cloudscraper.CloudScraper()
         soup = BeautifulSoup(scraper.get(comps[league]).content, 'html.parser')
@@ -65,8 +65,8 @@ class Transfermarkt():
     def get_club_links(self, year, league):
         """ Gathers all Transfermarkt club URL's for the chosen league season.
         
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The season to scrape (e.g., '23/24'). Use the strings as they appear in the season
             dropdown select on the Transfermarkt website.
@@ -74,14 +74,14 @@ class Transfermarkt():
             League to scrape.
         Returns
         -------
-        : list
-            List of the club URL's
+        : list of str
+            List of the club URLs
         """
-        valid_seasons = self.get_valid_seasons(league)
         if type(year) is not str:
             raise TypeError('`year` must be a string.')
+        valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons.keys():
-            raise InvalidYearException(year, league)
+            raise InvalidYearException(year, league, list(valid_seasons.keys()))
         
         scraper = cloudscraper.CloudScraper()
         soup = BeautifulSoup(
@@ -100,8 +100,8 @@ class Transfermarkt():
     def get_player_links(self, year, league):
         """ Gathers all Transfermarkt player URL's for the chosen league season.
         
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The season to scrape (e.g., '23/24'). Use the strings as they appear in the season
             dropdown select on the Transfermarkt website.
@@ -109,8 +109,8 @@ class Transfermarkt():
             League to scrape.
         Returns
         -------
-        : list
-            List of the player URL's
+        : list of str
+            List of the player URLs
         """
         player_links = list()
         scraper = cloudscraper.CloudScraper()
@@ -132,8 +132,8 @@ class Transfermarkt():
     def scrape_players(self, year, league):
         """ Gathers all player info for the chosen league season.
         
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The season to scrape (e.g., '23/24'). Use the strings as they appear in the season
             dropdown select on the Transfermarkt website.
@@ -141,7 +141,7 @@ class Transfermarkt():
             League to scrape.
         Returns
         -------
-        : Pandas DataFrame
+        : DataFrame
             Each row is a player and contains some of the information from their Transfermarkt 
             player profile.
         """
@@ -158,14 +158,14 @@ class Transfermarkt():
     def scrape_player(self, player_link):
         """ Scrape a single player Transfermarkt link
 
-        Args
-        ----
+        Parameters
+        ----------
         player link : str
             Valid player Transfermarkt URL
 
         Returns
         -------
-        : Pandas DataFrame
+        : DataFrame
             1-row dataframe with all of the player details
         """
         r = requests.get(

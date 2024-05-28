@@ -8,8 +8,8 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import re
-from ScraperFC.scraperfc_exceptions import (
-    InvalidCurrencyException, InvalidLeagueException, InvalidYearException)
+from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException,\
+    InvalidYearException
 from io import StringIO
 
 comps = {
@@ -58,8 +58,8 @@ class Capology():
     def get_league_url(self, league):
         """ Returns the URL for the requested league
 
-        Args
-        ----
+        Parameters
+        ----------
         league : str
             League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
             valid leagues for this module.
@@ -71,7 +71,7 @@ class Capology():
         if type(league) is not str:
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
-            raise InvalidLeagueException(league, 'Capology')
+            raise InvalidLeagueException(league, 'Capology', list(comps.keys()))
         
         return f'https://www.capology.com/{comps[league]["url"]}/salaries/'
     
@@ -79,20 +79,20 @@ class Capology():
     def get_valid_seasons(self, league):
         """ Returns valid season strings for the chosen league
 
-        Args
-        ----
+        Parameters
+        ----------
         league : str
             League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
             valid leagues for this module.
         Returns
         -------
-        : list
+        : list of str
             List of valid year strings for this league
         """
         if type(league) is not str:
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
-            raise InvalidLeagueException(league, 'Capology')
+            raise InvalidLeagueException(league, 'Capology', list(comps.keys()))
         
         soup = BeautifulSoup(
             requests.get(self.get_league_url(league)).content, 
@@ -110,8 +110,8 @@ class Capology():
     def get_season_url(self, year, league):
         """ Gets URL to chosen year of league
 
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             Season to be scraped (e.g, "2020-21"). Please use the same string that is in the 
             season dropdown on the Capology website. Call 
@@ -126,8 +126,9 @@ class Capology():
         """
         if type(year) is not str:
             raise TypeError('`year` must be a string.')
-        if year not in self.get_valid_seasons(league):
-            raise InvalidYearException(year, league)
+        valid_seasons = self.get_valid_seasons(league)
+        if year not in valid_seasons:
+            raise InvalidYearException(year, league, valid_seasons)
         soup = BeautifulSoup(
             requests.get(self.get_league_url(league)).content, 
             'html.parser'
@@ -144,8 +145,8 @@ class Capology():
     def scrape_salaries(self, year, league, currency):
         """ Scrapes player salaries for the given league season.
 
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             Season to be scraped (e.g, "2020-21"). Please use the same string that is in the 
             season dropdown on the Capology website. Call 
@@ -158,7 +159,7 @@ class Capology():
             Pound, and "USD" for US Dollar
         Returns
         -------
-        : Pandas DataFrame
+        : DataFrame
             The salaries of all players in the given league season
         """
         if type(currency) is not str:
@@ -216,11 +217,13 @@ class Capology():
 
     # ==============================================================================================
     def scrape_payrolls(self, year, league, currency):
+        """ Deprecated
+        """
         raise NotImplementedError
         # """ Scrapes team payrolls for the given league season.
 
-        # Args
-        # ----
+        # Parameters
+        # ----------
         # year : str
         #     Season to be scraped (e.g, "2020-21"). Please use the same string that is in the 
         #     season dropdown on the Capology website. Call 

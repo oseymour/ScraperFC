@@ -21,7 +21,7 @@ class FiveThirtyEight:
 
     # ==============================================================================================
     def _webdriver_init(self):
-        """ Creates a selenium webdriver instance
+        """ Private, creates a selenium webdriver instance
         """
         options = Options()
         options.add_argument('--headless')
@@ -31,7 +31,7 @@ class FiveThirtyEight:
         
     # ==============================================================================================    
     def _webdriver_close(self):
-        """ Closes and quits the Selenium WebDriver instance.
+        """ Private, closes the Selenium WebDriver instance.
         """
         self.driver.close()
         self.driver.quit()
@@ -40,8 +40,8 @@ class FiveThirtyEight:
     def scrape_matches(self, year, league):
         """ Scrapes matches for the given league season
 
-        Args
-        ----
+        Parameters
+        ----------
         year : int
             Calendar year that the season begins in (e.g. 2022 for the 2022/23 season). This is 
             different from FiveThirtyEight versus other ScraperFC modules.
@@ -49,8 +49,7 @@ class FiveThirtyEight:
             League. Look in shared_functions.py for the available leagues for each module.
         Returns
         -------
-        : Pandas DataFrame
-            If save=False, FiveThirtyEight stats for all matches of the given league season
+        : DataFrame
         """
         if type(year) is not int and year != 'All':
             raise TypeError('`year` must be an int.')
@@ -88,7 +87,9 @@ class FiveThirtyEight:
             if league == 'All':
                 pass
             elif league not in df['league'].values:
-                raise InvalidLeagueException(league, 'FiveThirtyEight')
+                raise InvalidLeagueException(
+                    league, 'FiveThirtyEight', list(set((df['league'].values)))
+                )
             else:
                 df = df[df['league'] == league]
 
@@ -96,7 +97,7 @@ class FiveThirtyEight:
             if year == 'All':
                 pass
             elif year not in df['season'].values:
-                raise InvalidYearException(year, league)
+                raise InvalidYearException(year, league, list(set(df['season'].values)))
             else:
                 df = df[df['season'] == year].reset_index(drop=True)
 

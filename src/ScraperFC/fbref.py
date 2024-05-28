@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
-from .scraperfc_exceptions import (
-    InvalidYearException, InvalidLeagueException, NoMatchLinksException)
+from .scraperfc_exceptions import InvalidYearException, InvalidLeagueException,\
+    NoMatchLinksException
 import time
 import numpy as np
 import pandas as pd
@@ -173,12 +173,14 @@ class FBref():
 
     # ==============================================================================================
     def _driver_close(self):
+        """ Private, closes the Selenium webdriver
+        """
         self.driver.close()
         self.driver.quit()
 
     # ==============================================================================================
     def _get(self, url):
-        """ Private, calls requests.get() and enforces FBRef's wait time.
+        """ Private, calls requests.get() and enforces FBref's wait time.
         """
         response = requests.get(url)
         time.sleep(self.wait_time)
@@ -186,7 +188,7 @@ class FBref():
     
     # ==============================================================================================
     def _driver_get(self, url):
-        """ Private, calls driver.get() and enforces FBRef's wait time.
+        """ Private, calls driver.get() and enforces FBref's wait time.
         """
         self.driver.get(url)
         time.sleep(self.wait_time)
@@ -195,22 +197,21 @@ class FBref():
     def get_valid_seasons(self, league):
         """ Finds all of the valid years and their URLs for a given competition
 
-        Args
-        ----
+        Parameters
+        ----------
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBRef
+            "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
         Returns
         -------
-        : dict
-            Returns a dict. Keys are valid years (as strings) and values are URLs
-            that need to be appended to "https://fbref.com" to be a complete URL.
+        : dict {year: URL, ...}
+            URLs need to be appended to "https://fbref.com" to be a complete URL.
         """
         if type(league) is not str:
             raise TypeError('`league` must be a string.')
-        if league not in comps:
-            raise InvalidLeagueException(league=league, module='FBRef')
+        if league not in comps.keys():
+            raise InvalidLeagueException(league, 'FBref', list(comps.keys()))
 
         url = comps[league]['history url']
         soup = BeautifulSoup(self._get(url).content, 'html.parser')
@@ -225,32 +226,32 @@ class FBref():
     def get_season_link(self, year, league):
         """ Returns the URL for the chosen league season.
 
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBRef.get_valid_seasons(league)
+            page of the league. You can also call FBref.get_valid_seasons(league)
             and see valid years in the keys of the returned dict.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBRef
+            "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
         Returns
         -------
         : str
-            URL to the FBRef page of the chosen league season
+            URL to the FBref page of the chosen league season
         """
         if type(year) is not str:
             raise TypeError('`year` must be a string or int.')
         if type(league) is not str:
             raise TypeError('`league` must be a string.')
-        if league not in comps:
-            raise InvalidLeagueException(league=league, module='FBRef')
+        if league not in comps.keys():
+            raise InvalidLeagueException(league, 'FBref', list(comps.keys()))
         
         seasons = self.get_valid_seasons(league)
 
         if year not in seasons:
-            raise InvalidYearException(year, league)
+            raise InvalidYearException(year, league, list(seasons.keys()))
 
         return 'https://fbref.com/' + seasons[year]
 
@@ -258,29 +259,30 @@ class FBref():
     def get_match_links(self, year, league):
         """ Gets all match links for the chosen league season.
 
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBRef.get_valid_seasons(league)
+            page of the league. You can also call FBref.get_valid_seasons(league)
             and see valid years in the keys of the returned dict.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBRef
+            "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
         Returns
         -------
-        : list
-            FBRef links to all matches for the chosen league season
+        : list of str
+            FBref links to all matches for the chosen league season
         """
         if type(year) is not str:
             raise TypeError('`year` must be a string or int.')
         if type(league) is not str:
             raise TypeError('`league` must be a string.')
-        if league not in comps:
-            raise InvalidLeagueException(league=league, module='FBRef')
-        if year not in self.get_valid_seasons(league):
-            raise InvalidYearException(year, league)
+        if league not in comps.keys():
+            raise InvalidLeagueException(league, 'FBref', list(comps.keys()))
+        valid_seasons = self.get_valid_seasons(league)
+        if year not in valid_seasons:
+            raise InvalidYearException(year, league, list(valid_seasons.keys()))
 
         season_link = self.get_season_link(year, league)
 
@@ -310,21 +312,21 @@ class FBref():
     def scrape_league_table(self, year, league):
         """ Scrapes the league table of the chosen league season
 
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBRef.get_valid_seasons(league)
+            page of the league. You can also call FBref.get_valid_seasons(league)
             and see valid years in the keys of the returned dict.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBRef
+            "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
         Returns
         -------
-        : list
+        : list of DataFrame
             Returns a list of all position tables from the league's homepage on
-            FBRef. The first table will be the league table, all tables after that
+            FBref. The first table will be the league table, all tables after that
             vary by competition.
         """
         season_link = self.get_season_link(year, league)
@@ -340,18 +342,18 @@ class FBref():
     
     # ==============================================================================================
     def scrape_match(self, link):
-        """ Scrapes an FBRef match page.
+        """ Scrapes an FBref match page.
         
-        Args
-        ----
+        Parameters
+        ----------
         link : str
-            URL to the FBRef match page
+            URL to the FBref match page
         Returns
         -------
-        : Pandas DataFrame
-            DataFrame containing most parts of the match page if they're available
-            (e.g. formations, lineups, scores, player stats, etc.). The fields
-            that are available vary by competition and year.
+        : DataFrame
+            DataFrame containing most parts of the match page if they're available (e.g. formations,
+            lineups, scores, player stats, etc.). The fields that are available vary by competition 
+            and year.
         """
         if type(link) is not str:
             raise TypeError('`link` must be a string.')
@@ -537,24 +539,24 @@ class FBref():
 
     # ==============================================================================================
     def scrape_matches(self, year, league):
-        """ Scrapes the FBRef standard stats page of the chosen league season.
+        """ Scrapes the FBref standard stats page of the chosen league season.
             
         Works by gathering all of the match URL's from the homepage of the chosen 
-        league season on FBRef and then calling scrape_match() on each one.
+        league season on FBref and then calling scrape_match() on each one.
 
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBRef.get_valid_seasons(league)
+            page of the league. You can also call FBref.get_valid_seasons(league)
             and see valid years in the keys of the returned dict.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBRef
+            "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
         Returns
         -------
-        : Pandas DataFrame
+        : DataFrame
             Each row is the data from a single match.
         """
         matches_df = pd.DataFrame()
@@ -575,27 +577,27 @@ class FBref():
         
         Adds team and player ID columns to the stats tables
         
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBRef.get_valid_seasons(league)
+            page of the league. You can also call FBref.get_valid_seasons(league)
             and see valid years in the keys of the returned dict.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBRef
+            "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
         stat_cateogry : str
             The stat category to scrape.
         Returns
         -------
-        : tuple
-            tuple of 3 Pandas DataFrames, (squad_stats, opponent_stats, player_stats).
+        : tuple of DataFrames
+            (squad_stats, opponent_stats, player_stats)
         """
         
         # Verify valid stat category
         if stat_category not in stats_categories.keys():
-            raise ValueError((f'"{stat_category}" is not a valid FBRef stats category. '
+            raise ValueError((f'"{stat_category}" is not a valid FBref stats category. '
                               f'Must be one of {list(stats_categories.keys())}.'))
         
         season_url = self.get_season_link(year, league)
@@ -705,21 +707,20 @@ class FBref():
         Runs scrape_stats() for each stats category on dumps the returned tuple 
         of dataframes into a dict.
         
-        Args
-        ----
+        Parameters
+        ----------
         year : str
             The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBRef.get_valid_seasons(league)
+            page of the league. You can also call FBref.get_valid_seasons(league)
             and see valid years in the keys of the returned dict.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBRef
+            "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
         Returns
         -------
-        : dict
-            Keys are stat category names, values are tuples of 3 dataframes, 
-            (squad_stats, opponent_stats, player_stats)
+        : dict {stat category: tuple of DataFrame, ...}. 
+            Tuple is (squad_stats, opponent_stats, player_stats)
         """
         
         return_package = dict()

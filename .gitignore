@@ -4,4 +4,4 @@
 **-checkpoint.ipynb
 build/lib/ScraperFC/
 .coverage
-./docs/build/
+docs/build/*

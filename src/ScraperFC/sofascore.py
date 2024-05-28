@@ -70,19 +70,20 @@ class Sofascore:
     def get_valid_seasons(self, league):
         """ Returns the valid seasons and their IDs for the given league
 
-        Args:
-            league (str): League to get valid seasons for. See comps ScraperFC.Sofascore for valid 
-                leagues.
+        Parameters
+        ----------
+        league : str
+            League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
         
-        Returns:
-            seasons (dict): Dict of available seasons for the league. 
-                Key : season string
-                Value: season ID
+        Returns
+        -------
+        seasons : dict
+            Available seasons for the league. {season string: season ID, ...}
         """
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
-            raise InvalidLeagueException(league, 'Sofascore')
+            raise InvalidLeagueException(league, 'Sofascore', list(comps.keys()))
             
         response = _botasaurus_get(f'{API_PREFIX}/unique-tournament/{comps[league]}/seasons/')
         seasons = dict([(x['year'], x['id']) for x in response.json()['seasons']])
@@ -92,20 +93,24 @@ class Sofascore:
     def get_match_dicts(self, year, league):
         """ Returns the matches from the Sofascore API for a given league season.
 
-        Args:
-            year (str): Year to scrape. Enter the year as it appears in the dropdown on the
-                competition's homepage on Sofascore.
-            league (str): League to get valid seasons for. See comps ScraperFC.Sofascore for valid 
-                leagues.
+        Parameters
+        ----------
+        year : str 
+            Year to scrape. Enter the year as it appears in the dropdown on the competition's 
+            homepage on Sofascore.
+        league : str
+            League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
         
-        Returns:
-            matches (list[dict]): list of dicts, each element being a single game of the competition
+        Returns
+        -------
+        matches : list of dict
+            Each element being a single game of the competition
         """
-        valid_seasons = self.get_valid_seasons(league)
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
+        valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons.keys():
-            raise InvalidYearException(year, league)
+            raise InvalidYearException(year, league, list(valid_seasons.keys()))
 
         matches = list()
         i = 0
@@ -127,11 +132,15 @@ class Sofascore:
         
         This can also be found in the 'id' key of the dict returned from get_match_dict().
 
-        Args:
-            match_url (string): Full link to a SofaScore match
+        Parameters
+        ----------
+        match_url : str
+            Full link to a SofaScore match
 
-        Returns:
-            string: Match id for a SofaScore match. Used in Urls
+        Returns
+        -------
+        : int
+            Match id for a SofaScore match
         """
         if not isinstance(match_url, str):
             raise TypeError('`match_url` must be a string.')
@@ -142,11 +151,15 @@ class Sofascore:
     def get_match_url_from_id(self, match_id):
         """ Get the Sofascore match URL for a given match ID
 
-        Args:
-            match_id (int): Sofascore match ID
+        Parameters
+        ----------
+        match_id : int 
+            Sofascore match ID
 
         Returns
-            str: URL to the Sofascore match
+        -------
+        : str
+            URL to the Sofascore match
         """
         match_dict = self.get_match_dict(match_id)
         return f"https://www.sofascore.com/{match_dict['homeTeam']['slug']}-"+\
@@ -156,11 +169,15 @@ class Sofascore:
     def get_match_dict(self, match):
         """ Get match data dict for a single match
 
-        Args:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
 
-        Returns:
-            dict: Generic data about a match
+        Returns
+        -------
+        : dict
+            Generic data about a match
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
@@ -173,11 +190,15 @@ class Sofascore:
     def get_team_names(self, match):
         """ Get the team names for the home and away teams
 
-        Args:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
 
-        Returns:
-            strings: Name of home and away team.
+        Returns
+        -------
+        : tuple of str 
+            Name of home and away team.
         """
         data = self.get_match_dict(match)
         home_team = data['homeTeam']['name']
@@ -188,11 +209,15 @@ class Sofascore:
     def get_positions(self, selected_positions):
         """ Returns a string for the parameter filters of the scrape_league_stats() request.
 
-        Args:
-            selected_positions (list): List of the positions available to filter on the SofaScore UI
+        Parameters
+        ----------
+        selected_positions : list of str
+            List of the positions available to filter on the SofaScore UI
 
-        Returns:
-            str: joined abbreviations for the chosen positions
+        Returns
+        -------
+        : str
+            Joined abbreviations for the chosen positions
         """
         positions = {'Goalkeepers': 'G', 'Defenders': 'D', 'Midfielders': 'M', 'Forwards': 'F'}
         if not isinstance(selected_positions, list):
@@ -209,12 +234,15 @@ class Sofascore:
     def get_player_ids(self, match):
         """ Get the player IDs for a match
         
-        Parameters:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
 
-        Returns:
-            dict
-                Name and ID of every player in the match, "{name: id, ...}"
+        Returns
+        -------
+        : dict 
+            Name and ID of every player in the match, {name: id, ...}
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
@@ -241,23 +269,28 @@ class Sofascore:
     ):
         """ Get every player statistic that can be asked in league pages on Sofascore.
 
-        Args:
-            tournament (string): Name of the competition
-            season (string): Season selected
-            accumulation (str, optional): Value of the filter accumulation. Can be "per90", 
-                "perMatch", or "total". Defaults to 'total'.
-            selected_positions (list, optional): Value of the filter positions. Defaults to 
-                ['Goalkeepers', 'Defenders', 'Midfielders','Forwards'].
+        Parameters
+        ----------
+        tournament : string 
+            Name of the competition
+        season : string
+            Season selected
+        accumulation : str, optional
+            Value of the filter accumulation. Can be "per90", "perMatch", or "total". Defaults to 
+            "total".
+        selected_positions : list of str, optional
+            Value of the filter positions. Defaults to ["Goalkeepers", "Defenders", "Midfielders",
+            "Forwards"].
 
-        Returns:
-            DataFrame: DataFrame with each row corresponding to a player and 
-                the columns are the fields defined on self.concatenated_fields
+        Returns
+        -------
+        : DataFrame
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons.keys():
-            raise InvalidYearException(year, league)
+            raise InvalidYearException(year, league, list(valid_seasons.keys()))
         if not isinstance(accumulation, str):
             raise TypeError('`accumulation` must be a string.')
         valid_accumulations = ['total', 'per90', 'perMatch']
@@ -302,12 +335,16 @@ class Sofascore:
     def scrape_match_momentum(self, match):
         """Get the match momentum values
 
-        Args:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
 
-        Returns:
-            DataFrame: Dataframe of match momentum values. Will be empty if the match does not have
-                match momentum data.
+        Returns
+        --------
+        : DataFrame
+            Dataframe of match momentum values. Will be empty if the match does not have
+            match momentum data.
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
@@ -323,11 +360,14 @@ class Sofascore:
     def scrape_team_match_stats(self, match):
         """ Scrape team stats for a match
 
-        Args:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
 
-        Returns:
-            DataFrame
+        Returns
+        -------
+        : DataFrame
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
@@ -352,11 +392,14 @@ class Sofascore:
     def scrape_player_match_stats(self, match):
         """ Scrape player stats for a match
 
-        Args:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
 
-        Returns:
-            DataFrame
+        Returns
+        -------
+        : DataFrame
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
@@ -384,12 +427,16 @@ class Sofascore:
     def scrape_player_average_positions(self, match):
         """Return player averages positions for each team
 
-        Args:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
 
-        Returns:
-            DataFrame: Each row is a player and columns averageX and averageY denote their average 
-                position on the match.
+        Returns
+        -------
+        : DataFrame 
+            Each row is a player and columns averageX and averageY denote their average position on 
+            the match.
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
@@ -414,15 +461,19 @@ class Sofascore:
     # ==============================================================================================
     def scrape_heatmaps(self, match):
         """ Get the x-y coordinates to create a player heatmap for all players in the match.
-            Coordinates are returned as a list of tuples for each player.
 
         Players who didn't play will have an empty list of coordinates.
 
-        Args:
-            match (str | int): URL to Sofascore match OR Sofascore match ID
-
-        Returns:
-            Dict: {player name: {'id': player_id, 'heatmap': heatmap}, ...}
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
+        
+        Returns
+        -------
+        : dict
+            Dict of players, their IDs and their heatmap coordinates, {player name: {'id': 
+            player_id, 'heatmap': heatmap}, ...}
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
