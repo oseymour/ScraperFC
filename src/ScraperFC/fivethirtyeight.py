@@ -43,8 +43,7 @@ class FiveThirtyEight:
         Parameters
         ----------
         year : int
-            Calendar year that the season begins in (e.g. 2022 for the 2022/23 season). This is 
-            different from FiveThirtyEight versus other ScraperFC modules.
+            See the :ref:`fivethirtyeight_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
         Returns

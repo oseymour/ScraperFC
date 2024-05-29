@@ -68,8 +68,7 @@ class Transfermarkt():
         Parameters
         ----------
         year : str
-            The season to scrape (e.g., '23/24'). Use the strings as they appear in the season
-            dropdown select on the Transfermarkt website.
+            See the :ref:`transfermarkt_year` `year` parameter docs for details.
         league : str
             League to scrape.
         Returns
@@ -103,8 +102,7 @@ class Transfermarkt():
         Parameters
         ----------
         year : str
-            The season to scrape (e.g., '23/24'). Use the strings as they appear in the season
-            dropdown select on the Transfermarkt website.
+            See the :ref:`transfermarkt_year` `year` parameter docs for details.
         league : str
             League to scrape.
         Returns
@@ -135,8 +133,7 @@ class Transfermarkt():
         Parameters
         ----------
         year : str
-            The season to scrape (e.g., '23/24'). Use the strings as they appear in the season
-            dropdown select on the Transfermarkt website.
+            See the :ref:`transfermarkt_year` `year` parameter docs for details.
         league : str
             League to scrape.
         Returns

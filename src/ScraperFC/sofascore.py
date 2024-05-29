@@ -96,8 +96,7 @@ class Sofascore:
         Parameters
         ----------
         year : str 
-            Year to scrape. Enter the year as it appears in the dropdown on the competition's 
-            homepage on Sofascore.
+            See the :ref:`sofascore_year` `year` parameter docs for details.
         league : str
             League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
         

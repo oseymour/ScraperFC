@@ -52,7 +52,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Year that the season ends in (e.g. "2023/2024")
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
 
@@ -95,7 +95,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Year that the season ends in (e.g. "2023/2024")
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
 
@@ -136,7 +136,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Year that the season ends in (e.g. "2023/2024")
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
 
@@ -314,7 +314,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Year that the season ends in (e.g. "2023/2024")
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
 
@@ -339,7 +339,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Year that the season ends in (e.g. "2023/2024")
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
         normalize : bool 
@@ -385,7 +385,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Year that the season ends in (e.g. "2023/2024")
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
         normalize : bool 
@@ -446,7 +446,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
 
@@ -501,7 +501,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
 
@@ -553,7 +553,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
 
@@ -619,7 +619,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
 
@@ -684,7 +684,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
 
@@ -750,7 +750,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
 
@@ -813,7 +813,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
 
@@ -877,7 +877,7 @@ class Understat:
         Parameters
         ----------
         year : str
-            Calendar year that the season ends in (e.g. 2023 for the 2022/23 season)
+            See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
         as_df : bool, optional

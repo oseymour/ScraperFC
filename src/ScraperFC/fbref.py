@@ -229,9 +229,7 @@ class FBref():
         Parameters
         ----------
         year : str
-            The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBref.get_valid_seasons(league)
-            and see valid years in the keys of the returned dict.
+            See the :ref:`fbref_year` `year` parameter docs for details.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
@@ -262,9 +260,7 @@ class FBref():
         Parameters
         ----------
         year : str
-            The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBref.get_valid_seasons(league)
-            and see valid years in the keys of the returned dict.
+            See the :ref:`fbref_year` `year` parameter docs for details.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
@@ -315,9 +311,7 @@ class FBref():
         Parameters
         ----------
         year : str
-            The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBref.get_valid_seasons(league)
-            and see valid years in the keys of the returned dict.
+            See the :ref:`fbref_year` `year` parameter docs for details.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
@@ -547,9 +541,7 @@ class FBref():
         Parameters
         ----------
         year : str
-            The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBref.get_valid_seasons(league)
-            and see valid years in the keys of the returned dict.
+            See the :ref:`fbref_year` `year` parameter docs for details.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
@@ -580,9 +572,7 @@ class FBref():
         Parameters
         ----------
         year : str
-            The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBref.get_valid_seasons(league)
-            and see valid years in the keys of the returned dict.
+            See the :ref:`fbref_year` `year` parameter docs for details.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
@@ -710,9 +700,7 @@ class FBref():
         Parameters
         ----------
         year : str
-            The year to get. This needs to match the years on the "Competition History"
-            page of the league. You can also call FBref.get_valid_seasons(league)
-            and see valid years in the keys of the returned dict.
+            See the :ref:`fbref_year` `year` parameter docs for details.
         league : str
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref

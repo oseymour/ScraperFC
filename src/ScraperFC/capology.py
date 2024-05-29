@@ -113,9 +113,7 @@ class Capology():
         Parameters
         ----------
         year : str
-            Season to be scraped (e.g, "2020-21"). Please use the same string that is in the 
-            season dropdown on the Capology website. Call 
-            ScraperFC.Capology.get_valid_seasons(league) to see valid seasons for a league.
+            See the :ref:`capology_year` `year` parameter docs for details.
         league : str
             League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
             valid leagues for this module.
@@ -148,9 +146,7 @@ class Capology():
         Parameters
         ----------
         year : str
-            Season to be scraped (e.g, "2020-21"). Please use the same string that is in the 
-            season dropdown on the Capology website. Call 
-            ScraperFC.Capology.get_valid_seasons(league) to see valid seasons for a league.
+            See the :ref:`capology_year` `year` parameter docs for details.
         league : str
             League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
             valid leagues for this module.
@@ -217,9 +213,11 @@ class Capology():
 
     # ==============================================================================================
     def scrape_payrolls(self, year, league, currency):
-        """ Deprecated
+        """ Deprecated. Use scrape_salaries() instead.
         """
-        raise NotImplementedError
+        raise NotImplementedError(
+            '`scrape_payrolls()` has been deprecated. Please use `scrape_salaries()` instead.'
+        )
         # """ Scrapes team payrolls for the given league season.
 
         # Parameters
