@@ -7,8 +7,7 @@
 Welcome to ScraperFC's documentation!
 =====================================
 
-.. raw:: html
-   :file: ../../ScraperFC-Logo-Final-2023-10-11 copy-Full-Color.svg
+.. image:: ../../ScraperFC-Logo-Final-2023-10-11\ copy-Full-Color.*
 
 .. toctree::
    :maxdepth: 2
@@ -17,7 +16,8 @@ Welcome to ScraperFC's documentation!
    installation
    fbref_examples
    understat_examples
-   ScraperFC
+   apidocumentation
+   year_parameter
 
 ==================
 Indices and tables
