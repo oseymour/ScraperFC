@@ -19,7 +19,6 @@ class TestTransfermarkt:
     )
     def test_invalid_year(self, year, league, expected):
         tm = Transfermarkt()
-        print(year, league)
         with expected:
             tm.get_club_links(year, league)
         with expected:
@@ -34,7 +33,6 @@ class TestTransfermarkt:
     )
     def test_invalid_league(self, year, league, expected):
         tm = Transfermarkt()
-        print(year, league)
         with expected:
             tm.get_valid_seasons(league)
         with expected:
@@ -48,7 +46,6 @@ class TestTransfermarkt:
         league = random.sample(list(comps.keys()), 1)[0]
         valid_years = tm.get_valid_seasons(league)
         year = random.sample(list(valid_years.keys()), 1)[0]
-        print(year, league)
         players = tm.scrape_players(year, league)
         assert type(players) is pd.DataFrame
         assert players.shape[0] > 0

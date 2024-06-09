@@ -36,6 +36,6 @@ class TestFiveThirtyEight:
     )
     def test_scrape_matches(self, year, league):
         df = FiveThirtyEight().scrape_matches(year, league)
-        assert type(df) is pd.DataFrame
+        assert isinstance(df, pd.DataFrame)
         assert df.shape[0] > 0
         assert df.shape[1] > 0

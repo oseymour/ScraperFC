@@ -167,39 +167,40 @@ class Capology():
         try:
             self.driver.get(self.get_season_url(year, league))
 
-            # Show all players on one page -----------------------------------------
+            # Show all players on one page ---------------------------------------------------------
             done = False
             while not done:
                 try:
-                    all_btn = (
-                        WebDriverWait(self.driver, 10)
+                    all_btn = WebDriverWait(self.driver, 10)\
                         .until(EC.element_to_be_clickable((By.LINK_TEXT, 'All')))
-                    )
-                    all_btn.click()
+                    self.driver.execute_script('arguments[0].click()', all_btn)
                     done = True
                 except StaleElementReferenceException:
                     pass
 
-            # Select the currency --------------------------------------------------
-            currency_btn = (
-                WebDriverWait(self.driver, 10)
+            # Select the currency ------------------------------------------------------------------
+            currency_btn = WebDriverWait(self.driver, 10)\
                 .until(EC.element_to_be_clickable((By.ID, f'btn_{currency}')))
-            )
             self.driver.execute_script('arguments[0].click()', currency_btn)
             print('Changed currency')
 
-            # Table to pandas df ---------------------------------------------------
-            tbody_html = (
-                self.driver.find_element(By.ID, 'table').find_element(By.TAG_NAME, 'tbody')
-                .get_attribute('outerHTML')
-            )
+            # Table to pandas df -------------------------------------------------------------------
+            tbody_html = self.driver.find_element(By.ID, 'table')\
+                .find_element(By.TAG_NAME, 'tbody').get_attribute('outerHTML')
             table_html = '<table>' + tbody_html + '</table>'
             df = pd.read_html(StringIO(table_html))[0]
             if df.shape[1] == 13:
-                df = df.drop(columns=[1])
+                df = df.drop(columns=[1])  # drop check-mark column
                 df.columns = [
                     'Player', 'Weekly Gross', 'Annual Gross', 'Expiration', 'Length', 'Total Gross', 
                     'Status', 'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
+                ]
+            elif df.shape[1] == 17:
+                df = df.drop(columns=[1,16])  # drop check-mark column and True/False column (not sure what this one is)
+                df.columns = [
+                    'Player', 'Weekly Gross', 'Annual Gross', 'Annual Bonus', 'Signed', 
+                    'Expiration', 'Years Reamining', 'Gross Remaining', 'Release Clause', 'Status', 
+                    'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
                 ]
             else:
                 df.columns = [

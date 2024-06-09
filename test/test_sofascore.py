@@ -86,7 +86,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+        
         match_dicts = ss.get_match_dicts(year, league)
         assert isinstance(match_dicts, list)
         assert np.all([isinstance(x, dict) for x in match_dicts])
@@ -98,10 +98,9 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
-        print(match_id)
         match_dict = ss.get_match_dict(match_id)
         assert isinstance(match_dict, dict)
 
@@ -112,7 +111,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+        
         stats = ss.scrape_player_league_stats(year, league)
         assert isinstance(stats, pd.DataFrame)
         assert ((stats.shape[0] > 0) and (stats.shape[1] > 0)) or (stats.shape == (0,0))
@@ -124,10 +123,9 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+        
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
-        print(match_id)
         momentum = ss.scrape_match_momentum(match_id)
         assert isinstance(momentum, pd.DataFrame)
         assert ((momentum.shape[0] > 0) and (momentum.shape[1] > 0)) or (momentum.shape == (0,0))
@@ -139,10 +137,9 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+        
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
-        print(match_id)
         team_stats = ss.scrape_team_match_stats(match_id)
         assert isinstance(team_stats, pd.DataFrame)
         assert ((team_stats.shape[0] > 0) and (team_stats.shape[1] > 0))\
@@ -155,10 +152,9 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+        
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
-        print(match_id)
         player_stats = ss.scrape_player_match_stats(match_id)
         assert isinstance(player_stats, pd.DataFrame)
         assert ((player_stats.shape[0] > 0) and (player_stats.shape[1] > 0))\
@@ -171,10 +167,9 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+        
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
-        print(match_id)
         avg_pos = ss.scrape_player_average_positions(match_id)
         assert isinstance(avg_pos, pd.DataFrame)
         assert ((avg_pos.shape[0] > 0) and (avg_pos.shape[1] > 0)) or (avg_pos.shape == (0,0))
@@ -186,13 +181,13 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        print(year, league)
+        
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
-        print(match_id)
         heatmaps = ss.scrape_heatmaps(match_id)
-        assert isinstance(heatmaps, dict)
         # Output is dict
+        assert isinstance(heatmaps, dict)
+        # Values are dict
         assert np.all([isinstance(x, dict) for x in heatmaps.values()])
         # Player ID is in all player dicts
         assert np.all(['id' in x.keys() for x in heatmaps.values()])

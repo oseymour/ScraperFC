@@ -553,7 +553,7 @@ class FBref():
         """
         matches_df = pd.DataFrame()
         match_links = self.get_match_links(year, league)
-        for link in tqdm(match_links, desc=f'{year} {league} matches'):
+        for link in tqdm(match_links, ncols=80, desc=f'{year} {league} matches'):
             match_df = self.scrape_match(link)
             matches_df = pd.concat([matches_df, match_df], axis=0, ignore_index=True)
 
@@ -712,7 +712,7 @@ class FBref():
         """
         
         return_package = dict()
-        for stat_category in tqdm(stats_categories):
+        for stat_category in tqdm(stats_categories, ncols=80, desc=f'{year} {league} stats'):
             stats = self.scrape_stats(year, league, stat_category)
             return_package[stat_category] = stats
             

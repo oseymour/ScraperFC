@@ -8,6 +8,7 @@ from contextlib import nullcontext as does_not_raise
 
 class TestClubElo:
 
+    # ==============================================================================================
     @pytest.mark.parametrize(
         'team, date, expected',
         [(9, '2024-04-26', pytest.raises(TypeError)),
@@ -17,6 +18,7 @@ class TestClubElo:
         with expected:
             ClubElo().scrape_team_on_date(team, date)
     
+    # ==============================================================================================
     @pytest.mark.parametrize(
         'team, date, expected',
         [('Barcelona', 9, pytest.raises(TypeError)),
@@ -30,6 +32,7 @@ class TestClubElo:
         with expected:
             ClubElo().scrape_team_on_date(team, date)
     
+    # ==============================================================================================
     @pytest.mark.parametrize(
         'team, date, expected',
         [('Barcelona', '1990-12-02', 1794.83435059),
