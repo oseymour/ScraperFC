@@ -1,16 +1,9 @@
-import datetime
-import json
-import numpy as np
-import pandas as pd
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from tqdm.auto import tqdm
+import json
+import pandas as pd
+from tqdm import tqdm
 import requests
 from bs4 import BeautifulSoup
-from io import StringIO
-import time
 
 comps = {
     'EPL': 'https://understat.com/league/EPL',
@@ -21,33 +14,18 @@ comps = {
     'RFPL': 'https://understat.com/league/RFPL'
 }
 
-class Understat:
-    
-    # ==============================================================================================
-    def __init__(self):
-        pass
 
-    # ==============================================================================================
-    def _webdriver_init(self):
-        """ Private, initializes Selenium webdriver for this instance
-        """
-        options = Options()
-        options.add_argument('--headless')
-        options.add_argument('--incognito')
-        prefs = {'profile.managed_default_content_settings.images': 2} # don't load images
-        options.add_experimental_option('prefs', prefs)
-        self.driver = webdriver.Chrome(options=options)
-        
-    # ==============================================================================================
-    def _webdriver_close(self):
-        """ Private, quits the Selenium WebDriver instance.
-        """
-        self.driver.close()
-        self.driver.quit()
+def json_from_script(text):
+    data = text.split('JSON.parse(\'')[1].split('\')')[0].encode('utf-8')\
+        .decode('unicode_escape')
+    data = json.loads(data)
+    return data
+
+class Understat:
         
     # ==============================================================================================
     def get_season_link(self, year: str, league: str):
-        """ Gets URL of the chosen league season.
+        """ Gets Understat URL of the chosen league season.
 
         Parameters
         ----------
@@ -55,12 +33,16 @@ class Understat:
             See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
-
+        
         Returns
         -------
         : str
             URL to the Understat page of the chosen league season.
         """
+        if not isinstance(year, str):
+            raise TypeError('`year` must be a string.')
+        if not isinstance(league, str):
+            raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Understat', list(comps.keys()))
         valid_seasons = self.get_valid_seasons(league)
@@ -77,6 +59,7 @@ class Understat:
         ----------
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
+        
         Returns
         ------
         : list of str
@@ -86,7 +69,7 @@ class Understat:
             raise InvalidLeagueException(league, 'Understat', list(comps.keys()))
         
         soup = BeautifulSoup(requests.get(comps[league]).content, 'html.parser')
-        return [x.text for x in soup.find('select', {'name': 'season'}) if x != '\n']
+        return [x.text for x in soup.find('select', {'name': 'season'}).find_all('option')]
         
     # ==============================================================================================
     def get_match_links(self, year, league):
@@ -104,30 +87,8 @@ class Understat:
         : list of str
             List of match links of the chosen league season
         """
-        self._webdriver_init()
-        try:
-            self.driver.get(self.get_season_link(year, league))
-            
-            # Gather the links by hitting the "prev week" button until it's disabled
-            links = set()
-            btn = self.driver.find_element(By.CLASS_NAME, "calendar-prev")
-
-            while "disabled" not in btn.get_attribute("outerHTML"):
-                for el in self.driver.find_elements(By.CLASS_NAME, "match-info"):
-                    links.add(el.get_attribute("href"))
-                btn.click()
-                
-            # One final collection for first week of season
-            for el in self.driver.find_elements(By.CLASS_NAME, "match-info"):
-                links.add(el.get_attribute("href"))
-                    
-            # # Remove Nones from the list of links 
-            links = np.array(list(links))
-            links = links[links!=None]
-
-            return links.tolist()
-        finally:
-            self._webdriver_close()
+        matches_data, _, _ = self.scrape_season_data(year, league)
+        return [f'https://understat.com/match/{x["id"]}' for x in matches_data if x['isResult']]
     
     # ==============================================================================================
     def get_team_links(self, year, league):
@@ -145,171 +106,15 @@ class Understat:
         : list of str
             List of team URL's from the chosen season.
         """
-        team_links = set()
-        self._webdriver_init()
-        try:
-            self.driver.get(self.get_season_link(year, league))
-            for el in self.driver.find_elements(By.TAG_NAME, 'a'):
-                href = el.get_attribute('href')
-                if href and 'team' in href:
-                    team_links.add(href)
-            return list(team_links)
-        finally:
-            self._webdriver_close()
-    
+        _, teams_data, _ = self.scrape_season_data(year, league)
+        return [
+            f'https://understat.com/team/{x["title"].replace(" ","_")}/{year.split("/")[0]}' 
+            for x in teams_data.values()
+        ]
+
     # ==============================================================================================
-    def _remove_diff(self, string):
-        """ Removes the plus/minus from some stats like xG.
-
-        Parameters
-        ----------
-        string : str
-            The string to remove the difference from
-
-        Returns
-        -------
-        : str
-            String passed in as arg with the difference removed
-        """
-        string = string.split('-')[0]
-        return float(string.split('+')[0])
-    
-    # ==============================================================================================
-    def _unhide_stats(self, columns):
-        """ Private, Understat doesn't display all stats by default. 
-        
-        This functions uses the stats currently shown in the table columns to unhide stats that 
-        aren't being displayed.
-        """
-        # Show the options popup
-        options_button = self.driver.find_elements(By.CLASS_NAME, "options-button")[0]
-        self.driver.execute_script("arguments[0].click()", options_button)
-        
-        # Iterate across all stats and show the ones that aren't in columns
-        for el in self.driver.find_elements(By.CLASS_NAME, "table-options-row"):
-            stat_name = el.find_element(By.CLASS_NAME, "row-title").text
-            if (stat_name not in columns) and (stat_name != ""):
-                el.find_element(By.CLASS_NAME, "row-display").click()
-
-        # click the apply button
-        self.driver.find_elements(By.CLASS_NAME, "button-apply")[0].click()
-        
-    # ==============================================================================================
-    def scrape_match(self, link):
-        """ Scrapes a single match from Understat.
-
-        Parameters
-        ----------
-        link : str
-            URL to the match
-
-        Returns
-        -------
-        : DataFrame
-            1-row DataFrame with the match stats
-        """
-        if type(link) is not str:
-            raise TypeError('`link` must be a string URL to an Understat match.')
-        
-        soup = BeautifulSoup(requests.get(link).content, 'html.parser')
-
-        # Match ID and date ------------------------------------------------------------------------
-        match_id = link.split('/')[-1]
-        date = soup.find('div', {'class': 'page-wrapper'}).find_all('li')[-1].text
-        date = datetime.datetime.strptime(date,'%b %d %Y').date()
-
-        # Shots data -------------------------------------------------------------------------------
-        shots_script = soup.find('div', {'class':'scheme-block', 'data-scheme':'chart'}).parent.find('script').text
-        shots_data = shots_script.split('JSON.parse(\'')[1].split('\')')[0]
-        shots_data = shots_data.encode('unicode_escape').replace(b'\\\\',b'\\').decode('unicode-escape')
-        shots_data = json.loads(shots_data)
-        shots_home_df = pd.json_normalize(shots_data['h'])
-        shots_away_df = pd.json_normalize(shots_data['a'])
-        all_shots_df = pd.concat([shots_home_df, shots_away_df], axis=0, ignore_index=True)
-        all_shots_df['minute'] = all_shots_df['minute'].astype(int)
-        all_shots_df = all_shots_df.sort_values('minute').reset_index(drop=True)
-
-        # Team stats table -------------------------------------------------------------------------
-        stats_scheme_block = soup.find_all('div', {'data-scheme':'stats'})
-        assert len(stats_scheme_block) == 1
-        stats_scheme_block = stats_scheme_block[0]
-        # Team Names
-        team_titles = (
-            stats_scheme_block.find('div', {'class':'progress-bar teams-titles'})
-            .find_all('div', {'class': 'progress-value'})
-        )
-        home_team, away_team = [x.text for x in team_titles]
-        # Chances
-        chances_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[1]
-        home_chance = float(chances_bar.find('div', {'class':'progress-home'})['title'].replace('%',''))
-        draw_chance = float(chances_bar.find('div', {'class':'progress-draw'})['title'].replace('%',''))
-        away_chance = float(chances_bar.find('div', {'class':'progress-away'})['title'].replace('%',''))
-        # Goals
-        goals_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[2]
-        home_goals, away_goals = [float(x.text) for x in goals_bar.find_all('div', {'class':'progress-value'})]
-        # xG
-        xg_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[3]
-        home_xg, away_xg = [float(x.text) for x in xg_bar.find_all('div', {'class':'progress-value'})]
-        # Shots
-        shots_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[4]
-        home_shots, away_shots = [float(x.text) for x in shots_bar.find_all('div', {'class':'progress-value'})]
-        # Shots on Target
-        sot_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[5]
-        home_sot, away_sot = [float(x.text) for x in sot_bar.find_all('div', {'class':'progress-value'})]
-        # DEEP
-        deep_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[6]
-        home_deep, away_deep = [float(x.text) for x in deep_bar.find_all('div', {'class':'progress-value'})]
-        # PPDA
-        ppda_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[7]
-        home_ppda, away_ppda = [float(x.text) for x in ppda_bar.find_all('div', {'class':'progress-value'})]
-        # xPTS
-        xpts_bar = stats_scheme_block.find_all('div', {'class':'progress-bar'})[8]
-        home_xpts, away_xpts = [float(x.text) for x in xpts_bar.find_all('div', {'class':'progress-value'})]
-
-        # Player stats tables ----------------------------------------------------------------------
-        players_script = soup.find('div', {'id':'match-rosters'}).parent.find('script').text
-        players_data = players_script.split('JSON.parse(\'')[1].split('\')')[0]
-        players_data = players_data.encode('unicode_escape').replace(b'\\\\',b'\\').decode('unicode-escape')
-        players_data = json.loads(players_data)
-        players_home_df = pd.json_normalize(players_data['h'].values())
-        players_away_df = pd.json_normalize(players_data['a'].values())
-
-        # Build match df ---------------------------------------------------------------------------
-        match = pd.Series(dtype=float)
-        match['id'] = match_id
-        match['date'] = date
-        match['shots'] = all_shots_df
-        match['home team'] = home_team
-        match['away team'] = away_team
-        match['home win proba'] = home_chance
-        match['draw proba'] = draw_chance
-        match['away win proba'] = away_chance
-        match['home goals'] = home_goals
-        match['away goals'] = away_goals
-        match['home xG'] = home_xg
-        match['away xG'] = away_xg
-        match['home shots'] = home_shots
-        match['away shots'] = away_shots
-        match['home SoT'] = home_sot
-        match['away SoT'] = away_sot
-        match['home DEEP'] = home_deep
-        match['away DEEP'] = away_deep
-        match['home PPDA'] = home_ppda
-        match['away PPDA'] = away_ppda
-        match['home xPTS'] = home_xpts
-        match['away xPTS'] = away_xpts
-        match['home player stats'] = players_home_df
-        match['away player stats'] = players_away_df
-        match = match.to_frame().T
-
-        return match
-        
-    # ==============================================================================================    
-    def scrape_matches(self, year, league):
-        """ Scrapes all of the matches from the chosen league season. 
-        
-        Gathers all match links from the chosen league season and then call\
-            scrape_match() on each one.
+    def scrape_season_data(self, year, league):
+        """ Scrapes data for chosen Understat league season.
 
         Parameters
         ----------
@@ -320,20 +125,25 @@ class Understat:
 
         Returns
         -------
-        : DataFrame
+        : tuple of dicts
+            matches_data, teams_data, players_data
         """
-        links = self.get_match_links(year, league)
-        matches = pd.DataFrame()
-        
-        for link in tqdm(links):
-            match = self.scrape_match(link)
-            matches = pd.concat([matches, match], ignore_index=True, axis=0)
-            time.sleep(2)
-        
-        return matches
+        season_link = self.get_season_link(year, league)
+        soup = BeautifulSoup(requests.get(season_link).content, 'html.parser')
+
+        scripts = soup.find_all('script')
+        dates_data_tag = [x for x in scripts if 'datesData' in x.text][0]
+        teams_data_tag = [x for x in scripts if 'teamsData' in x.text][0]
+        players_data_tag = [x for x in scripts if 'playersData' in x.text][0]
+
+        matches_data = json_from_script(dates_data_tag.text)
+        teams_data = json_from_script(teams_data_tag.text)
+        players_data = json_from_script(players_data_tag.text)
+
+        return matches_data, teams_data, players_data
           
     # ==============================================================================================
-    def scrape_league_table(self, year, league, normalize=False):
+    def scrape_league_tables(self, year, league):
         """ Scrapes the league table for the chosen league season.
 
         Parameters
@@ -342,45 +152,123 @@ class Understat:
             See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
-        normalize : bool 
-            OPTIONAL, default False. If True, normalizes stats to per90
 
         Returns
         -------
-        : DataFrame
-            The league table of the chosen league season.
+        : tuple of DataFrames
+            League table, home table, away table
         """
-        self._webdriver_init()
-        try:
-            self.driver.get(self.get_season_link(year, league))
-            
-            # Show all of the stats 
-            # Get column names currently show in the table
-            table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-            columns = pd.read_html(StringIO(table))[0].columns
-            self._unhide_stats(columns)
+        _, teams_data, _ = self.scrape_season_data(year, league)
 
-            # dataframe 
-            table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-            df = pd.read_html(StringIO(table))[0]
-            
-            # remove performance differential text from some columns
-            for i in range(df.shape[0]):
-                df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-                df.loc[i,"xPTS"] = self._remove_diff(df.loc[i,"xPTS"])
-                
-            if normalize:
-                df.iloc[:,3:14] = df.iloc[:,3:14].divide(df["M"], axis="rows")
-                df.iloc[:,16:] = df.iloc[:,16:].divide(df["M"], axis="rows")
-            
-            return df
-        finally:
-            self._webdriver_close()
+        df = pd.DataFrame()
+        for x in teams_data.values():
+            # Create matches df for each team
+            matches = pd.DataFrame.from_dict(x['history'])
+            newcols = list()
+            for c in matches.columns:
+                if isinstance(matches.loc[0,c], dict):
+                    newcols.append(matches[c].apply(pd.Series).add_prefix(f'{c}_'))
+                else:
+                    newcols.append(matches[c])
+            matches = pd.concat(newcols, axis=1)
+            matches['id'] = [x['id'],] * matches.shape[0]
+            matches['title'] = [x['title'],] * matches.shape[0]
+            df = pd.concat([df, matches], axis=0, ignore_index=True)
+
+        # Rename columns to match Understat
+        colmapping = {
+            'title': 'Team', 'wins': 'W', 'draws': 'D', 'loses': 'L', 'scored': 'G', 'missed': 'GA',
+            'pts': 'PTS', 'npxG': 'NPxG', 'npxGA': 'NPxGA', 'npxGD': 'NPxGD', 'deep': 'DC',
+            'deep_allowed': 'ODC', 'xpts': 'xPTS',
+        }
+        df = df.rename(columns=colmapping)
+
+        # Added matches played column
+        df['M'] = df['W'] + df['D'] + df['L']
+
+        # Create initiial league, home, and away tables
+        lg_tbl = df.groupby('Team', as_index=False).sum()\
+            .sort_values('PTS', ascending=False).reset_index(drop=True)
+        h_tbl = df[df['h_a']=='h'].groupby('Team', as_index=False).sum()\
+            .sort_values('PTS', ascending=False).reset_index(drop=True)
+        a_tbl = df[df['h_a']=='a'].groupby('Team', as_index=False).sum()\
+            .sort_values('PTS', ascending=False).reset_index(drop=True)
+
+        # Now compute PPDA columns, doing this before groupby().sum() leads to inaccurate values
+        lg_tbl['PPDA'] = lg_tbl['ppda_att'] / lg_tbl['ppda_def']
+        lg_tbl['OPPDA'] = lg_tbl['ppda_allowed_att'] / lg_tbl['ppda_allowed_def']
+
+        h_tbl['PPDA'] = h_tbl['ppda_att'] / h_tbl['ppda_def']
+        h_tbl['OPPDA'] = h_tbl['ppda_allowed_att'] / h_tbl['ppda_allowed_def']
+
+        a_tbl['PPDA'] = a_tbl['ppda_att'] / a_tbl['ppda_def']
+        a_tbl['OPPDA'] = a_tbl['ppda_allowed_att'] / a_tbl['ppda_allowed_def']
+
+        # Drop columns
+        dropcols = ['ppda_att', 'ppda_def', 'ppda_allowed_att', 'ppda_allowed_def']
+        lg_tbl.drop(columns=dropcols)
+        h_tbl.drop(columns=dropcols)
+        a_tbl.drop(columns=dropcols)
+
+        # Reorder columns to match Understat
+        ordered_cols = [
+            'Team', 'M', 'W', 'D', 'L', 'G', 'GA', 'PTS', 'xG', 'NPxG', 'xGA', 'NPxGA', 'NPxGD', 
+            'PPDA', 'OPPDA', 'DC', 'ODC', 'xPTS'
+        ]
+        lg_tbl = lg_tbl[ordered_cols]
+        h_tbl = h_tbl[ordered_cols]
+        a_tbl = a_tbl[ordered_cols]
+
+        return lg_tbl, h_tbl, a_tbl
     
     # ==============================================================================================
-    def scrape_home_away_tables(self, year, league, normalize=False):
-        """ Scrapes the home and away league tables for the chosen league season.
+    def scrape_match(self, link, as_df=False):
+        """ Scrapes a single match from Understat.
+
+        Parameters
+        ----------
+        link : str
+            URL to the match
+        as_df : bool, optional, default False
+            If True, will return the data as DataFrames. If False, data will be returned as dicts.
+
+        Returns
+        -------
+        : tuple of dicts or DataFrames
+            shots_data, match_info (match stats), rosters_data (player data)
+        """
+        if not isinstance(link, str):
+            raise TypeError('`link` must be a string.')
+        if not isinstance(as_df, bool):
+            raise TypeError('`as_df` must be a boolean.')
+        
+        soup = BeautifulSoup(requests.get(link).content, 'html.parser')
+
+        scripts = soup.find_all('script')
+        shots_data_tag = [x for x in scripts if 'shotsData' in x.text][0]
+        # v This v should be same as shots data tag but have on it's in case this changes in the future
+        match_info_tag = [x for x in scripts if 'match_info' in x.text][0] 
+        rosters_data_tag = [x for x in scripts if 'rostersData' in x.text][0]
+
+        shots_data = json_from_script(shots_data_tag.text.split('match_info')[0])
+        match_info = json_from_script(match_info_tag.text.split('match_info')[1])
+        rosters_data = json_from_script(rosters_data_tag.text)
+
+        if as_df:
+            shots_data = pd.DataFrame.from_dict(shots_data['h'] + shots_data['a'])
+            match_info = pd.Series(match_info).to_frame().T
+            rosters_data = pd.DataFrame.from_dict(
+                list(rosters_data['h'].values()) + list(rosters_data['a'].values())
+            )
+        
+        return shots_data, match_info, rosters_data
+
+    # ==============================================================================================    
+    def scrape_matches(self, year, league, as_df=False):
+        """ Scrapes all of the matches from the chosen league season. 
+        
+        Gathers all match links from the chosen league season and then calls scrape_match() on each 
+        one.
 
         Parameters
         ----------
@@ -388,233 +276,85 @@ class Understat:
             See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
-        normalize : bool 
-            OPTIONAL, default False. If True, normalizes stats to per90
+        as_df : bool, optional, default False
+            If True, the data for each match will be returned as DataFrames. If False, invdividual
+            match data will be dicts.
 
         Returns
         -------
-        : tuple of DataFrame
-            (home, away)
+        : dict
+            {link: {'shots_data': shots, 'match_info': info, 'rosters_data': rosters}, ...}
         """
-        self._webdriver_init()
-        try:
-            self.driver.get(url = self.get_season_link(year, league))
-
-            # Show all of the stats
-            # Get columns that are already shown
-            labels = self.driver.find_elements(By.TAG_NAME, "label")
-            [el for el in labels if el.text=='home'][0].click()
-            table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute('outerHTML')
-            columns = pd.read_html(StringIO(table))[0].columns 
-            self._unhide_stats(columns)
-            
-            # Home Table
-            labels = self.driver.find_elements(By.TAG_NAME, "label")
-            [el for el in labels if el.text=='home'][0].click()
-            table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute('outerHTML')
-            home = pd.read_html(StringIO(table))[0]
-            
-            
-            # Away Table
-            [el for el in labels if el.text=='away'][0].click()
-            table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute('outerHTML')
-            away = pd.read_html(StringIO(table))[0]
-            
-            # remove differentials from some columns
-            for i in range(home.shape[0]):
-                home.loc[i,"xG"] = self._remove_diff(home.loc[i,"xG"])
-                home.loc[i,"xGA"] = self._remove_diff(home.loc[i,"xGA"])
-                home.loc[i,"xPTS"] = self._remove_diff(home.loc[i,"xPTS"])
-                away.loc[i,"xG"] = self._remove_diff(away.loc[i,"xG"])
-                away.loc[i,"xGA"] = self._remove_diff(away.loc[i,"xGA"])
-                away.loc[i,"xPTS"] = self._remove_diff(away.loc[i,"xPTS"])
-            
-            if normalize:
-                home.iloc[:,3:14] = home.iloc[:,3:14].divide(home["M"], axis="rows")
-                home.iloc[:,16:] = home.iloc[:,16:].divide(home["M"], axis="rows")
-                away.iloc[:,3:14] = away.iloc[:,3:14].divide(away["M"], axis="rows")
-                away.iloc[:,16:] = away.iloc[:,16:].divide(away["M"], axis="rows")
-
-            return home, away
-        finally:
-            self._webdriver_close()
-    
-    # ==============================================================================================
-    def scrape_situations(self, year, league):
-        """ Scrapes the situations leading to shots for each team in the chosen league season.
-
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in shared_functions.py for the available leagues for each module.
-
-        Returns
-        -------
-        : DataFrame
-            DataFrame containing the situations
-        """
-        # Get links for teams in league that season
-        team_links = self.get_team_links(year, league)
-
-        self._webdriver_init()
-        try:
-                    
-            mi = pd.MultiIndex.from_product([
-                ["Open play", "From corner", "Set piece", "Direct FK", "Penalty"],
-                ["Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG/Sh", "xGA/Sh"]])
-            mi = mi.insert(0, ("Team names", "Team"))
-            situations = pd.DataFrame()#columns=mi)
-            
-            for link in team_links:
-                
-                team_name = link.split("/")[-2]
-                self.driver.get(link)
-                table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-                df = pd.read_html(StringIO(table))[0]
-                
-                for i in range(df.shape[0]):
-                    # remove performance differential text from some columns
-                    df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                    df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-                
-                # reformat df to fit into a row
-                df.drop(columns=["№","Situation"], inplace=True)
-                row = df.to_numpy()
-                row = np.insert(row, 0, team_name) # insert team name
-                
-                # append row
-                situations = pd.concat([situations, pd.DataFrame(row.reshape(1,-1))], ignore_index=True)
-            
-            situations.columns = mi
-
-            return situations
-        finally:
-            self._webdriver_close()
-    
-    # ==============================================================================================
-    def scrape_formations(self, year, league):
-        """ Scrapes the stats for each team in the year and league, broken down by formation used
-        by the team.
-
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in shared_functions.py for the available leagues for each module.
-
-        Returns
-        -------
-        : dict {team name: {formation: data, ...}, ...}
-            Stats for each formation for each team
-        """
-        # Get links for teams in league that season
-        team_links = self.get_team_links(year, league)
-        self._webdriver_init()
-        try:
-            formations = dict()
-            
-            for link in team_links:
-                
-                # Get team name to add to formations
-                team_name = link.split("/")[-2]
-                if team_name not in formations.keys():
-                    formations[team_name] = dict()
-                    
-                # Got to team's link, click formations, and get table of formations used
-                self.driver.get(link)
-                self.driver.find_element(
-                    By.XPATH, "/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[2]").click()
-                
-                table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-                df = pd.read_html(StringIO(table))[0]
-                df.drop(columns=["№"], inplace=True)
-                
-                # Remove performance differential text from some columns
-                for i in range(df.shape[0]):
-                    df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                    df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-                    
-                    formation = df.loc[i,"Formation"]
-                    
-                    if formation not in formations[team_name].keys():
-                        formations[team_name][formation] = df.iloc[i,:].drop(columns=["№","Formation"])                
-                    
-            return formations
-        finally:
-            self._webdriver_close()
-    
-    # ==============================================================================================
-    def scrape_game_states(self, year, league):
-        """ Scrapes the game states for each team in the year and league
-
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in shared_functions.py for the available leagues for each module.
-
-        Returns
-        -------
-        : DataFrame
-            DataFrame containing the game states
-        """
-        # Get links for teams in league that season
-        team_links = self.get_team_links(year, league)
+        links = self.get_match_links(year, league)
         
-        self._webdriver_init()
-        try:
-            mi = pd.MultiIndex.from_product(
-                [["Goal diff 0", "Goal diff -1", "Goal diff +1", "Goal diff < -1", "Goal diff > +1"],
-                ["Min", "Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG90", "xGA90"]]
-            )
-            mi = mi.insert(0, ("Team names", "Team"))
-            game_states = pd.DataFrame()
-            
-            for link in team_links:
-                team_name = link.split("/")[-2]
-                self.driver.get(link)
-                self.driver.find_element(
-                    By.XPATH, "/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[3]"
-                ).click()
-                table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-                df = pd.read_html(StringIO(table))[0]
-                df.drop(columns=["№"], inplace=True)
-                
-                row = {
-                    "Goal diff 0": None, "Goal diff -1": None, "Goal diff +1": None,
-                    "Goal diff < -1": None, "Goal diff > +1": None
-                }
-                for i in range(df.shape[0]):
-                    # remove performance differential text from some columns
-                    df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                    df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-                    game_state = df.loc[i,"Game state"]
-                    row[game_state] = df.loc[i,:].drop(labels=["Game state"])
-                
-                row_array = []
-                for key in row.keys():
-                    row_array.append(
-                        row[key].to_numpy() if row[key] is not None 
-                        else np.zeros((len(mi.levels[-1])-1,), dtype=object)
-                    )
-                row_array = np.array(row_array)
-                row_array = np.insert(row_array, 0, team_name) # insert team name
-                
-                # append row
-                game_states = pd.concat([game_states, pd.DataFrame(row_array.reshape(1,-1))], ignore_index=True)
-                
-            game_states.columns = mi
-            return game_states
-        finally:
-            self._webdriver_close()
-    
+        matches = dict()
+        for link in tqdm(links, ncols=80, desc=f'{year} {league} matches'):
+            shots, info, rosters = self.scrape_match(link, as_df)
+            matches[link] = {'shots_data': shots, 'match_info': info, 'rosters_data': rosters}
+        
+        return matches
+
     # ==============================================================================================
-    def scrape_timing(self, year, league):
-        """ Scrapes the timing of goals for each team in the year and league
+    def scrape_team_data(self, team_link, as_df=False):
+        """ Scrapes team data from a team's Understat link
+
+        Note that for Understat, team links are season-specific.
+
+        Paramters
+        ---------
+        team_link : str
+        as_df : bool, optional, default False
+            If True, data will be returned as DataFrames. If False, dicts.
+
+        Returns
+        -------
+        : tuple
+            matches, team_data, player_data
+        """
+        if not isinstance(team_link, str):
+            raise TypeError('`team_link` must be a string.')
+        if not isinstance(as_df, bool):
+            raise TypeError('`as_df` must be a boolean.')
+
+        scripts = BeautifulSoup(requests.get(team_link).content, 'html.parser').find_all('script')
+
+        dates_data_tag = [x for x in scripts if 'datesData' in x.text][0]
+        stats_data_tag = [x for x in scripts if 'statisticsData' in x.text][0]
+        player_data_tag = [x for x in scripts if 'playersData' in x.text][0]
+
+        matches = json_from_script(dates_data_tag.text)
+        team_data = json_from_script(stats_data_tag.text)
+        player_data = json_from_script(player_data_tag.text)
+
+        if as_df:
+            matches = pd.DataFrame.from_dict(matches)
+            newcols = list()
+            for c in matches.columns:
+                if isinstance(matches.loc[0,c], dict):
+                    newcols.append(matches[c].apply(pd.Series).add_prefix(f'{c}_'))
+                else:
+                    newcols.append(matches[c])
+            matches = pd.concat(newcols, axis=1)
+
+            for key, value in team_data.items():
+                table = list()
+                for k, v in value.items():
+                    # Drop against because it contains dicts
+                    temp = pd.DataFrame.from_dict([v,]).drop(columns='against')
+                    # Make the against dict into it's own DF and the concat it to temp
+                    temp = pd.concat([temp, pd.DataFrame.from_dict([v['against'],])\
+                        .add_suffix(f'_against')], axis=1)
+                    temp['stat'] = [k,]
+                    table.append(temp)
+                team_data[key] = pd.concat(table, axis=0, ignore_index=True)
+
+            player_data = pd.DataFrame.from_dict(player_data)
+
+        return matches, team_data, player_data
+
+    # ==============================================================================================
+    def scrape_all_teams_data(self, year, league, as_df=False):
+        """ Scrapes data for all teams in the given league season.
 
         Parameters
         ----------
@@ -622,300 +362,32 @@ class Understat:
             See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
+        as_df : bool, optional, default False
+            If True, each team's data will be returned as DataFrames. If False, dicts.
 
         Returns
         -------
-        : DataFrame
-            DataFrame containing the timing stats
+        : dict
+            {team_link: {'matches': match data, 'team_data': team stats, 'players_data': 
+            player stats}, ...}
         """
-        # Get links for teams in league that season
         team_links = self.get_team_links(year, league)
-        self._webdriver_init()
-        try:
-            mi = pd.MultiIndex.from_product([
-                ["1-15", "16-30", "31-45", "46-60", "61-75", "76+"],
-                ["Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG/Sh", "xGA/Sh"]
-            ])
-            mi = mi.insert(0, ("Team names", "Team"))
-            timing_df = pd.DataFrame()#columns=mi)
-
-            for link in team_links:
-                
-                team_name = link.split("/")[-2]
-                self.driver.get(link)
-                self.driver.find_element(
-                    By.XPATH, "/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[4]"
-                ).click()
-                table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-                df = pd.read_html(StringIO(table))[0]
-                df.drop(columns=["№"], inplace=True)
-
-                row = {
-                    "1-15": None, "16-30": None, "31-45": None, "46-60": None, "61-75": None, 
-                    "76+": None
-                }
-                for i in range(df.shape[0]):
-                    # remove performance differential text from some columns
-                    df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                    df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-
-                    timing = df.loc[i, "Timing"]
-                    row[timing] = df.loc[i,:].drop(labels=["Timing"])
-
-                row_array = []
-                for key in row.keys():
-                    row_array.append(row[key].to_numpy())
-                row_array = np.array(row_array)
-                row_array = np.insert(row_array, 0, team_name) # insert team name
-
-                # append row
-                timing_df = pd.concat([timing_df, pd.DataFrame(row_array.reshape(1,-1))], ignore_index=True)
-
-            timing_df.columns = mi
-            
-            return timing_df
-        finally:
-            self._webdriver_close()
-    
-    # ==============================================================================================
-    def scrape_shot_zones(self, year, league):
-        """ Scrapes the shot zones for each team in the year and league
-
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in shared_functions.py for the available leagues for each module.
-
-        Returns
-        -------
-        : DataFrame
-            DataFrame containing the shot zones data
-        """
-        # Get links for teams in league that season
-        team_links = self.get_team_links(year, league)
-        self._webdriver_init()
-        try:
-            mi = pd.MultiIndex.from_product([
-                ["Own goals", "Out of box", "Penalty area", "Six-yard box"],
-                ["Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG/Sh", "xGA/Sh"]
-            ])
-            mi = mi.insert(0, ("Team names", "Team"))
-            shot_zones_df = pd.DataFrame()#columns=mi)
-
-            for link in team_links:
-                
-                team_name = link.split("/")[-2]
-                self.driver.get(link)
-                self.driver.find_element(
-                    By.XPATH, "/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[5]"
-                ).click()
-                table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-                df = pd.read_html(StringIO(table))[0]
-                df.drop(columns=["№"], inplace=True)
-
-                row = {
-                    "Own goals": None, "Out of box": None, "Penalty area": None, "Six-yard box": None
-                }
-                for i in range(df.shape[0]):
-                    # remove performance differential text from some columns
-                    df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                    df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-
-                    zone = df.loc[i, "Shot zones"]
-                    row[zone] = df.loc[i,:].drop(labels=["Shot zones"])
-
-                row_array = []
-                for key in row.keys():
-                    if row[key] is None:
-                        row[key] = pd.Series(np.zeros((9)))
-                    row_array.append(row[key].to_numpy())
-                row_array = np.array(row_array)
-                row_array = np.insert(row_array, 0, team_name) # insert team name
-
-                # append row
-                shot_zones_df = pd.concat([shot_zones_df, pd.DataFrame(row_array.reshape(1,-1))], ignore_index=True)
-                
-            shot_zones_df.columns = mi
-            
-            return shot_zones_df
-        finally:
-            self._webdriver_close()
-    
-    # ==============================================================================================
-    def scrape_attack_speeds(self, year, league):
-        """ Scrapes the attack speeds for each team in the year and league
-
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in shared_functions.py for the available leagues for each module.
-
-        Returns
-        -------
-        : DataFrame
-            DataFrame containing the attack speeds of each team
-        """
-        # Get links for teams in league that season
-        team_links = self.get_team_links(year, league)
-        self._webdriver_init()
-        try:
-            mi = pd.MultiIndex.from_product([
-                ["Normal", "Standard", "Slow", "Fast"],
-                ["Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG/Sh", "xGA/Sh"]
-            ])
-            mi = mi.insert(0, ("Team names", "Team"))
-            attack_speeds_df = pd.DataFrame()
-
-            for link in team_links:
-                
-                team_name = link.split("/")[-2]
-                self.driver.get(link)
-                self.driver.find_element(
-                    By.XPATH, "/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[6]"
-                ).click()
-                
-                table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-                df = pd.read_html(StringIO(table))[0]
-                df.drop(columns=["№"], inplace=True)
-
-                row = {"Normal": None, "Standard": None, "Slow": None, "Fast": None}
-                for i in range(df.shape[0]):
-                    # remove performance differential text from some columns
-                    df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                    df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-
-                    speed = df.loc[i, "Attack speed"]
-                    row[speed] = df.loc[i,:].drop(labels=["Attack speed"])
-
-                row_array = []
-                for key in row.keys():
-                    row_array.append(row[key].to_numpy())
-                row_array = np.array(row_array)
-                row_array = np.insert(row_array, 0, team_name) # insert team name
-
-                # append row
-                attack_speeds_df = pd.concat([attack_speeds_df, pd.DataFrame(row_array.reshape(1,-1))], ignore_index=True)
-
-            attack_speeds_df.columns = mi
-            
-            return attack_speeds_df
-        finally:
-            self._webdriver_close()
-    
-    # ==============================================================================================
-    def scrape_shot_results(self, year, league):
-        """ Scrapes the shot results for each team in the year and league
-
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in shared_functions.py for the available leagues for each module.
-
-        Returns
-        -------
-        : DataFrame
-            DataFrame containing the shot results data
-        """
-        # Get links for teams in league that season
-        team_links = self.get_team_links(year, league)
-        self._webdriver_init()
-        try:
-            mi = pd.MultiIndex.from_product([
-                ["Missed shot", "Goal", "Saved shot", "Blocked shot", "Shot on post"],
-                ["Sh", "G", "ShA", "GA", "xG", "xGA", "xGD", "xG/Sh", "xGA/Sh"]
-            ])
-            mi = mi.insert(0, ("Team names", "Team"))
-            shot_results_df = pd.DataFrame()#columns=mi)
-
-            for link in team_links:
-                team_name = link.split("/")[-2]
-                self.driver.get(link)
-                self.driver.find_element(
-                    By.XPATH, "/html/body/div[1]/div[3]/div[3]/div/div[1]/div/label[7]"
-                ).click()
-                table = self.driver.find_elements(By.TAG_NAME, "table")[0].get_attribute("outerHTML")
-                df = pd.read_html(StringIO(table))[0]
-                df.drop(columns=["№"], inplace=True)
-
-                row = {
-                    "Missed shot": None, "Goal": None, "Saved shot": None, "Blocked shot": None,
-                    "Shot on post": None
-                }
-                for i in range(df.shape[0]):
-                    # remove performance differential text from some columns
-                    df.loc[i,"xG"] = self._remove_diff(df.loc[i,"xG"])
-                    df.loc[i,"xGA"] = self._remove_diff(df.loc[i,"xGA"])
-
-                    result = df.loc[i, "Result"]
-                    row[result] = df.loc[i,:].drop(labels=["Result"])
-
-                row_array = []
-                for key in row.keys():
-                    row_array.append(row[key].to_numpy())
-                row_array = np.array(row_array)
-                row_array = np.insert(row_array, 0, team_name) # insert team name
-
-                # append row
-                shot_results_df = pd.concat([shot_results_df, pd.DataFrame(row_array.reshape(1,-1))], ignore_index=True)
-                
-            shot_results_df.columns = mi
-            
-            return shot_results_df 
-        finally:
-            self._webdriver_close()
+        return_package = dict()
+        for team_link in tqdm(team_links, ncols=80, desc=f'{year} {league} teams'):
+            matches, team, players = self.scrape_team_data(team_link, as_df)
+            return_package[team_link] = {
+                'matches': matches, 'team_data': team, 'players_data': players
+            }
+        return return_package
         
     # ==============================================================================================
     def scrape_shot_xy(self, year, league, as_df=False):
-        """ Scrapes the info for every shot in the league and year.
+        raise NotImplementedError(
+            'Deprecated. This data is included in the output of `scrape_matches()` now.'
+        )
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in shared_functions.py for the available leagues for each module.
-        as_df : bool, optional
-            If True, the output will be a Pandas DataFrame. If False, output will be a dict.
-
-        Returns
-        -------
-        : DataFrame or dict
-            Return type depends on value of `as_df`.
-        """
-        links = self.get_match_links(year, league)
-        shots_data = dict()
-        for link in tqdm(links, desc='Shot XY'):
-            match_id = link.split("/")[-1]
-            try:
-                game_shots_data = json.loads(
-                    requests.get(link).text
-                    .split("shotsData")[1]
-                    .split("JSON.parse(\'")[1]
-                    .split("\')")[0]
-                    .encode("latin-1")
-                    .decode("unicode-escape")
-                )
-                shots_data[match_id] = game_shots_data
-            except Exception as E:
-                print(f'Failed scraping match {link}')
-                print(E)
-                shots_data[match_id] = {'Result': 'Error scraping'}
-            
-        self.close()
-        self.__init__()
-
-        # Convert json to dataframe if requested
-        if as_df:
-            shots_df = pd.DataFrame()
-            for k in shots_data:
-                for team in shots_data[k]:
-                    shots_df = pd.concat([shots_df, pd.json_normalize(shots_data[k][team])], ignore_index=True, axis=0)
-            shots_data = shots_df
-
-        return shots_data
+    # ==============================================================================================
+    def scrape_home_away_tables(self, year, league, normalize=False):
+        raise NotImplementedError(
+            'Deprecated. Home and away tables are output by `scrape_league_tables() now.`'
+        )

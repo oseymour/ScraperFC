@@ -1,157 +1,121 @@
 import sys
-sys.path.append('./src/')
+sys.path.append('./src')
 from ScraperFC import Understat
 from ScraperFC.understat import comps
+from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
+
 import random
 import pandas as pd
+import pytest
+from contextlib import nullcontext as does_not_raise
 
 class TestUnderstat:
 
-    # # ==============================================================================================
-    # def test_invalid_year(self, year, league, expected):
-    #     raise NotImplementedError
+    # ==============================================================================================
+    @pytest.mark.parametrize(
+        'year, league, expected',
+        [('2019/2020', 'Ligue 1', does_not_raise()),
+         (2020, 'Ligue 1', pytest.raises(TypeError)),
+         ('fake year', 'Ligue 1', pytest.raises(InvalidYearException))]
+    )
+    def test_invalid_year(self, year, league, expected):
+        us = Understat()
+        with expected:
+            us.get_season_link(year, league)
+        with expected:
+            us.get_match_links(year, league)
+        with expected:
+            us.get_team_links(year, league)
+        with expected:
+            us.scrape_season_data(year, league)
+        with expected:
+            us.scrape_league_tables(year, league)
+        with expected:
+            us.scrape_matches(year, league)
+        with expected:
+            us.scrape_all_teams_data(year, league)
     
-    # # ==============================================================================================
-    # def test_invalid_league(self, year, league, expected):
-    #     raise NotImplementedError
+    # ==============================================================================================
+    @pytest.mark.parametrize(
+        'year, league, expected',
+        [('2023/2024', 'RFPL', does_not_raise()),
+         ('2023/2024', {'league': 'RFPL'}, pytest.raises(TypeError)),
+         ('2023/2024', 'fake league', pytest.raises(InvalidLeagueException))]
+    )
+    def test_invalid_league(self, year, league, expected):
+        us = Understat()
+        with expected:
+            us.get_season_link(year, league)
+        with expected:
+            us.get_valid_seasons(league)
+        with expected:
+            us.get_match_links(year, league)
+        with expected:
+            us.get_team_links(year, league)
+        with expected:
+            us.scrape_season_data(year, league)
+        with expected:
+            us.scrape_league_tables(year, league)
+        with expected:
+            us.scrape_matches(year, league)
+        with expected:
+            us.scrape_all_teams_data(year, league)
     
+    # ==============================================================================================
+    def test_scrape_season_data(self):
+        understat = Understat()
+        league = random.sample(list(comps.keys()), 1)[0]
+        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
+        
+        season_data = understat.scrape_season_data(year, league)
+        assert len(season_data) == 3
+        assert isinstance(season_data[0], list)
+        assert isinstance(season_data[1], dict)
+        assert isinstance(season_data[2], list)
+
+    # ==============================================================================================
+    def test_scrape_league_tables(self):
+        understat = Understat()
+        league = random.sample(list(comps.keys()), 1)[0]
+        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
+        
+        tables = understat.scrape_league_tables(year, league)
+        assert len(tables) == 3
+        for x in tables:
+            assert isinstance(x, pd.DataFrame)
+            assert x.shape[0] > 0
+            assert x.shape[1] > 0
+
     # ==============================================================================================
     def test_scrape_matches(self):
         understat = Understat()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        matches = understat.scrape_matches(year, league)
-        assert type(matches) is pd.DataFrame
-        assert matches.shape[0] > 0
-        assert matches.shape[1] > 0
+        
+        # Use as_df=True so we test that code
+        matches = understat.scrape_matches(year, league, as_df=True)
+        assert isinstance(matches, dict)
+        
+        first_key = list(matches.keys())[0]
+        first_value = matches[first_key]
+        assert isinstance(first_value['shots_data'], pd.DataFrame)
+        assert isinstance(first_value['match_info'], pd.DataFrame)
+        assert isinstance(first_value['rosters_data'], pd.DataFrame)
 
     # ==============================================================================================
-    def test_scrape_league_table(self):
+    def test_scrape_all_teams_data(self):
         understat = Understat()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        matches = understat.scrape_league_table(year, league)
-        assert type(matches) is pd.DataFrame
-        assert matches.shape[0] > 0
-        assert matches.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_home_away_tables(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        table = understat.scrape_home_away_tables(year, league)
-        assert type(table) is tuple
-        for x in table:
-            assert type(x) is pd.DataFrame
-            assert x.shape[0] > 0
-            assert x.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_situations(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        game_states = understat.scrape_situations(year, league)
-        assert type(game_states) is pd.DataFrame
-        assert game_states.shape[0] > 0
-        assert game_states.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_formations(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        situations = understat.scrape_formations(year, league)
-        assert type(situations) is dict
-        for value in situations.values():
-            assert type(value) is dict
-            for value2 in value.values():
-                assert type(value2) is pd.Series
-
-    # ==============================================================================================
-    def test_scrape_game_states(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        game_states = understat.scrape_game_states(year, league)
-        assert type(game_states) is pd.DataFrame
-        assert game_states.shape[0] > 0
-        assert game_states.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_timing(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        game_states = understat.scrape_timing(year, league)
-        assert type(game_states) is pd.DataFrame
-        assert game_states.shape[0] > 0
-        assert game_states.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_shot_zones(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        shot_zones = understat.scrape_shot_zones(year, league)
-        assert type(shot_zones) is pd.DataFrame
-        assert shot_zones.shape[0] > 0
-        assert shot_zones.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_attack_speeds(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        attack_speeds = understat.scrape_attack_speeds(year, league)
-        assert type(attack_speeds) is pd.DataFrame
-        assert attack_speeds.shape[0] > 0
-        assert attack_speeds.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_shot_results(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        shots = understat.scrape_shot_results(year, league)
-        assert type(shots) is pd.DataFrame
-        assert shots.shape[0] > 0
-        assert shots.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_shot_xy_df(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        xy = understat.scrape_shot_xy(year, league, as_df=True)
-        assert type(xy) is pd.DataFrame
-        assert xy.shape[0] > 0
-        assert xy.shape[1] > 0
-
-    # ==============================================================================================
-    def test_scrape_shot_xy_dict(self):
-        understat = Understat()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        print(year, league)
-        xy = understat.scrape_shot_xy(year, league, as_df=False)
-        assert type(xy) is dict
-        for value in xy.values():
-            assert type(value) is dict
-            assert list(value.keys()) == ['h', 'a']
-            for value2 in value.values():
-                assert type(value2) is list
-                for x in value2:
-                    assert type(x) is dict
+        
+        # Use as_df=True so we test that code
+        teams_data = understat.scrape_all_teams_data(year, league, as_df=True)
+        assert isinstance(teams_data, dict)
+        
+        first_key = list(teams_data.keys())[0]
+        first_value = teams_data[first_key]
+        assert isinstance(first_value['matches'], pd.DataFrame)
+        assert isinstance(first_value['team_data'], dict)
+        for k, v in first_value['team_data'].items():
+            assert isinstance(v, pd.DataFrame)
+        assert isinstance(first_value['players_data'], pd.DataFrame)
