@@ -288,7 +288,7 @@ class Understat:
         links = self.get_match_links(year, league)
         
         matches = dict()
-        for link in tqdm(links, ncols=80, desc=f'{year} {league} matches'):
+        for link in tqdm(links, desc=f'{year} {league} matches'):
             shots, info, rosters = self.scrape_match(link, as_df)
             matches[link] = {'shots_data': shots, 'match_info': info, 'rosters_data': rosters}
         
@@ -373,7 +373,7 @@ class Understat:
         """
         team_links = self.get_team_links(year, league)
         return_package = dict()
-        for team_link in tqdm(team_links, ncols=80, desc=f'{year} {league} teams'):
+        for team_link in tqdm(team_links, desc=f'{year} {league} teams'):
             matches, team, players = self.scrape_team_data(team_link, as_df)
             return_package[team_link] = {
                 'matches': matches, 'team_data': team, 'players_data': players

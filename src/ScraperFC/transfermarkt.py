@@ -113,7 +113,7 @@ class Transfermarkt():
         player_links = list()
         scraper = cloudscraper.CloudScraper()
         club_links = self.get_club_links(year, league)
-        for club_link in tqdm(club_links, ncols=80, desc=f'{year} {league} player links'):
+        for club_link in tqdm(club_links, desc=f'{year} {league} player links'):
             soup = BeautifulSoup(scraper.get(club_link).content, 'html.parser')
             player_els = (
                 soup.find('table', {'class': 'items'}).find_all('td', {'class': 'hauptlink'})
@@ -144,7 +144,7 @@ class Transfermarkt():
         """
         player_links = self.get_player_links(year, league)
         df = pd.DataFrame()
-        for player_link in tqdm(player_links, ncols=80, desc=f'{year} {league} players'):
+        for player_link in tqdm(player_links, desc=f'{year} {league} players'):
             player = self.scrape_player(player_link)
             df = pd.concat([df, player], axis=0, ignore_index=True)
         return df
