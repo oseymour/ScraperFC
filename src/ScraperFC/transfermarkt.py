@@ -87,10 +87,8 @@ class Transfermarkt():
             scraper.get(f'{comps[league]}/plus/?saison_id={valid_seasons[year]}').content, 
             'html.parser'
         )
-        club_els = (
-            soup.find('table', {'class': 'items'})
+        club_els = soup.find('table', {'class': 'items'})\
             .find_all('td', {'class': 'hauptlink no-border-links'})
-        )
         club_links = [TRANSFERMARKT_ROOT + x.find('a')['href'] for x in club_els]
         scraper.close()
         return club_links
@@ -115,14 +113,14 @@ class Transfermarkt():
         club_links = self.get_club_links(year, league)
         for club_link in tqdm(club_links, desc=f'{year} {league} player links'):
             soup = BeautifulSoup(scraper.get(club_link).content, 'html.parser')
-            player_els = (
-                soup.find('table', {'class': 'items'}).find_all('td', {'class': 'hauptlink'})
-            )
-            p_links = [
-                TRANSFERMARKT_ROOT + x.find('a')['href'] for x in player_els 
-                if x.find('a') is not None
-            ]
-            player_links += p_links
+            player_table = soup.find('table', {'class': 'items'})
+            if player_table is not None:
+                player_els = player_table.find_all('td', {'class': 'hauptlink'})
+                p_links = [
+                    TRANSFERMARKT_ROOT + x.find('a')['href'] for x in player_els 
+                    if x.find('a') is not None
+                ]
+                player_links += p_links
         scraper.close()
         return list(set(player_links))
     
@@ -155,7 +153,7 @@ class Transfermarkt():
 
         Parameters
         ----------
-        player link : str
+        player_link : str
             Valid player Transfermarkt URL
 
         Returns
