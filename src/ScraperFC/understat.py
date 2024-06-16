@@ -4,6 +4,7 @@ import pandas as pd
 from tqdm import tqdm
 import requests
 from bs4 import BeautifulSoup
+import warnings
 
 comps = {
     'EPL': 'https://understat.com/league/EPL',
@@ -15,7 +16,7 @@ comps = {
 }
 
 
-def json_from_script(text):
+def _json_from_script(text):
     data = text.split('JSON.parse(\'')[1].split('\')')[0].encode('utf-8')\
         .decode('unicode_escape')
     data = json.loads(data)
@@ -136,9 +137,9 @@ class Understat:
         teams_data_tag = [x for x in scripts if 'teamsData' in x.text][0]
         players_data_tag = [x for x in scripts if 'playersData' in x.text][0]
 
-        matches_data = json_from_script(dates_data_tag.text)
-        teams_data = json_from_script(teams_data_tag.text)
-        players_data = json_from_script(players_data_tag.text)
+        matches_data = _json_from_script(dates_data_tag.text)
+        teams_data = _json_from_script(teams_data_tag.text)
+        players_data = _json_from_script(players_data_tag.text)
 
         return matches_data, teams_data, players_data
           
@@ -242,24 +243,32 @@ class Understat:
         if not isinstance(as_df, bool):
             raise TypeError('`as_df` must be a boolean.')
         
-        soup = BeautifulSoup(requests.get(link).content, 'html.parser')
+        r = requests.get(link)
+        if r.status_code == 404:
+            warnings.warn(f"404 error for {link}. Returning empty dicts/DataFrames.")
+            if as_df:
+                shots_data, match_info, rosters_data = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+            else:
+                shots_data, match_info, rosters_data = dict(), dict(), dict()
+        else:
+            soup = BeautifulSoup(r.content, 'html.parser')
 
-        scripts = soup.find_all('script')
-        shots_data_tag = [x for x in scripts if 'shotsData' in x.text][0]
-        # v This v should be same as shots data tag but have on it's in case this changes in the future
-        match_info_tag = [x for x in scripts if 'match_info' in x.text][0] 
-        rosters_data_tag = [x for x in scripts if 'rostersData' in x.text][0]
+            scripts = soup.find_all('script')
+            shots_data_tag = [x for x in scripts if 'shotsData' in x.text][0]
+            # v This v should be same as shots data tag but have on it's in case this changes in the future
+            match_info_tag = [x for x in scripts if 'match_info' in x.text][0] 
+            rosters_data_tag = [x for x in scripts if 'rostersData' in x.text][0]
 
-        shots_data = json_from_script(shots_data_tag.text.split('match_info')[0])
-        match_info = json_from_script(match_info_tag.text.split('match_info')[1])
-        rosters_data = json_from_script(rosters_data_tag.text)
+            shots_data = _json_from_script(shots_data_tag.text.split('match_info')[0])
+            match_info = _json_from_script(match_info_tag.text.split('match_info')[1])
+            rosters_data = _json_from_script(rosters_data_tag.text)
 
-        if as_df:
-            shots_data = pd.DataFrame.from_dict(shots_data['h'] + shots_data['a'])
-            match_info = pd.Series(match_info).to_frame().T
-            rosters_data = pd.DataFrame.from_dict(
-                list(rosters_data['h'].values()) + list(rosters_data['a'].values())
-            )
+            if as_df:
+                shots_data = pd.DataFrame.from_dict(shots_data['h'] + shots_data['a'])
+                match_info = pd.Series(match_info).to_frame().T
+                rosters_data = pd.DataFrame.from_dict(
+                    list(rosters_data['h'].values()) + list(rosters_data['a'].values())
+                )
         
         return shots_data, match_info, rosters_data
 
@@ -297,15 +306,16 @@ class Understat:
     # ==============================================================================================
     def scrape_team_data(self, team_link, as_df=False):
         """ Scrapes team data from a team's Understat link
-
+        
         Note that for Understat, team links are season-specific.
-
-        Paramters
-        ---------
+        
+        Parameters
+        ----------
         team_link : str
+
         as_df : bool, optional, default False
             If True, data will be returned as DataFrames. If False, dicts.
-
+            
         Returns
         -------
         : tuple
@@ -322,9 +332,9 @@ class Understat:
         stats_data_tag = [x for x in scripts if 'statisticsData' in x.text][0]
         player_data_tag = [x for x in scripts if 'playersData' in x.text][0]
 
-        matches = json_from_script(dates_data_tag.text)
-        team_data = json_from_script(stats_data_tag.text)
-        player_data = json_from_script(player_data_tag.text)
+        matches = _json_from_script(dates_data_tag.text)
+        team_data = _json_from_script(stats_data_tag.text)
+        player_data = _json_from_script(player_data_tag.text)
 
         if as_df:
             matches = pd.DataFrame.from_dict(matches)
@@ -382,12 +392,16 @@ class Understat:
         
     # ==============================================================================================
     def scrape_shot_xy(self, year, league, as_df=False):
+        """ Deprecated. Use `scrape_matches()` instead.
+        """
         raise NotImplementedError(
             'Deprecated. This data is included in the output of `scrape_matches()` now.'
         )
 
     # ==============================================================================================
     def scrape_home_away_tables(self, year, league, normalize=False):
+        """ Deprecated. Use `scrape_league_tables()` instead.
+        """
         raise NotImplementedError(
-            'Deprecated. Home and away tables are output by `scrape_league_tables() now.`'
+            'Deprecated. Home and away tables are output by `scrape_league_tables()` now.'
         )
