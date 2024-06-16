@@ -20,4 +20,16 @@ jobs:
       - name: Install tox
         run: pip install tox
       - name: Run pytest
-        run: tox -e ${{ matrix.python.toxenv }}
+        run: tox -r -e ${{ matrix.python.toxenv }}
+  docs:
+    name: Docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4.0.0
+        with:
+          python-version: "3.10"
+      - name: Install tox
+        run: pip install tox
+      - name: Build docs
+        run: tox -r -e docs

@@ -1,3 +1,79 @@
+[project]
+name = "ScraperFC"
+version = "3.0.0"
+description = "Package for scraping soccer data from a variety of sources."
+readme = "README.md"
+license = {file = "LICENSE"}
+keywords = [
+    "webscraping", "scraping", "soccer", "football", "soccer data", "football data", 
+    "English Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Champions League",
+    "World Cup"
+]
+authors = [
+    {email = "osmour043@gmail.com"},
+    {name = "Owen Seymour"}
+]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent"
+]
+dependencies = [
+    "botasaurus", "bs4", "cloudscraper", "datetime", "ipython", "lxml", "numpy", "pandas", 
+    "requests", "selenium", "tqdm"
+]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-cov"]
+docs = ["sphinx", "furo"]
+build = ["build",]
+publish = ["publish",]
+
+[project.urls]
+repository = "https://github.com/oseymour/ScraperFC/"
+documentation = "https://scraperfc.readthedocs.io/en/latest/"
+
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = "./test/"
+addopts = "--cov=ScraperFC -s --durations=20"
+
+[tool.coverage.run]
+branch = true
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.tox]
+legacy_tox_ini = """
+    [tox]
+    isolated_build = true
+    envlist = py312
+
+    [testenv]
+    deps = 
+        pytest
+        pytest-cov
+    commands = pytest
+
+    [testenv:docs]
+    deps = 
+       furo
+       sphinx
+    commands = sphinx-build -n -W --keep-going -b html ./docs/source/ ./docs/build/
+
+    [testenv:build]
+    skip_install = true
+    deps = 
+        build
+    commands = python -m build
+
+    # [testenv:publish]
+    # skip_install = true
+    # deps = 
+    #     twine
+    # commands = 
+"""
