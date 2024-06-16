@@ -14,8 +14,6 @@ Welcome to ScraperFC's documentation!
    :caption: Contents:
 
    installation
-   fbref_examples
-   understat_examples
    apidocumentation
    year_parameter
 
