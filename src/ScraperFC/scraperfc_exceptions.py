@@ -33,7 +33,7 @@ class NoMatchLinksException(Exception):
         self.year = year
     def __str__(self):
         return f'No match score elements found for {self.year} {self.league} at {self.fixtures_url}'
-    
+
 
 class ClubEloInvalidTeamException(Exception):
     """ Raised when an invalid team is used

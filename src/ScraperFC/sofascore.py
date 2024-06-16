@@ -270,9 +270,9 @@ class Sofascore:
 
         Parameters
         ----------
-        tournament : string 
+        tournament : str 
             Name of the competition
-        season : string
+        season : str
             Season selected
         accumulation : str, optional
             Value of the filter accumulation. Can be "per90", "perMatch", or "total". Defaults to 

@@ -205,8 +205,8 @@ class FBref():
             module file and look at the keys.
         Returns
         -------
-        : dict {year: URL, ...}
-            URLs need to be appended to "https://fbref.com" to be a complete URL.
+        : dict 
+            {year: URL, ...}, URLs need to be appended to "https://fbref.com" to be a complete URL.
         """
         if type(league) is not str:
             raise TypeError('`league` must be a string.')
@@ -707,10 +707,10 @@ class FBref():
             module file and look at the keys.
         Returns
         -------
-        : dict {stat category: tuple of DataFrame, ...}. 
-            Tuple is (squad_stats, opponent_stats, player_stats)
+        : dict 
+            {stat category: tuple of DataFrame, ...}, Tuple is (squad_stats, opponent_stats, 
+            player_stats)
         """
-        
         return_package = dict()
         for stat_category in tqdm(stats_categories, desc=f'{year} {league} stats'):
             stats = self.scrape_stats(year, league, stat_category)
