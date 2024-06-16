@@ -1,4 +1,5 @@
 [project]
+# -- Metadata --------------------------------------------------------------------------------------
 name = "ScraperFC"
 version = "3.0.0"
 description = "Package for scraping soccer data from a variety of sources."
@@ -26,17 +27,19 @@ dependencies = [
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov"]
 docs = ["sphinx", "furo"]
-build = ["build",]
+build = ["build", "setuptools", "wheel"]
 publish = ["publish",]
 
 [project.urls]
 repository = "https://github.com/oseymour/ScraperFC/"
 documentation = "https://scraperfc.readthedocs.io/en/latest/"
 
+# -- Build system ----------------------------------------------------------------------------------
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
+# -- Pytest and pytest coverage --------------------------------------------------------------------
 [tool.pytest.ini_options]
 testpaths = "./test/"
 addopts = "--cov=ScraperFC -s --durations=20"
@@ -47,6 +50,7 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 
+# -- Tox environments ------------------------------------------------------------------------------
 [tool.tox]
 legacy_tox_ini = """
     [tox]
@@ -70,10 +74,4 @@ legacy_tox_ini = """
     deps = 
         build
     commands = python -m build
-
-    # [testenv:publish]
-    # skip_install = true
-    # deps = 
-    #     twine
-    # commands = 
 """

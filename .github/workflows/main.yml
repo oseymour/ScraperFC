@@ -1,7 +1,6 @@
 name: main
 
-on:
-  - push
+on: push
 
 jobs:
   test:
@@ -13,20 +12,21 @@ jobs:
           - version: "3.12"
             toxenv: "py312"
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4.0.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python.version }}
       - name: Install tox
         run: pip install tox
       - name: Run pytest
         run: tox -r -e ${{ matrix.python.toxenv }}
+  
   docs:
     name: Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4.0.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
       - name: Install tox

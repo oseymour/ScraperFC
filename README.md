@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./docs/source/images/ScraperFC-Logo-Final-2023-10-11 copy-Full-Color.svg?raw=true" alt="ScraperFC logo. The text 'ScraperFC' with some lines, X's, and O's around it. Meant to look similar to a tactics board or diagram.">
+  <img src="https://github.com/oseymour/ScraperFC/blob/main/docs/source/images/ScraperFC-Logo-Final-2023-10-11 copy-Full-Color.svg?raw=true" alt="ScraperFC logo. The text 'ScraperFC' with some lines, X's, and O's around it. Meant to look similar to a tactics board or diagram.">
 </p>
 <p align="center">
   <a href="https://pypi.org/project/ScraperFC/">
