@@ -19,4 +19,4 @@ formats:
 python:
   install:
     - method: pip
-      extra_requirements: furo
+      path: furo
