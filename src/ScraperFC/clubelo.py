@@ -8,14 +8,14 @@ import warnings
 
 class ClubElo:
 
-    # ==========================================================================
-    def scrape_team_on_date(self, team, date):
+    # ==============================================================================================
+    def scrape_team_on_date(self, team: str, date: str) -> float:
         """ Scrapes a team's ELO score on a given date.
 
         Parameters
         ----------
         team : str
-            To get the appropriate team name, go to clubelo.com and find the team you're looking 
+            To get the appropriate team name, go to clubelo.com and find the team you're looking
             for. Copy and past the team's name as it appears in the URL.
         date : str
             Must be formatted as YYYY-MM-DD
@@ -26,17 +26,12 @@ class ClubElo:
             that date.
         """
         # Check inputs
-        if type(team) is not str:
+        if not isinstance(team, str):
             raise TypeError('`team` must be a string.')
-        if type(date) is not str:
+        if not isinstance(date, str):
             raise TypeError('`date` must be a string.')
-        try:
-            date = datetime.strptime(date, '%Y-%m-%d')
-        except Exception as E:
-            warnings.warn(f'The date {date} is not formatted as YYYY-MM-DD.')
-            raise E
 
-        # use ClubElo API to get team data as Pandas DataFrame
+        # Use ClubElo API to get team data as Pandas DataFrame
         url = f'http://api.clubelo.com/{team}'
         while 1:
             try:
@@ -49,10 +44,11 @@ class ClubElo:
             raise ClubEloInvalidTeamException(team)
 
         # find row that given date falls in
-        for i in df.index:
-            from_date = datetime.strptime(df.loc[i, 'From'], '%Y-%m-%d')
-            to_date = datetime.strptime(df.loc[i, 'To'], '%Y-%m-%d')
-            if (date > from_date and date < to_date) or date == from_date or date == to_date:
-                return df.loc[i, 'Elo']
+        df["From"] = pd.DatetimeIndex(df["From"])
+        df["To"] = pd.DatetimeIndex(df["To"])
+        date_datetime = datetime.strptime(date, '%Y-%m-%d')
+        df = df.loc[(date_datetime >= df["From"]) & (date_datetime <= df["To"])]
 
-        return -1  # return -1 if ELO not found for given date
+        elo = -1 if df.shape[0] == 0 else df["Elo"].values[0]
+
+        return elo  # return -1 if ELO not found for given date
