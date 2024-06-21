@@ -29,14 +29,14 @@ class FiveThirtyEight:
         options.add_experimental_option('prefs', prefs)
         self.driver = webdriver.Chrome(options=options)
         
-    # ==============================================================================================    
+    # ==============================================================================================
     def _webdriver_close(self):
         """ Private, closes the Selenium WebDriver instance.
         """
         self.driver.close()
         self.driver.quit()
         
-    # ==============================================================================================  
+    # ==============================================================================================
     def scrape_matches(self, year, league):
         """ Scrapes matches for the given league season
 

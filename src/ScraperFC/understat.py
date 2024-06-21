@@ -17,10 +17,10 @@ comps = {
 
 
 def _json_from_script(text):
-    data = text.split('JSON.parse(\'')[1].split('\')')[0].encode('utf-8')\
-        .decode('unicode_escape')
+    data = text.split('JSON.parse(\'')[1].split('\')')[0].encode('utf-8').decode('unicode_escape')
     data = json.loads(data)
     return data
+
 
 class Understat:
         
@@ -109,7 +109,7 @@ class Understat:
         """
         _, teams_data, _ = self.scrape_season_data(year, league)
         return [
-            f'https://understat.com/team/{x["title"].replace(" ","_")}/{year.split("/")[0]}' 
+            f'https://understat.com/team/{x["title"].replace(" ", "_")}/{year.split("/")[0]}'
             for x in teams_data.values()
         ]
 
@@ -167,7 +167,7 @@ class Understat:
             matches = pd.DataFrame.from_dict(x['history'])
             newcols = list()
             for c in matches.columns:
-                if isinstance(matches.loc[0,c], dict):
+                if isinstance(matches.loc[0, c], dict):
                     newcols.append(matches[c].apply(pd.Series).add_prefix(f'{c}_'))
                 else:
                     newcols.append(matches[c])
@@ -190,9 +190,9 @@ class Understat:
         # Create initiial league, home, and away tables
         lg_tbl = df.groupby('Team', as_index=False).sum()\
             .sort_values('PTS', ascending=False).reset_index(drop=True)
-        h_tbl = df[df['h_a']=='h'].groupby('Team', as_index=False).sum()\
+        h_tbl = df[df['h_a'] == 'h'].groupby('Team', as_index=False).sum()\
             .sort_values('PTS', ascending=False).reset_index(drop=True)
-        a_tbl = df[df['h_a']=='a'].groupby('Team', as_index=False).sum()\
+        a_tbl = df[df['h_a'] == 'a'].groupby('Team', as_index=False).sum()\
             .sort_values('PTS', ascending=False).reset_index(drop=True)
 
         # Now compute PPDA columns, doing this before groupby().sum() leads to inaccurate values
@@ -213,7 +213,7 @@ class Understat:
 
         # Reorder columns to match Understat
         ordered_cols = [
-            'Team', 'M', 'W', 'D', 'L', 'G', 'GA', 'PTS', 'xG', 'NPxG', 'xGA', 'NPxGA', 'NPxGD', 
+            'Team', 'M', 'W', 'D', 'L', 'G', 'GA', 'PTS', 'xG', 'NPxG', 'xGA', 'NPxGA', 'NPxGD',
             'PPDA', 'OPPDA', 'DC', 'ODC', 'xPTS'
         ]
         lg_tbl = lg_tbl[ordered_cols]
@@ -247,7 +247,8 @@ class Understat:
         if r.status_code == 404:
             warnings.warn(f"404 error for {link}. Returning empty dicts/DataFrames.")
             if as_df:
-                shots_data, match_info, rosters_data = pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
+                shots_data, match_info, rosters_data = pd.DataFrame(), pd.DataFrame(), \
+                    pd.DataFrame()
             else:
                 shots_data, match_info, rosters_data = dict(), dict(), dict()
         else:
@@ -255,8 +256,9 @@ class Understat:
 
             scripts = soup.find_all('script')
             shots_data_tag = [x for x in scripts if 'shotsData' in x.text][0]
-            # v This v should be same as shots data tag but have on it's in case this changes in the future
-            match_info_tag = [x for x in scripts if 'match_info' in x.text][0] 
+            # 2024-06-20 Match info is actually in the shots data tag but have this line separate
+            # in case that changes in the future.
+            match_info_tag = [x for x in scripts if 'match_info' in x.text][0]
             rosters_data_tag = [x for x in scripts if 'rostersData' in x.text][0]
 
             shots_data = _json_from_script(shots_data_tag.text.split('match_info')[0])
@@ -272,11 +274,11 @@ class Understat:
         
         return shots_data, match_info, rosters_data
 
-    # ==============================================================================================    
+    # ==============================================================================================
     def scrape_matches(self, year, league, as_df=False):
-        """ Scrapes all of the matches from the chosen league season. 
+        """ Scrapes all of the matches from the chosen league season.
         
-        Gathers all match links from the chosen league season and then calls scrape_match() on each 
+        Gathers all match links from the chosen league season and then calls scrape_match() on each
         one.
 
         Parameters
@@ -340,7 +342,7 @@ class Understat:
             matches = pd.DataFrame.from_dict(matches)
             newcols = list()
             for c in matches.columns:
-                if isinstance(matches.loc[0,c], dict):
+                if isinstance(matches.loc[0, c], dict):
                     newcols.append(matches[c].apply(pd.Series).add_prefix(f'{c}_'))
                 else:
                     newcols.append(matches[c])
@@ -352,8 +354,13 @@ class Understat:
                     # Drop against because it contains dicts
                     temp = pd.DataFrame.from_dict([v,]).drop(columns='against')
                     # Make the against dict into it's own DF and the concat it to temp
-                    temp = pd.concat([temp, pd.DataFrame.from_dict([v['against'],])\
-                        .add_suffix(f'_against')], axis=1)
+                    temp = pd.concat(
+                        [
+                            temp,
+                            pd.DataFrame.from_dict([v['against'],]).add_suffix('_against')
+                        ],
+                        axis=1
+                    )
                     temp['stat'] = [k,]
                     table.append(temp)
                 team_data[key] = pd.concat(table, axis=0, ignore_index=True)
@@ -378,7 +385,7 @@ class Understat:
         Returns
         -------
         : dict
-            {team_link: {'matches': match data, 'team_data': team stats, 'players_data': 
+            {team_link: {'matches': match data, 'team_data': team stats, 'players_data':
             player stats}, ...}
         """
         team_links = self.get_team_links(year, league)

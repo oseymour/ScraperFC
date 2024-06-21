@@ -3,7 +3,6 @@ from tqdm import tqdm
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import time
 import cloudscraper
 
 TRANSFERMARKT_ROOT = 'https://www.transfermarkt.us'
@@ -24,11 +23,11 @@ comps = {
     'Eredivisie': 'https://www.transfermarkt.us/eredivisie/startseite/wettbewerb/NL1',
     'Scottish PL': 'https://www.transfermarkt.us/scottish-premiership/startseite/wettbewerb/SC1',
     'Super Lig': 'https://www.transfermarkt.us/super-lig/startseite/wettbewerb/TR1',
-    'Jupiler Pro League': 'https://www.transfermarkt.us/jupiler-pro-league/startseite/wettbewerb/BE1',
+    'Jupiler Pro League': 'https://www.transfermarkt.us/jupiler-pro-league/startseite/wettbewerb/BE1',  # noqa: E501
     'Liga Nos': 'https://www.transfermarkt.us/liga-nos/startseite/wettbewerb/PO1',
     'Russian Premier League': 'https://www.transfermarkt.us/premier-liga/startseite/wettbewerb/RU1',
-    'Brasileirao': 'https://www.transfermarkt.us/campeonato-brasileiro-serie-a/startseite/wettbewerb/BRA1',
-    'Argentina Liga Profesional': 'https://www.transfermarkt.us/superliga/startseite/wettbewerb/AR1N',
+    'Brasileirao': 'https://www.transfermarkt.us/campeonato-brasileiro-serie-a/startseite/wettbewerb/BRA1',  # noqa: E501
+    'Argentina Liga Profesional': 'https://www.transfermarkt.us/superliga/startseite/wettbewerb/AR1N',  # noqa: E501
     'MLS': 'https://www.transfermarkt.us/major-league-soccer/startseite/wettbewerb/MLS1'
 }
 
@@ -55,7 +54,7 @@ class Transfermarkt():
         scraper = cloudscraper.CloudScraper()
         soup = BeautifulSoup(scraper.get(comps[league]).content, 'html.parser')
         valid_seasons = dict([
-            (x.text, x['value']) for x in 
+            (x.text, x['value']) for x in
             soup.find('select', {'name': 'saison_id'}).find_all('option')
         ])
         scraper.close()
@@ -84,7 +83,7 @@ class Transfermarkt():
         
         scraper = cloudscraper.CloudScraper()
         soup = BeautifulSoup(
-            scraper.get(f'{comps[league]}/plus/?saison_id={valid_seasons[year]}').content, 
+            scraper.get(f'{comps[league]}/plus/?saison_id={valid_seasons[year]}').content,
             'html.parser'
         )
         club_els = soup.find('table', {'class': 'items'})\
@@ -117,7 +116,7 @@ class Transfermarkt():
             if player_table is not None:
                 player_els = player_table.find_all('td', {'class': 'hauptlink'})
                 p_links = [
-                    TRANSFERMARKT_ROOT + x.find('a')['href'] for x in player_els 
+                    TRANSFERMARKT_ROOT + x.find('a')['href'] for x in player_els
                     if x.find('a') is not None
                 ]
                 player_links += p_links
@@ -137,7 +136,7 @@ class Transfermarkt():
         Returns
         -------
         : DataFrame
-            Each row is a player and contains some of the information from their Transfermarkt 
+            Each row is a player and contains some of the information from their Transfermarkt
             player profile.
         """
         player_links = self.get_player_links(year, league)
@@ -162,10 +161,9 @@ class Transfermarkt():
             1-row dataframe with all of the player details
         """
         r = requests.get(
-            player_link, 
+            player_link,
             headers={
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
-                    '(KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36'  # noqa: E501
             }
         )
         soup = BeautifulSoup(r.content, 'html.parser')
@@ -193,24 +191,24 @@ class Transfermarkt():
             dob, age = None, None
         else:
             dob = ' '.join(dob_el.text.strip().split(' ')[:3])
-            age = int(dob_el.text.strip().split(' ')[-1].replace('(','').replace(')',''))
+            age = int(dob_el.text.strip().split(' ')[-1].replace('(', '').replace(')', ''))
         
         # Height
         height = soup.find('span', {'itemprop': 'height'})
         height = (
-            None if (height is None or height.text.strip() == 'N/A' or height.text.strip() == '- m') 
+            None if (height is None or height.text.strip() == 'N/A' or height.text.strip() == '- m')
             else float(height.text.strip().replace(' m', '').replace(',', '.'))
         )
        
         # Nationality and citizenships
         nationality_el = soup.find('span', {'itemprop': 'nationality'})
-        nationality = nationality_el.getText().replace('\n','').strip()
+        nationality = nationality_el.getText().replace('\n', '').strip()
 
         citizenship_els = soup.find_all(
             'span', {'class': 'info-table__content info-table__content--bold'}
         )
         flag_els = [
-            flag_el for el in citizenship_els 
+            flag_el for el in citizenship_els
             for flag_el in el.find_all('img', {'class': 'flaggenrahmen'})
         ]
         citizenship = list(set([el['title'] for el in flag_els]))
@@ -219,13 +217,13 @@ class Transfermarkt():
         position_el = soup.find('dd', {'class': 'detail-position__position'})
         if position_el is None:
             position_el = [
-                el for el in soup.find_all('li', {'class': 'data-header__label'}) 
+                el for el in soup.find_all('li', {'class': 'data-header__label'})
                 if 'position' in el.text.lower()
-                ][0].find('span')
+            ][0].find('span')
         position = position_el.text.strip()
         try:
             other_positions = [
-                el.text for el in 
+                el.text for el in
                 soup.find('div', {'class': 'detail-position__position'}).find_all('dd')
             ]
         except AttributeError:
@@ -239,14 +237,14 @@ class Transfermarkt():
         data_headers_labels = soup.find_all('span', {'class': 'data-header__label'})
         # Last club
         last_club = [
-            x.text.split(':')[-1].strip() for x in data_headers_labels 
+            x.text.split(':')[-1].strip() for x in data_headers_labels
             if 'last club' in x.text.lower()
         ]
         assert len(last_club) < 2
         last_club = None if len(last_club) == 0 else last_club[0]
         # "Since" date
         since_date = [
-            x.text.split(':')[-1].strip() for x in data_headers_labels 
+            x.text.split(':')[-1].strip() for x in data_headers_labels
             if 'since' in x.text.lower()
         ]
         assert len(since_date) < 2
@@ -259,7 +257,7 @@ class Transfermarkt():
         joined_date = None if len(joined_date) == 0 else joined_date[0]
         # Contract expiration date
         contract_expiration = [
-            x.text.split(':')[-1].strip() for x in data_headers_labels 
+            x.text.split(':')[-1].strip() for x in data_headers_labels
             if 'contract expires' in x.text.lower()
         ]
         assert len(contract_expiration) < 2
@@ -268,12 +266,12 @@ class Transfermarkt():
         # Market value history
         try:
             script = [
-                s for s in soup.find_all('script', {'type': 'text/javascript'}) 
+                s for s in soup.find_all('script', {'type': 'text/javascript'})
                 if 'var chart = new Highcharts.Chart' in str(s)
             ][0]
             values = [int(s.split(',')[0]) for s in str(script).split('y\':')[2:-2]]
             dates = [
-                s.split('datum_mw\':')[-1].split(',\'x')[0].replace('\\x20',' ').replace('\'', '')
+                s.split('datum_mw\':')[-1].split(',\'x')[0].replace('\\x20', ' ').replace('\'', '')
                 for s in str(script).split('y\':')[2:-2]
             ]
             market_value_history = pd.DataFrame({'date': dates, 'value': values})
@@ -283,7 +281,7 @@ class Transfermarkt():
         # Transfer History
         rows = soup.find_all('div', {'class': 'grid tm-player-transfer-history-grid'})
         transfer_history = pd.DataFrame(
-            data=[[s.strip() for s in row.getText().split('\n\n') if s!=''] for row in rows],
+            data=[[s.strip() for s in row.getText().split('\n\n') if s != ''] for row in rows],
             columns=['Season', 'Date', 'Left', 'Joined', 'MV', 'Fee', '']
         ).drop(
             columns=['']
@@ -309,4 +307,3 @@ class Transfermarkt():
         player['Transfer history'] = transfer_history
 
         return player.to_frame().T
-        

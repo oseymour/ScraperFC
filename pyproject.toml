@@ -20,8 +20,8 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "botasaurus", "bs4", "cloudscraper", "datetime", "ipython", "lxml", "numpy", "pandas", 
-    "requests", "selenium", "tqdm"
+    "botasaurus", "bs4", "cloudscraper", "datetime", "lxml", "numpy", "pandas", "requests",
+    "selenium", "tqdm"
 ]
 
 [project.optional-dependencies]
@@ -50,6 +50,12 @@ branch = true
 [tool.coverage.report]
 show_missing = true
 
+# -- Linting ---------------------------------------------------------------------------------------
+[tool.pylama]
+max_line_length = 100
+skip = "*oddsportal.py,*__init__.py"
+ignore = "W293"
+
 # -- Tox environments ------------------------------------------------------------------------------
 [tool.tox]
 legacy_tox_ini = """
@@ -61,7 +67,9 @@ legacy_tox_ini = """
     deps = 
         pytest
         pytest-cov
-    commands = pytest
+    commands = 
+        python -m pip list
+        pytest
 
     [testenv:docs]
     deps = 
@@ -74,4 +82,11 @@ legacy_tox_ini = """
     deps = 
         build
     commands = python -m build
+
+    [testenv:lint]
+    skip_install = true
+    deps = 
+        setuptools  # to get pkg_resources
+        pylama[toml]  # install toml so config loaded from pyproject.toml
+    commands = pylama ./src/ScraperFC/
 """

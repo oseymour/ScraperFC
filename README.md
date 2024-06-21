@@ -1,23 +1,23 @@
 <p align="center">
-  <img src="https://github.com/oseymour/ScraperFC/blob/main/docs/source/images/ScraperFC-Logo-Final-2023-10-11 copy-Full-Color.svg?raw=true" alt="ScraperFC logo. The text 'ScraperFC' with some lines, X's, and O's around it. Meant to look similar to a tactics board or diagram.">
+  <img src="https://github.com/oseymour/ScraperFC/blob/main/docs/source/images/ScraperFC-Logo-Final-2023-10-11 copy-Full-Color.svg?raw=true" alt="ScraperFC logo. The text 'ScraperFC' with some lines, X's, and O's around it. Meant to look similar to a tactics board or diagram."></img>
 </p>
 <p align="center">
   <a href="https://pypi.org/project/ScraperFC/">
-    <img src="https://img.shields.io/pypi/v/scraperfc.svg", alt="pypi version badge">
+    <img src="https://img.shields.io/pypi/v/scraperfc.svg", alt="pypi version badge"></img>
   </a>
- <a href="https://scraperfc.readthedocs.io/en/latest/">
-    <img src="https://readthedocs.org/projects/nrc4d/badge/?version=latest" alt="documentation status badge"/>
+  <a href="https://scraperfc.readthedocs.io/en/latest/">
+    <img src="https://readthedocs.org/projects/nrc4d/badge/?version=latest" alt="documentation status badge"/></img>
   </a>
   <a href="https://pypi.org/project/ScraperFC/">
-    <img src="https://img.shields.io/pypi/dm/ScraperFC.svg" alt="monthly pypi downloads badge"/>
+    <img src="https://img.shields.io/pypi/dm/ScraperFC.svg" alt="monthly pypi downloads badge"/></img>
   </a>
 </p>
 <p align="center">
   <a href=https://discord.com/invite/C5N8dqCJAq>
-    <img src="https://dcbadge.limes.pink/api/server/C5N8dqCJAq" alt="Discord invite link badge">
+    <img src="https://dcbadge.limes.pink/api/server/C5N8dqCJAq" alt="Discord invite link badge"></img>
   </a>
   <a href="https://buymeacoffee.com/oseymour">
-    <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee badge">
+    <img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy Me A Coffee badge"></img>
   </a>
 </p>
 

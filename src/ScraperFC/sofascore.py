@@ -1,5 +1,3 @@
-# import requests
-import json
 import pandas as pd
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from botasaurus.request import request, Request
@@ -36,6 +34,7 @@ comps = {
     "Women's World Cup": 290
 }
 
+
 @request(output=None, create_error_logs=False)
 def _botasaurus_get(request: Request, url):
     """ Sofascore introduced some anti-scraping measures. Using Botasaurus gets around them.
@@ -47,21 +46,22 @@ def _botasaurus_get(request: Request, url):
 
 
 class Sofascore:
+    
     # ==============================================================================================
     def __init__(self):
         self.league_stats_fields = [
-            'goals', 'yellowCards', 'redCards', 'groundDuelsWon', 'groundDuelsWonPercentage', 
+            'goals', 'yellowCards', 'redCards', 'groundDuelsWon', 'groundDuelsWonPercentage',
             'aerialDuelsWon', 'aerialDuelsWonPercentage', 'successfulDribbles',
-            'successfulDribblesPercentage', 'tackles', 'assists', 'accuratePassesPercentage', 
+            'successfulDribblesPercentage', 'tackles', 'assists', 'accuratePassesPercentage',
             'totalDuelsWon', 'totalDuelsWonPercentage', 'minutesPlayed', 'wasFouled', 'fouls',
-            'dispossessed', 'possesionLost', 'appearances', 'started', 'saves', 'cleanSheets', 
-            'savedShotsFromInsideTheBox', 'savedShotsFromOutsideTheBox', 
-            'goalsConcededInsideTheBox', 'goalsConcededOutsideTheBox', 'highClaims', 
-            'successfulRunsOut', 'punches', 'runsOut', 'accurateFinalThirdPasses', 
-            'bigChancesCreated', 'accuratePasses', 'keyPasses', 'accurateCrosses', 
-            'accurateCrossesPercentage', 'accurateLongBalls', 'accurateLongBallsPercentage', 
-            'interceptions', 'clearances', 'dribbledPast', 'bigChancesMissed', 'totalShots', 
-            'shotsOnTarget', 'blockedShots', 'goalConversionPercentage', 'hitWoodwork', 'offsides', 
+            'dispossessed', 'possesionLost', 'appearances', 'started', 'saves', 'cleanSheets',
+            'savedShotsFromInsideTheBox', 'savedShotsFromOutsideTheBox',
+            'goalsConcededInsideTheBox', 'goalsConcededOutsideTheBox', 'highClaims',
+            'successfulRunsOut', 'punches', 'runsOut', 'accurateFinalThirdPasses',
+            'bigChancesCreated', 'accuratePasses', 'keyPasses', 'accurateCrosses',
+            'accurateCrossesPercentage', 'accurateLongBalls', 'accurateLongBallsPercentage',
+            'interceptions', 'clearances', 'dribbledPast', 'bigChancesMissed', 'totalShots',
+            'shotsOnTarget', 'blockedShots', 'goalConversionPercentage', 'hitWoodwork', 'offsides',
             'expectedGoals', 'errorLeadToGoal', 'errorLeadToShot', 'passToAssist'
         ]
         self.concatenated_fields = '%2C'.join(self.league_stats_fields)
@@ -95,7 +95,7 @@ class Sofascore:
 
         Parameters
         ----------
-        year : str 
+        year : str
             See the :ref:`sofascore_year` `year` parameter docs for details.
         league : str
             League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
@@ -115,7 +115,7 @@ class Sofascore:
         i = 0
         while 1:
             response = _botasaurus_get(
-                f'{API_PREFIX}/unique-tournament/{comps[league]}/season/{valid_seasons[year]}/'+\
+                f'{API_PREFIX}/unique-tournament/{comps[league]}/season/{valid_seasons[year]}/' +
                 f'events/last/{i}'
             )
             if response.status_code != 200:
@@ -127,7 +127,7 @@ class Sofascore:
 
     # ==============================================================================================
     def get_match_id_from_url(self, match_url):
-        """ Get match id from a Sofascore match URL. 
+        """ Get match id from a Sofascore match URL.
         
         This can also be found in the 'id' key of the dict returned from get_match_dict().
 
@@ -152,7 +152,7 @@ class Sofascore:
 
         Parameters
         ----------
-        match_id : int 
+        match_id : int
             Sofascore match ID
 
         Returns
@@ -161,7 +161,7 @@ class Sofascore:
             URL to the Sofascore match
         """
         match_dict = self.get_match_dict(match_id)
-        return f"https://www.sofascore.com/{match_dict['homeTeam']['slug']}-"+\
+        return f"https://www.sofascore.com/{match_dict['homeTeam']['slug']}-" +\
             f"{match_dict['awayTeam']['slug']}/{match_dict['customId']}#id:{match_dict['id']}"
 
     # ==============================================================================================
@@ -196,7 +196,7 @@ class Sofascore:
 
         Returns
         -------
-        : tuple of str 
+        : tuple of str
             Name of home and away team.
         """
         data = self.get_match_dict(match)
@@ -240,7 +240,7 @@ class Sofascore:
 
         Returns
         -------
-        : dict 
+        : dict
             Name and ID of every player in the match, {name: id, ...}
         """
         if not isinstance(match, int) and not isinstance(match, str):
@@ -263,19 +263,19 @@ class Sofascore:
     
     # ==============================================================================================
     def scrape_player_league_stats(
-        self, year, league, accumulation='total', 
+        self, year, league, accumulation='total',
         selected_positions=['Goalkeepers', 'Defenders', 'Midfielders', 'Forwards']
     ):
         """ Get every player statistic that can be asked in league pages on Sofascore.
 
         Parameters
         ----------
-        tournament : str 
+        tournament : str
             Name of the competition
         season : str
             Season selected
         accumulation : str, optional
-            Value of the filter accumulation. Can be "per90", "perMatch", or "total". Defaults to 
+            Value of the filter accumulation. Can be "per90", "perMatch", or "total". Defaults to
             "total".
         selected_positions : list of str, optional
             Value of the filter positions. Defaults to ["Goalkeepers", "Defenders", "Midfielders",
@@ -304,11 +304,11 @@ class Sofascore:
         offset = 0
         results = list()
         while 1:
-            request_url = f'https://api.sofascore.com/api/v1'+\
-                f'/unique-tournament/{league_id}/season/{season_id}/statistics'+\
-                f'?limit=100&offset={offset}'+\
-                f'&accumulation={accumulation}'+\
-                f'&fields={self.concatenated_fields}'+\
+            request_url = 'https://api.sofascore.com/api/v1' +\
+                f'/unique-tournament/{league_id}/season/{season_id}/statistics' +\
+                f'?limit=100&offset={offset}' +\
+                f'&accumulation={accumulation}' +\
+                f'&fields={self.concatenated_fields}' +\
                 f'&filters=position.in.{positions}'
             response = _botasaurus_get(request_url)
             results += response.json()['results']
@@ -317,7 +317,7 @@ class Sofascore:
                 break
             offset += 100
 
-        # Convert the player dicts to a dataframe. Dataframe will be empty if there aren't any 
+        # Convert the player dicts to a dataframe. Dataframe will be empty if there aren't any
         # player stats
         if len(results) == 0:
             df = pd.DataFrame()
@@ -410,7 +410,7 @@ class Sofascore:
             temp = pd.DataFrame(players)
             columns = list()
             for c in temp.columns:
-                if isinstance(temp.loc[0,c], dict):
+                if isinstance(temp.loc[0, c], dict):
                     # Break dicts into series
                     columns.append(temp[c].apply(pd.Series, dtype=object))
                 else:
@@ -421,10 +421,9 @@ class Sofascore:
             df = pd.DataFrame()
         return df
 
-    
     # ==============================================================================================
     def scrape_player_average_positions(self, match):
-        """Return player averages positions for each team
+        """ Return player averages positions for each team
 
         Parameters
         ----------
@@ -433,8 +432,8 @@ class Sofascore:
 
         Returns
         -------
-        : DataFrame 
-            Each row is a player and columns averageX and averageY denote their average position on 
+        : DataFrame
+            Each row is a player and columns averageX and averageY denote their average position on
             the match.
         """
         if not isinstance(match, int) and not isinstance(match, str):
@@ -471,7 +470,7 @@ class Sofascore:
         Returns
         -------
         : dict
-            Dict of players, their IDs and their heatmap coordinates, {player name: {'id': 
+            Dict of players, their IDs and their heatmap coordinates, {player name: {'id':
             player_id, 'heatmap': heatmap}, ...}
         """
         if not isinstance(match, int) and not isinstance(match, str):
@@ -483,6 +482,6 @@ class Sofascore:
             player_id = players[player]
             response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap')
             heatmap = [(z['x'], z['y']) for z in response.json()['heatmap']]\
-                if response.status_code == 200 else []    
+                if response.status_code == 200 else []
             players[player] = {'id': player_id, 'heatmap': heatmap}
         return players

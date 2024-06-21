@@ -7,8 +7,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-import re
-from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException,\
+from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException, \
     InvalidYearException
 from io import StringIO
 
@@ -29,6 +28,7 @@ comps = {
     "Super Lig":  {'url': 'tr/super-lig'},
     "Belgian 1st Division":  {'url': 'be/first-division-a'},
 }
+
 
 class Capology():
 
@@ -68,13 +68,13 @@ class Capology():
         : str
             String URL
         """
-        if type(league) is not str:
+        if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Capology', list(comps.keys()))
-        
+
         return f'https://www.capology.com/{comps[league]["url"]}/salaries/'
-    
+
     # ==============================================================================================
     def get_valid_seasons(self, league):
         """ Returns valid season strings for the chosen league
@@ -89,13 +89,13 @@ class Capology():
         : list of str
             List of valid year strings for this league
         """
-        if type(league) is not str:
+        if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Capology', list(comps.keys()))
-        
+
         soup = BeautifulSoup(
-            requests.get(self.get_league_url(league)).content, 
+            requests.get(self.get_league_url(league)).content,
             'html.parser'
         )
         seasons = [
@@ -103,7 +103,7 @@ class Capology():
                 soup.find('select', {'id': 'nav-submenu2'}).find_all('option', value=True)
             )
         ]
-        
+
         return seasons
 
     # ==============================================================================================
@@ -122,19 +122,19 @@ class Capology():
         : str
             String URL
         """
-        if type(year) is not str:
+        if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons:
             raise InvalidYearException(year, league, valid_seasons)
         soup = BeautifulSoup(
-            requests.get(self.get_league_url(league)).content, 
+            requests.get(self.get_league_url(league)).content,
             'html.parser'
         )
         value = [
             x['value'] for x in (
                 soup.find('select', {'id': 'nav-submenu2'}).find_all('option', value=True)
-            ) 
+            )
             if x.text == year
         ][0]
         return f'https://capology.com{value}'
@@ -151,14 +151,14 @@ class Capology():
             League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
             valid leagues for this module.
         currency : str
-            The currency for the returned salaries. Options are "eur" for Euro, "gbp" for British 
+            The currency for the returned salaries. Options are "eur" for Euro, "gbp" for British
             Pound, and "USD" for US Dollar
         Returns
         -------
         : DataFrame
             The salaries of all players in the given league season
         """
-        if type(currency) is not str:
+        if not isinstance(currency, str):
             raise TypeError('`currency` must be a string.')
         if currency not in self.valid_currencies:
             raise InvalidCurrencyException()
@@ -192,19 +192,20 @@ class Capology():
             if df.shape[1] == 13:
                 df = df.drop(columns=[1])  # drop check-mark column
                 df.columns = [
-                    'Player', 'Weekly Gross', 'Annual Gross', 'Expiration', 'Length', 'Total Gross', 
+                    'Player', 'Weekly Gross', 'Annual Gross', 'Expiration', 'Length', 'Total Gross',
                     'Status', 'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
                 ]
             elif df.shape[1] == 17:
-                df = df.drop(columns=[1,16])  # drop check-mark column and True/False column (not sure what this one is)
+                # drop check-mark column and True/False column (not sure what this one is)
+                df = df.drop(columns=[1, 16])
                 df.columns = [
-                    'Player', 'Weekly Gross', 'Annual Gross', 'Annual Bonus', 'Signed', 
-                    'Expiration', 'Years Reamining', 'Gross Remaining', 'Release Clause', 'Status', 
+                    'Player', 'Weekly Gross', 'Annual Gross', 'Annual Bonus', 'Signed',
+                    'Expiration', 'Years Reamining', 'Gross Remaining', 'Release Clause', 'Status',
                     'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
                 ]
             else:
                 df.columns = [
-                    'Player', 'Weekly Gross', 'Annual Gross', 'Adj. Gross', 'Pos. group', 'Age', 
+                    'Player', 'Weekly Gross', 'Annual Gross', 'Adj. Gross', 'Pos. group', 'Age',
                     'Country', 'Club'
                 ]
 
@@ -224,14 +225,14 @@ class Capology():
         # Parameters
         # ----------
         # year : str
-        #     Season to be scraped (e.g, "2020-21"). Please use the same string that is in the 
-        #     season dropdown on the Capology website. Call 
+        #     Season to be scraped (e.g, "2020-21"). Please use the same string that is in the
+        #     season dropdown on the Capology website. Call
         #     ScraperFC.Capology.get_valid_seasons(league) to see valid seasons for a league.
         # league : str
         #     League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
         #     valid leagues for this module.
         # currency : str
-        #     The currency for the returned salaries. Options are "eur" for Euro, "gbp" for British 
+        #     The currency for the returned salaries. Options are "eur" for Euro, "gbp" for British
         #     Pound, and "USD" for US Dollar
         # Returns
         # -------
@@ -260,8 +261,9 @@ class Capology():
         #     )
         #     df = pd.read_html(StringIO(table.get_attribute('outerHTML')))[0]
         #     # df.columns = [
-        #     #     'Club', 'Weekly Gross (000s)', 'Annual Gross (000s)', 'Inflcation-Adj. Gross (000s)',
-        #     #     'Keeper (000s)', 'Defense (000s)', 'Midfield (000s)', 'Forward (000s)'
+        #     #     'Club', 'Weekly Gross (000s)', 'Annual Gross (000s)',
+        #     #     'Inflcation-Adj. Gross (000s)', 'Keeper (000s)', 'Defense (000s)',
+        #     #     'Midfield (000s)', 'Forward (000s)'
         #     # ]
 
         #     return df

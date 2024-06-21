@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from .scraperfc_exceptions import InvalidYearException, InvalidLeagueException,\
+from .scraperfc_exceptions import InvalidYearException, InvalidLeagueException, \
     NoMatchLinksException
 import time
 import numpy as np
@@ -185,7 +185,7 @@ class FBref():
         response = requests.get(url)
         time.sleep(self.wait_time)
         return response
-    
+
     # ==============================================================================================
     def _driver_get(self, url):
         """ Private, calls driver.get() and enforces FBref's wait time.
@@ -205,10 +205,10 @@ class FBref():
             module file and look at the keys.
         Returns
         -------
-        : dict 
+        : dict
             {year: URL, ...}, URLs need to be appended to "https://fbref.com" to be a complete URL.
         """
-        if type(league) is not str:
+        if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'FBref', list(comps.keys()))
@@ -239,13 +239,13 @@ class FBref():
         : str
             URL to the FBref page of the chosen league season
         """
-        if type(year) is not str:
+        if not isinstance(year, str):
             raise TypeError('`year` must be a string or int.')
-        if type(league) is not str:
+        if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'FBref', list(comps.keys()))
-        
+
         seasons = self.get_valid_seasons(league)
 
         if year not in seasons:
@@ -270,9 +270,9 @@ class FBref():
         : list of str
             FBref links to all matches for the chosen league season
         """
-        if type(year) is not str:
+        if not isinstance(year, str):
             raise TypeError('`year` must be a string or int.')
-        if type(league) is not str:
+        if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'FBref', list(comps.keys()))
@@ -297,13 +297,13 @@ class FBref():
             raise NoMatchLinksException(year, league, fixtures_url)
         for x in possible_els:
             a = x.find('a')
-            if (a is not None 
-                    and 'match' in a['href'] 
+            if (a is not None
+                    and 'match' in a['href']
                     and np.any([f in a['href'] for f in comps[league]['finders']])):
                 match_urls.append('https://fbref.com' + a['href'])
         match_urls = list(set(match_urls))
         return match_urls
-    
+
     # ==============================================================================================
     def scrape_league_table(self, year, league):
         """ Scrapes the league table of the chosen league season
@@ -333,11 +333,11 @@ class FBref():
                 # Add the df to tables
                 tables.append(df)
         return tables
-    
+
     # ==============================================================================================
     def scrape_match(self, link):
         """ Scrapes an FBref match page.
-        
+
         Parameters
         ----------
         link : str
@@ -346,10 +346,10 @@ class FBref():
         -------
         : DataFrame
             DataFrame containing most parts of the match page if they're available (e.g. formations,
-            lineups, scores, player stats, etc.). The fields that are available vary by competition 
+            lineups, scores, player stats, etc.). The fields that are available vary by competition
             and year.
         """
-        if type(link) is not str:
+        if not isinstance(link, str):
             raise TypeError('`link` must be a string.')
 
         soup = BeautifulSoup(self._get(link).content, 'html.parser')
@@ -396,7 +396,7 @@ class FBref():
             passing_df = (pd.read_html(StringIO(str(passing_tag[0])))[0]
                           if len(passing_tag) == 1 else None)
 
-            pass_types_tag = soup.find_all('table', 
+            pass_types_tag = soup.find_all('table',
                                            {'id': re.compile(f'stats_{team_id}_passing_types')})
             assert len(pass_types_tag) < 2
             pass_types_df = (pd.read_html(StringIO(str(pass_types_tag[0])))[0]
@@ -407,7 +407,7 @@ class FBref():
             defense_df = (pd.read_html(StringIO(str(defense_tag[0])))[0]
                           if len(defense_tag) == 1 else None)
 
-            possession_tag = soup.find_all('table', 
+            possession_tag = soup.find_all('table',
                                            {'id': re.compile(f'stats_{team_id}_possession')})
             assert len(possession_tag) < 2
             possession_df = (pd.read_html(StringIO(str(possession_tag[0])))[0]
@@ -417,10 +417,10 @@ class FBref():
             assert len(misc_tag) < 2
             misc_df = (pd.read_html(StringIO(str(misc_tag[0])))[0]
                        if len(misc_tag) == 1 else None)
-            
+
             lineup_df = (pd.read_html(StringIO(str(lineup_tags[i])))[0]
                          if len(lineup_tags) != 0 else None)
-            
+
             # Field player ID's for the stats tables -----------------------------------------------
             # Note: if a coach gets a yellow/red card, they appear in the player
             # stats tables, in their own row, at the  bottom.
@@ -436,7 +436,7 @@ class FBref():
                         # coaches and the summary row have now a subel (and no player id)
                         player_id = ''
                     player_ids.append(player_id)
-                
+
                 summary_df['Player ID'] = player_ids
                 if passing_df is not None:
                     passing_df['Player ID'] = player_ids
@@ -462,7 +462,7 @@ class FBref():
                                   'GK': gk_df, 'Passing': passing_df,
                                   'Pass Types': pass_types_df, 'Defense': defense_df,
                                   'Possession': possession_df, 'Misc': misc_df}
-            
+
         # Shots ------------------------------------------------------------------------------------
         both_shots = soup.find_all('table', {'id': 'shots_all'})
         if len(both_shots) == 1:
@@ -482,7 +482,7 @@ class FBref():
             away_shots = away_shots[~away_shots.isna().all(axis=1)]
         else:
             away_shots = None
-            
+
         # Expected stats flag ----------------------------------------------------------------------
         expected = 'Expected' in player_stats['Home']['Summary'].columns.get_level_values(0)
 
@@ -510,17 +510,17 @@ class FBref():
         match['Away Goals'] = int(scores[1].getText()) if scores[1].getText().isdecimal() else None
         match['Home Ast'] = player_stats['Home']['Summary'][('Performance', 'Ast')].values[-1]
         match['Away Ast'] = player_stats['Away']['Summary'][('Performance', 'Ast')].values[-1]
-        match['Home xG'] = (player_stats['Home']['Summary'][('Expected', 'xG')].values[-1] 
+        match['Home xG'] = (player_stats['Home']['Summary'][('Expected', 'xG')].values[-1]
                             if expected else None)
-        match['Away xG'] = (player_stats['Away']['Summary'][('Expected', 'xG')].values[-1] 
+        match['Away xG'] = (player_stats['Away']['Summary'][('Expected', 'xG')].values[-1]
                             if expected else None)
-        match['Home npxG'] = (player_stats['Home']['Summary'][('Expected', 'npxG')].values[-1] 
+        match['Home npxG'] = (player_stats['Home']['Summary'][('Expected', 'npxG')].values[-1]
                               if expected else None)
-        match['Away npxG'] = (player_stats['Away']['Summary'][('Expected', 'npxG')].values[-1] 
+        match['Away npxG'] = (player_stats['Away']['Summary'][('Expected', 'npxG')].values[-1]
                               if expected else None)
-        match['Home xAG'] = (player_stats['Home']['Summary'][('Expected', 'xAG')].values[-1] 
+        match['Home xAG'] = (player_stats['Home']['Summary'][('Expected', 'xAG')].values[-1]
                              if expected else None)
-        match['Away xAG'] = (player_stats['Away']['Summary'][('Expected', 'xAG')].values[-1] 
+        match['Away xAG'] = (player_stats['Away']['Summary'][('Expected', 'xAG')].values[-1]
                              if expected else None)
         match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame().T
         match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame().T
@@ -534,9 +534,9 @@ class FBref():
     # ==============================================================================================
     def scrape_matches(self, year, league):
         """ Scrapes the FBref standard stats page of the chosen league season.
-            
-        Works by gathering all of the match URL's from the homepage of the chosen 
-        league season on FBref and then calling scrape_match() on each one.
+
+        Works by gathering all of the match URL's from the homepage of the chosen league season on
+        FBref and then calling scrape_match() on each one.
 
         Parameters
         ----------
@@ -566,9 +566,9 @@ class FBref():
     # ==============================================================================================
     def scrape_stats(self, year, league, stat_category):
         """ Scrapes a single stats category
-        
+
         Adds team and player ID columns to the stats tables
-        
+
         Parameters
         ----------
         year : str
@@ -584,23 +584,23 @@ class FBref():
         : tuple of DataFrames
             (squad_stats, opponent_stats, player_stats)
         """
-        
+
         # Verify valid stat category
         if stat_category not in stats_categories.keys():
             raise ValueError((f'"{stat_category}" is not a valid FBref stats category. '
                               f'Must be one of {list(stats_categories.keys())}.'))
-        
+
         season_url = self.get_season_link(year, league)
-        
+
         if league == 'Big 5 combined':
             # Big 5 combined has separate pages for squad and player stats
             # Make the URLs to these pages
             first_half = '/'.join(season_url.split('/')[:-1])
             second_half = season_url.split('/')[-1]
             stats_category_url_filler = stats_categories[stat_category]['url']
-            players_stats_url = '/'.join([first_half, stats_category_url_filler, 'players', 
+            players_stats_url = '/'.join([first_half, stats_category_url_filler, 'players',
                                           second_half])
-            squads_stats_url = '/'.join([first_half, stats_category_url_filler, 'squads', 
+            squads_stats_url = '/'.join([first_half, stats_category_url_filler, 'squads',
                                          second_half])
 
             # Get the soups from the 2 pages
@@ -611,15 +611,16 @@ class FBref():
             squad_stats_tag = squads_soup.find('table', {'id': re.compile('for')})
             opponent_stats_tag = squads_soup.find('table', {'id': re.compile('against')})
             player_stats_tag = players_soup.find(
-                'table', 
-                {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')})
+                'table',
+                {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')}
+            )
 
             # Gather squad and opponent squad IDs
             # These are 'td' elements for Big 5
-            squad_ids = [tag.find('a')['href'].split('/')[3] for tag 
+            squad_ids = [tag.find('a')['href'].split('/')[3] for tag
                          in squad_stats_tag.find_all('td', {'data-stat': 'team'})
                          if tag and tag.find('a')]
-            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag 
+            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag
                             in opponent_stats_tag.find_all('td', {'data-stat': 'team'})
                             if tag and tag.find('a')]
 
@@ -634,7 +635,7 @@ class FBref():
                 self._driver_get(new_url)
                 # Wait until player stats table is loaded
                 WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((
-                    By.XPATH, 
+                    By.XPATH,
                     f'//table[contains(@id, "stats_{stats_categories[stat_category]["html"]}")]')))
                 soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             finally:
@@ -648,30 +649,30 @@ class FBref():
 
             # Gather squad and opponent squad IDs
             # These are 'th' elements for all other leagues
-            squad_ids = [tag.find('a')['href'].split('/')[3] for tag 
+            squad_ids = [tag.find('a')['href'].split('/')[3] for tag
                          in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
                          if tag and tag.find('a')]
-            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag 
+            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag
                             in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
                             if tag and tag.find('a')]
-            
+
         # Get stats dataframes
-        squad_stats = (pd.read_html(StringIO(str(squad_stats_tag)))[0] 
+        squad_stats = (pd.read_html(StringIO(str(squad_stats_tag)))[0]
                        if squad_stats_tag is not None else None)
-        opponent_stats = (pd.read_html(StringIO(str(opponent_stats_tag)))[0] 
+        opponent_stats = (pd.read_html(StringIO(str(opponent_stats_tag)))[0]
                           if opponent_stats_tag is not None else None)
-        player_stats = (pd.read_html(StringIO(str(player_stats_tag)))[0] 
+        player_stats = (pd.read_html(StringIO(str(player_stats_tag)))[0]
                         if player_stats_tag is not None else None)
 
         # Drop rows that contain duplicated table headers, add team/player IDs
         if squad_stats is not None:
-            squad_drop_mask = (~squad_stats.loc[:, (slice(None), 'Squad')].isna() 
+            squad_drop_mask = (~squad_stats.loc[:, (slice(None), 'Squad')].isna()
                                & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad'))
             squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
             squad_stats['Team ID'] = squad_ids
-        
+
         if opponent_stats is not None:
-            opponent_drop_mask = (~opponent_stats.loc[:, (slice(None), 'Squad')].isna() 
+            opponent_drop_mask = (~opponent_stats.loc[:, (slice(None), 'Squad')].isna()
                                   & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad'))
             opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
             opponent_stats['Team ID'] = opponent_ids
@@ -679,24 +680,24 @@ class FBref():
         if player_stats is not None:
             keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values
             player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
-        
+
         # Add player links and ID's
         if player_stats is not None:
-            player_links = ['https://fbref.com' + tag.find('a')['href'] for tag 
+            player_links = ['https://fbref.com' + tag.find('a')['href'] for tag
                             in player_stats_tag.find_all('td', {'data-stat': 'player'})
                             if tag and tag.find('a')]
             player_stats['Player Link'] = player_links
             player_stats['Player ID'] = [x.split('/')[-2] for x in player_links]
-        
+
         return squad_stats, opponent_stats, player_stats
-    
+
     # ==============================================================================================
     def scrape_all_stats(self, year, league):
         """ Scrapes all stat categories
-        
-        Runs scrape_stats() for each stats category on dumps the returned tuple 
+
+        Runs scrape_stats() for each stats category on dumps the returned tuple
         of dataframes into a dict.
-        
+
         Parameters
         ----------
         year : str
@@ -707,13 +708,13 @@ class FBref():
             module file and look at the keys.
         Returns
         -------
-        : dict 
-            {stat category: tuple of DataFrame, ...}, Tuple is (squad_stats, opponent_stats, 
+        : dict
+            {stat category: tuple of DataFrame, ...}, Tuple is (squad_stats, opponent_stats,
             player_stats)
         """
         return_package = dict()
         for stat_category in tqdm(stats_categories, desc=f'{year} {league} stats'):
             stats = self.scrape_stats(year, league, stat_category)
             return_package[stat_category] = stats
-            
+
         return return_package
