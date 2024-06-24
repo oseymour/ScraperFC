@@ -352,187 +352,95 @@ class FBref():
         if not isinstance(link, str):
             raise TypeError('`link` must be a string.')
 
-        soup = BeautifulSoup(self._get(link).content, 'html.parser')
-        # Matchweek/stage --------------------------------------------------------------------------
-        stage_el = list(soup.find('a', {'href': re.compile('-Stats')}, string=True).parents)[0]
-        stage_text = stage_el.getText().split('(')[1].split(')')[0].strip()
-        if 'matchweek' in stage_text:
-            stage = int(stage_text.lower().replace('matchweek', '').strip())
-        else:
-            stage = stage_text
+        r = self._get(link)
+        soup = BeautifulSoup(r.content, 'html.parser')
 
-        # Team names and ids -----------------------------------------------------------------------
-        team_els = [el.find('a') for el
-                    in soup.find('div', {'class': 'scorebox'}).find_all('strong')
-                    if el.find('a', href=True) is not None][:2]
-        home_team_name = team_els[0].getText()
-        home_team_id = team_els[0]['href'].split('/')[3]
-        away_team_name = team_els[1].getText()
-        away_team_id = team_els[1]['href'].split('/')[3]
+        # General match info
+        date = soup.find("div", {"class": "scorebox_meta"}).find("strong").text  # type: ignore
+        stage = soup.find("div", {"role": "main"}).find("div").text  # type: ignore
 
-        # Scores -----------------------------------------------------------------------------------
-        scores = soup.find('div', {'class': 'scorebox'}).find_all('div', {'class': 'score'})
+        # Team names, IDs, goals, and xG
+        team_els = soup.find("div", {"class": "scorebox"}).find_all("div", recursive=False)  # type: ignore
+        home_el, away_el = team_els[0], team_els[1]
 
-        # Formations -------------------------------------------------------------------------------
-        lineup_tags = [tag.find('table') for tag in soup.find_all('div', {'class': 'lineup'})]
+        home_name = home_el.find("div").text.strip()
+        home_id = home_el.find("div").find("strong").find("a")["href"].split("/")[3]
+        home_goals = int(home_el.find("div", {"class": "score"}).text)
 
-        # Player stats -----------------------------------------------------------------------------
-        # Use table ID's to find the appropriate table. More flexible than xpath
-        player_stats = dict()
-        for i, (team, team_id) in enumerate([('Home', home_team_id), ('Away', away_team_id)]):
+        away_name = away_el.find("div").text.strip()
+        away_id = away_el.find("div").find("strong").find("a")["href"].split("/")[3]
+        away_goals = int(away_el.find("div", {"class": "score"}).text)
 
-            summary_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_summary')})
-            assert len(summary_tag) < 2
-            summary_df = (pd.read_html(StringIO(str(summary_tag[0])))[0]
-                          if len(summary_tag) == 1 else None)
+        # Outfield player stats tables
+        home_player_stats_tag, away_player_stats_tag = soup.find_all(
+            "div", {"id": re.compile("all_player_stats")}
+        )
+        home_player_stats_table_tags = home_player_stats_tag\
+            .find_all("table", re.compile("stats_"))
+        away_player_stats_table_tags = away_player_stats_tag\
+            .find_all("table", re.compile("stats_"))
 
-            gk_tag = soup.find_all('table', {'id': re.compile(f'keeper_stats_{team_id}')})
-            assert len(gk_tag) < 2
-            gk_df = (pd.read_html(StringIO(str(gk_tag[0])))[0]
-                     if len(gk_tag) == 1 else None)
+        home_player_stats_dict = dict()
+        for table_tag in home_player_stats_table_tags:
+            table_name = " ".join(table_tag["id"].split("_")[2:]).capitalize()
+            table_df = pd.read_html(StringIO(str(table_tag)))[0]
+            home_player_stats_dict[table_name] = table_df
 
-            passing_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_passing$')})
-            assert len(passing_tag) < 2
-            passing_df = (pd.read_html(StringIO(str(passing_tag[0])))[0]
-                          if len(passing_tag) == 1 else None)
+        away_player_stats_dict = dict()
+        for table_tag in away_player_stats_table_tags:
+            table_name = " ".join(table_tag["id"].split("_")[2:]).capitalize()
+            table_df = pd.read_html(StringIO(str(table_tag)))[0]
+            away_player_stats_dict[table_name] = table_df
 
-            pass_types_tag = soup.find_all('table',
-                                           {'id': re.compile(f'stats_{team_id}_passing_types')})
-            assert len(pass_types_tag) < 2
-            pass_types_df = (pd.read_html(StringIO(str(pass_types_tag[0])))[0]
-                             if len(pass_types_tag) == 1 else None)
+        # Keeper stats tables
+        gk_stats_tags = soup.find_all("div", {"id": re.compile("all_keeper_stats")})
+        has_gk_stats = len(gk_stats_tags) > 0
+        if has_gk_stats:
+            home_gk_stats_tag, away_gk_stats_tag = gk_stats_tags
 
-            defense_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_defense')})
-            assert len(defense_tag) < 2
-            defense_df = (pd.read_html(StringIO(str(defense_tag[0])))[0]
-                          if len(defense_tag) == 1 else None)
+            home_gk_table_tag = home_gk_stats_tag.find("table", {"id": re.compile("keeper_stats_")})
+            home_gk_df = pd.read_html(StringIO(str(home_gk_table_tag)))[0]
+            home_player_stats_dict["Keeper"] = home_gk_df
 
-            possession_tag = soup.find_all('table',
-                                           {'id': re.compile(f'stats_{team_id}_possession')})
-            assert len(possession_tag) < 2
-            possession_df = (pd.read_html(StringIO(str(possession_tag[0])))[0]
-                             if len(possession_tag) == 1 else None)
+            away_gk_table_tag = away_gk_stats_tag.find("table", {"id": re.compile("keeper_stats_")})
+            away_gk_df = pd.read_html(StringIO(str(away_gk_table_tag)))[0]
+            away_player_stats_dict["Keeper"] = away_gk_df
 
-            misc_tag = soup.find_all('table', {'id': re.compile(f'stats_{team_id}_misc')})
-            assert len(misc_tag) < 2
-            misc_df = (pd.read_html(StringIO(str(misc_tag[0])))[0]
-                       if len(misc_tag) == 1 else None)
+        # Shots tables
+        shots_tag = soup.find("div", {"id": "all_shots"})
+        shots_tables = shots_tag.find_all("table") # type: ignore
+        has_shots_data = len(shots_tables) > 0
+        shots_dict = {}
+        if has_shots_data:
+            all_shots_table_tag, home_shots_table_tag, away_shots_table_tag = shots_tables
+            all_shots_df = pd.read_html(StringIO(str(all_shots_table_tag)))[0]
+            home_shots_df = pd.read_html(StringIO(str(home_shots_table_tag)))[0]
+            away_shots_df = pd.read_html(StringIO(str(away_shots_table_tag)))[0]
+            shots_dict["Both"] = all_shots_df
+            shots_dict["Home"] = home_shots_df
+            shots_dict["Away"] = away_shots_df
 
-            lineup_df = (pd.read_html(StringIO(str(lineup_tags[i])))[0]
-                         if len(lineup_tags) != 0 else None)
+        # 1-row df for output
+        match_df_data = {
+            "Link": link,
+            "Date": date,
+            "Stage": stage,
+            "Home Team": home_name,
+            "Away Team": away_name,
+            "Home Team ID": home_id,
+            "Away Team ID": away_id,
+            "Home Goals": home_goals,
+            "Away Goals": away_goals,
+            "Home Player Stats": pd.Series(home_player_stats_dict),
+            "Away Player Stats": pd.Series(away_player_stats_dict),
+            "Shots": pd.Series(shots_dict)
+        }
+        match_df = pd.Series(match_df_data).to_frame().T
 
-            # Field player ID's for the stats tables -----------------------------------------------
-            # Note: if a coach gets a yellow/red card, they appear in the player
-            # stats tables, in their own row, at the  bottom.
-            if summary_df is not None:
-                player_ids = list()
-                # Iterate across all els that are player/coach names in the summary stats table
-                for tag in summary_tag[0].find_all('th', {'data-stat': 'player',
-                                                          'scope': 'row', 'class': 'left'}):
-                    if tag.find('a'):
-                        # if th el has an a subel, it should contain an href link to the player
-                        player_id = tag.find('a')['href'].split('/')[3]
-                    else:
-                        # coaches and the summary row have now a subel (and no player id)
-                        player_id = ''
-                    player_ids.append(player_id)
-
-                summary_df['Player ID'] = player_ids
-                if passing_df is not None:
-                    passing_df['Player ID'] = player_ids
-                if pass_types_df is not None:
-                    pass_types_df['Player ID'] = player_ids
-                if defense_df is not None:
-                    defense_df['Player ID'] = player_ids
-                if possession_df is not None:
-                    possession_df['Player ID'] = player_ids
-                if misc_df is not None:
-                    misc_df['Player ID'] = player_ids
-
-            # GK ID's ------------------------------------------------------------------------------
-            if gk_df is not None:
-                gk_ids = [tag.find('a')['href'].split('/')[3]
-                          for tag in gk_tag[0].find_all('th', {'data-stat': 'player'})
-                          if tag.find('a')]
-                gk_df['Player ID'] = gk_ids
-
-            # Build player stats dict --------------------------------------------------------------
-            # This will be turned into a Series and then put into the match dataframe
-            player_stats[team] = {'Team Sheet': lineup_df, 'Summary': summary_df,
-                                  'GK': gk_df, 'Passing': passing_df,
-                                  'Pass Types': pass_types_df, 'Defense': defense_df,
-                                  'Possession': possession_df, 'Misc': misc_df}
-
-        # Shots ------------------------------------------------------------------------------------
-        both_shots = soup.find_all('table', {'id': 'shots_all'})
-        if len(both_shots) == 1:
-            both_shots = pd.read_html(StringIO(str(both_shots[0])))[0]
-            both_shots = both_shots[~both_shots.isna().all(axis=1)]
-        else:
-            both_shots = None
-        home_shots = soup.find_all('table', {'id': f'shots_{home_team_id}'})
-        if len(home_shots) == 1:
-            home_shots = pd.read_html(StringIO(str(home_shots[0])))[0]
-            home_shots = home_shots[~home_shots.isna().all(axis=1)]
-        else:
-            home_shots = None
-        away_shots = soup.find_all('table', {'id': f'shots_{away_team_id}'})
-        if len(away_shots) == 1:
-            away_shots = pd.read_html(StringIO(str(away_shots[0])))[0]
-            away_shots = away_shots[~away_shots.isna().all(axis=1)]
-        else:
-            away_shots = None
-
-        # Expected stats flag ----------------------------------------------------------------------
-        expected = 'Expected' in player_stats['Home']['Summary'].columns.get_level_values(0)
-
-        # Build match series -----------------------------------------------------------------------
-        match = pd.Series(dtype=object)
-        match['Link'] = link
-        match['Date'] = dateutil.parser.parse(str(soup.find('h1'))
-                                              .split('<br/>')[0]
-                                              .split('–')[-1]  # not a normal dash
-                                              .replace('</h1>', '')
-                                              .split('(')[0]
-                                              .strip())
-        match['Stage'] = stage
-        match['Home Team'] = home_team_name
-        match['Away Team'] = away_team_name
-        match['Home Team ID'] = home_team_id
-        match['Away Team ID'] = away_team_id
-        match['Home Formation'] = (player_stats['Home']['Team Sheet'].columns[0].split('(')[-1]
-                                   .replace(')', '').strip()
-                                   if player_stats['Home']['Team Sheet'] is not None else None)
-        match['Away Formation'] = (player_stats['Away']['Team Sheet'].columns[0].split('(')[-1]
-                                   .replace(')', '').strip()
-                                   if player_stats['Away']['Team Sheet'] is not None else None)
-        match['Home Goals'] = int(scores[0].getText()) if scores[0].getText().isdecimal() else None
-        match['Away Goals'] = int(scores[1].getText()) if scores[1].getText().isdecimal() else None
-        match['Home Ast'] = player_stats['Home']['Summary'][('Performance', 'Ast')].values[-1]
-        match['Away Ast'] = player_stats['Away']['Summary'][('Performance', 'Ast')].values[-1]
-        match['Home xG'] = (player_stats['Home']['Summary'][('Expected', 'xG')].values[-1]
-                            if expected else None)
-        match['Away xG'] = (player_stats['Away']['Summary'][('Expected', 'xG')].values[-1]
-                            if expected else None)
-        match['Home npxG'] = (player_stats['Home']['Summary'][('Expected', 'npxG')].values[-1]
-                              if expected else None)
-        match['Away npxG'] = (player_stats['Away']['Summary'][('Expected', 'npxG')].values[-1]
-                              if expected else None)
-        match['Home xAG'] = (player_stats['Home']['Summary'][('Expected', 'xAG')].values[-1]
-                             if expected else None)
-        match['Away xAG'] = (player_stats['Away']['Summary'][('Expected', 'xAG')].values[-1]
-                             if expected else None)
-        match['Home Player Stats'] = pd.Series(player_stats['Home']).to_frame().T
-        match['Away Player Stats'] = pd.Series(player_stats['Away']).to_frame().T
-        match['Shots'] = (pd.Series({'Both': both_shots, 'Home': home_shots, 'Away': away_shots})
-                          .to_frame().T)
-
-        match = match.to_frame().T  # series to dataframe
-
-        return match
+        return match_df
 
     # ==============================================================================================
-    def scrape_matches(self, year, league):
+    def scrape_matches(self, year: str, league: str) -> pd.DataFrame:
         """ Scrapes the FBref standard stats page of the chosen league season.
 
         Works by gathering all of the match URL's from the homepage of the chosen league season on
