@@ -3,7 +3,6 @@ from io import StringIO
 import pandas as pd
 import requests
 from .scraperfc_exceptions import ClubEloInvalidTeamException
-import warnings
 
 
 class ClubElo:

@@ -1,13 +1,13 @@
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
+import requests
+from bs4 import BeautifulSoup
+import bs4
 import random
 import pandas as pd
-import numpy as np
-
+from io import StringIO
+from typing import Union
 
 # ==================================================================================================
-def get_proxy():
+def get_proxy() -> str:
     """ Gets a proxy address.
     
     Adapted from
@@ -23,32 +23,17 @@ def get_proxy():
     proxy : str
         In the form <IP address>:<port>
     """
-    options = Options()
-    options.add_argument('--headless')
-    driver = webdriver.Chrome(options=options)
-    
-    try:
-        driver.get('https://sslproxies.org/')
-        table = driver.find_elements(By.TAG_NAME, 'table')[0]
-        df = pd.read_html(table.get_attribute('outerHTML'))[0]
-        df = df.iloc[np.where(~np.isnan(df['Port']))[0], :]  # ignore nans
-
-        ips = df['IP Address'].values
-        ports = df['Port'].astype('int').values
-
-        driver.quit()
-        proxies = list()
-        for i in range(len(ips)):
-            proxies.append('{}:{}'.format(ips[i], ports[i]))
-        i = random.randint(0, len(proxies) - 1)
-        return proxies[i]
-    finally:
-        driver.close()
-        driver.quit()
-
+    r = requests.get("https://sslproxies.org/")
+    soup = BeautifulSoup(r.content, "html.parser")
+    df = pd.read_html(StringIO(str(soup.find("table"))))[0]
+    df = df.loc[~df["Port"].isna(),:]
+    rand_row_idx = random.randint(0, df.shape[0]-1)
+    row = df.iloc[rand_row_idx,:]
+    proxy = f"{row['IP Address']}:{row['Port']}"
+    return proxy
 
 # ==================================================================================================
-def xpath_soup(element):
+def xpath_soup(element: Union[bs4.element.Tag, bs4.element.NavigableString]) -> str:
     """ Generate xpath from BeautifulSoup4 element.
     
     I shamelessly stole this from https://gist.github.com/ergoithz/6cf043e3fdedd1b94fcf.
@@ -79,12 +64,12 @@ def xpath_soup(element):
     "/doc/elm[2]"
     """
     components = []
-    child = element if element.name else element.parent
-    for parent in child.parents:  # type: bs4.element.Tag
-        siblings = parent.find_all(child.name, recursive=False)
+    child = element if element.name else element.parent  # type: ignore
+    for parent in child.parents:  # type: ignore
+        siblings = parent.find_all(child.name, recursive=False)  # type: ignore
         components.append(
-            child.name if 1 == len(siblings) else "%s[%d]" % (
-                child.name,
+            child.name if 1 == len(siblings) else "%s[%d]" % (  # type: ignore
+                child.name,  # type: ignore
                 next(i for i, s in enumerate(siblings, 1) if s is child)
             )
         )

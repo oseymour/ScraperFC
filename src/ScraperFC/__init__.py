@@ -6,5 +6,5 @@ from .clubelo import ClubElo
 from .capology import Capology
 from .transfermarkt import Transfermarkt
 # from .Oddsportal import Oddsportal
-from .shared_functions import *
-from .scraperfc_exceptions import *
+# from .shared_functions import *
+# from .scraperfc_exceptions import *

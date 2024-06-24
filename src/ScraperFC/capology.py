@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException, \
     InvalidYearException
 from io import StringIO
+from typing import Sequence
 
 comps = {
     "Bundesliga":  {'url': 'de/1-bundesliga'},
@@ -33,11 +34,11 @@ comps = {
 class Capology():
 
     # ==============================================================================================
-    def __init__(self):
+    def __init__(self) -> None:
         self.valid_currencies = ['eur', 'gbp', 'usd']
 
     # ==============================================================================================
-    def _webdriver_init(self):
+    def _webdriver_init(self) -> None:
         """ Initializes a new webdriver
         """
         options = Options()
@@ -48,14 +49,14 @@ class Capology():
         self.driver = webdriver.Chrome(options=options)
 
     # ==============================================================================================
-    def _webdriver_close(self):
+    def _webdriver_close(self) -> None:
         """ Closes and quits the Selenium WebDriver instance.
         """
         self.driver.close()
         self.driver.quit()
 
     # ==============================================================================================
-    def get_league_url(self, league):
+    def get_league_url(self, league: str) -> str:
         """ Returns the URL for the requested league
 
         Parameters
@@ -66,7 +67,7 @@ class Capology():
         Returns
         -------
         : str
-            String URL
+            League URL
         """
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
@@ -76,7 +77,7 @@ class Capology():
         return f'https://www.capology.com/{comps[league]["url"]}/salaries/'
 
     # ==============================================================================================
-    def get_valid_seasons(self, league):
+    def get_valid_seasons(self, league: str) -> Sequence[str]:
         """ Returns valid season strings for the chosen league
 
         Parameters
@@ -94,20 +95,15 @@ class Capology():
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Capology', list(comps.keys()))
 
-        soup = BeautifulSoup(
-            requests.get(self.get_league_url(league)).content,
-            'html.parser'
-        )
-        seasons = [
-            x.text for x in (
-                soup.find('select', {'id': 'nav-submenu2'}).find_all('option', value=True)
-            )
-        ]
+        soup = BeautifulSoup(requests.get(self.get_league_url(league)).content, 'html.parser')
+        year_dropdown_tags = soup.find('select', {'id': 'nav-submenu2'})\
+            .find_all('option', value=True)  # type: ignore
+        seasons = [x.text for x in year_dropdown_tags]
 
         return seasons
 
     # ==============================================================================================
-    def get_season_url(self, year, league):
+    def get_season_url(self, year: str, league: str) -> str:
         """ Gets URL to chosen year of league
 
         Parameters
@@ -120,27 +116,23 @@ class Capology():
         Returns
         -------
         : str
-            String URL
+            Season URL
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons:
             raise InvalidYearException(year, league, valid_seasons)
-        soup = BeautifulSoup(
-            requests.get(self.get_league_url(league)).content,
-            'html.parser'
-        )
-        value = [
-            x['value'] for x in (
-                soup.find('select', {'id': 'nav-submenu2'}).find_all('option', value=True)
-            )
-            if x.text == year
-        ][0]
+        
+        soup = BeautifulSoup(requests.get(self.get_league_url(league)).content, 'html.parser')
+        year_dropdown_tags = soup.find('select', {'id': 'nav-submenu2'})\
+            .find_all('option', value=True)  # type: ignore
+        value = [x['value'] for x in year_dropdown_tags if x.text == year][0]
+
         return f'https://capology.com{value}'
 
     # ==============================================================================================
-    def scrape_salaries(self, year, league, currency):
+    def scrape_salaries(self, year: str, league: str, currency: str) -> pd.DataFrame:
         """ Scrapes player salaries for the given league season.
 
         Parameters
@@ -187,14 +179,15 @@ class Capology():
             # Table to pandas df -------------------------------------------------------------------
             tbody_html = self.driver.find_element(By.ID, 'table')\
                 .find_element(By.TAG_NAME, 'tbody').get_attribute('outerHTML')
-            table_html = '<table>' + tbody_html + '</table>'
+            table_html = '<table>' + tbody_html + '</table>'  # type: ignore
             df = pd.read_html(StringIO(table_html))[0]
             if df.shape[1] == 13:
-                df = df.drop(columns=[1])  # drop check-mark column
+                # drop check-mark column
+                df = df.drop(columns=[1])
                 df.columns = [
                     'Player', 'Weekly Gross', 'Annual Gross', 'Expiration', 'Length', 'Total Gross',
                     'Status', 'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
-                ]
+                ]  # type: ignore
             elif df.shape[1] == 17:
                 # drop check-mark column and True/False column (not sure what this one is)
                 df = df.drop(columns=[1, 16])
@@ -202,19 +195,19 @@ class Capology():
                     'Player', 'Weekly Gross', 'Annual Gross', 'Annual Bonus', 'Signed',
                     'Expiration', 'Years Reamining', 'Gross Remaining', 'Release Clause', 'Status',
                     'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
-                ]
+                ]  # type: ignore
             else:
                 df.columns = [
                     'Player', 'Weekly Gross', 'Annual Gross', 'Adj. Gross', 'Pos. group', 'Age',
                     'Country', 'Club'
-                ]
+                ]  # type: ignore
 
             return df
         finally:
             self._webdriver_close()
 
     # ==============================================================================================
-    def scrape_payrolls(self, year, league, currency):
+    def scrape_payrolls(self, year: str, league: str, currency: str) -> pd.DataFrame:
         """ Deprecated. Use scrape_salaries() instead.
         """
         raise NotImplementedError(

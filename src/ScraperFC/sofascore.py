@@ -1,7 +1,9 @@
 import pandas as pd
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from botasaurus.request import request, Request
+from botasaurus_requests import response
 import numpy as np
+from typing import Union, Sequence
 
 """ These are the status codes for Sofascore events. Found in event['status'] key.
 {100: {'code': 100, 'description': 'Ended', 'type': 'finished'},
@@ -36,7 +38,7 @@ comps = {
 
 
 @request(output=None, create_error_logs=False)
-def _botasaurus_get(request: Request, url):
+def _botasaurus_get(request: Request, url: str) -> response.Response:
     """ Sofascore introduced some anti-scraping measures. Using Botasaurus gets around them.
     """
     if not isinstance(url, str):
@@ -48,7 +50,7 @@ def _botasaurus_get(request: Request, url):
 class Sofascore:
     
     # ==============================================================================================
-    def __init__(self):
+    def __init__(self) -> None:
         self.league_stats_fields = [
             'goals', 'yellowCards', 'redCards', 'groundDuelsWon', 'groundDuelsWonPercentage',
             'aerialDuelsWon', 'aerialDuelsWonPercentage', 'successfulDribbles',
@@ -67,7 +69,7 @@ class Sofascore:
         self.concatenated_fields = '%2C'.join(self.league_stats_fields)
 
     # ==============================================================================================
-    def get_valid_seasons(self, league):
+    def get_valid_seasons(self, league: str) -> dict:
         """ Returns the valid seasons and their IDs for the given league
 
         Parameters
@@ -90,7 +92,7 @@ class Sofascore:
         return seasons
 
     # ==============================================================================================
-    def get_match_dicts(self, year, league):
+    def get_match_dicts(self, year: str, league:str) -> Sequence[dict]:
         """ Returns the matches from the Sofascore API for a given league season.
 
         Parameters
@@ -126,7 +128,7 @@ class Sofascore:
         return matches
 
     # ==============================================================================================
-    def get_match_id_from_url(self, match_url):
+    def get_match_id_from_url(self, match_url: str) -> int:
         """ Get match id from a Sofascore match URL.
         
         This can also be found in the 'id' key of the dict returned from get_match_dict().
@@ -147,12 +149,12 @@ class Sofascore:
         return match_id
 
     # ==============================================================================================
-    def get_match_url_from_id(self, match_id):
+    def get_match_url_from_id(self, match_id: Union[str, int]) -> str:
         """ Get the Sofascore match URL for a given match ID
 
         Parameters
         ----------
-        match_id : int
+        match_id : str or int
             Sofascore match ID
 
         Returns
@@ -165,7 +167,7 @@ class Sofascore:
             f"{match_dict['awayTeam']['slug']}/{match_dict['customId']}#id:{match_dict['id']}"
 
     # ==============================================================================================
-    def get_match_dict(self, match):
+    def get_match_dict(self, match: Union[str, int]) -> dict:
         """ Get match data dict for a single match
 
         Parameters
@@ -186,7 +188,7 @@ class Sofascore:
         return data
 
     # ==============================================================================================
-    def get_team_names(self, match):
+    def get_team_names(self, match: Union[str, int]) -> tuple[str, str]:
         """ Get the team names for the home and away teams
 
         Parameters
@@ -205,7 +207,7 @@ class Sofascore:
         return home_team, away_team
     
     # ==============================================================================================
-    def get_positions(self, selected_positions):
+    def get_positions(self, selected_positions: Sequence[str]) -> str:
         """ Returns a string for the parameter filters of the scrape_league_stats() request.
 
         Parameters
@@ -230,7 +232,7 @@ class Sofascore:
         return '~'.join(abbreviations)
     
     # ==============================================================================================
-    def get_player_ids(self, match):
+    def get_player_ids(self, match: Union[str, int]) -> dict:
         """ Get the player IDs for a match
         
         Parameters
@@ -263,17 +265,17 @@ class Sofascore:
     
     # ==============================================================================================
     def scrape_player_league_stats(
-        self, year, league, accumulation='total',
-        selected_positions=['Goalkeepers', 'Defenders', 'Midfielders', 'Forwards']
-    ):
+        self, year: str, league: str, accumulation: str='total',
+        selected_positions: Sequence[str]=['Goalkeepers', 'Defenders', 'Midfielders', 'Forwards']
+    ) -> pd.DataFrame:
         """ Get every player statistic that can be asked in league pages on Sofascore.
 
         Parameters
         ----------
-        tournament : str
-            Name of the competition
-        season : str
-            Season selected
+        year : str
+            See the :ref:`sofascore_year` `year` parameter docs for details.
+        league : str
+            League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
         accumulation : str, optional
             Value of the filter accumulation. Can be "per90", "perMatch", or "total". Defaults to
             "total".
@@ -322,7 +324,7 @@ class Sofascore:
         if len(results) == 0:
             df = pd.DataFrame()
         else:
-            df = pd.DataFrame.from_dict(results)
+            df = pd.DataFrame.from_dict(results)  # type: ignore
             df['player id'] = df['player'].apply(pd.Series)['id']
             df['player'] = df['player'].apply(pd.Series)['name']
             df['team id'] = df['team'].apply(pd.Series)['id']
@@ -331,7 +333,7 @@ class Sofascore:
         return df
 
     # ==============================================================================================
-    def scrape_match_momentum(self, match):
+    def scrape_match_momentum(self, match: Union[str, int]) -> pd.DataFrame:
         """Get the match momentum values
 
         Parameters
@@ -356,7 +358,7 @@ class Sofascore:
         return match_momentum_df
 
     # ==============================================================================================
-    def scrape_team_match_stats(self, match):
+    def scrape_team_match_stats(self, match: Union[str, int]) -> pd.DataFrame:
         """ Scrape team stats for a match
 
         Parameters
@@ -388,7 +390,7 @@ class Sofascore:
         return df
 
     # ==============================================================================================
-    def scrape_player_match_stats(self, match):
+    def scrape_player_match_stats(self, match: Union[str, int]) -> pd.DataFrame:
         """ Scrape player stats for a match
 
         Parameters
@@ -415,14 +417,14 @@ class Sofascore:
                     columns.append(temp[c].apply(pd.Series, dtype=object))
                 else:
                     # Else they're already series
-                    columns.append(temp[c])
+                    columns.append(temp[c])  # type: ignore
             df = pd.concat(columns, axis=1)
         else:
             df = pd.DataFrame()
         return df
 
     # ==============================================================================================
-    def scrape_player_average_positions(self, match):
+    def scrape_player_average_positions(self, match: Union[str, int]) -> pd.DataFrame:
         """ Return player averages positions for each team
 
         Parameters
@@ -457,7 +459,7 @@ class Sofascore:
         return df
     
     # ==============================================================================================
-    def scrape_heatmaps(self, match):
+    def scrape_heatmaps(self, match: Union[str, int]) -> dict:
         """ Get the x-y coordinates to create a player heatmap for all players in the match.
 
         Players who didn't play will have an empty list of coordinates.

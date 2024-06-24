@@ -11,16 +11,17 @@ import pandas as pd
 from zipfile import ZipFile
 import time
 from bs4 import BeautifulSoup
+from typing import Union
 
 
 class FiveThirtyEight:
     
     # ==============================================================================================
-    def __init__(self):
+    def __init__(self) -> None:
         return
 
     # ==============================================================================================
-    def _webdriver_init(self):
+    def _webdriver_init(self) -> None:
         """ Private, creates a selenium webdriver instance
         """
         options = Options()
@@ -30,29 +31,30 @@ class FiveThirtyEight:
         self.driver = webdriver.Chrome(options=options)
         
     # ==============================================================================================
-    def _webdriver_close(self):
+    def _webdriver_close(self) -> None:
         """ Private, closes the Selenium WebDriver instance.
         """
         self.driver.close()
         self.driver.quit()
         
     # ==============================================================================================
-    def scrape_matches(self, year, league):
+    def scrape_matches(self, year: Union[int, str], league: str) -> pd.DataFrame:
         """ Scrapes matches for the given league season
 
         Parameters
         ----------
-        year : int
-            See the :ref:`fivethirtyeight_year` `year` parameter docs for details.
+        year : int or str
+            See the :ref:`fivethirtyeight_year` `year` parameter docs for details. If a str, must be
+            "ALL".
         league : str
             League. Look in shared_functions.py for the available leagues for each module.
         Returns
         -------
         : DataFrame
         """
-        if type(year) is not int and year != 'All':
-            raise TypeError('`year` must be an int.')
-        if type(league) is not str:
+        if not isinstance(year, int) and (not isinstance(year, str) and year != "ALL"):
+            raise TypeError('`year` must be an int or the string "ALL".')
+        if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         
         self._webdriver_init()
@@ -66,7 +68,7 @@ class FiveThirtyEight:
 
             # Click download button
             soup = BeautifulSoup(self.driver.page_source, 'html.parser')
-            button_xpath = xpath_soup(soup.find('div', {'dataset-name': 'soccer-spi'}))
+            button_xpath = xpath_soup(soup.find('div', {'dataset-name': 'soccer-spi'}))  # type: ignore
             button = self.driver.find_element(By.XPATH, button_xpath)
             self.driver.execute_script('arguments[0].click();', button)
                     

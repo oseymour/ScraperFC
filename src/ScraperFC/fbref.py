@@ -5,7 +5,6 @@ from .scraperfc_exceptions import InvalidYearException, InvalidLeagueException, 
 import time
 import numpy as np
 import pandas as pd
-import dateutil
 from io import StringIO
 import re
 from tqdm import tqdm
@@ -14,6 +13,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from typing import Sequence, Union
 
 stats_categories = {
     'standard': {'url': 'stats', 'html': 'standard'},
@@ -156,12 +156,12 @@ comps = {
 class FBref():
 
     # ==============================================================================================
-    def __init__(self):
-        # FBref's scraping limit, https://www.sports-reference.com/bot-traffic.html
-        self.wait_time = 4
+    def __init__(self) -> None:
+        # FBref rate limits bots -- https://www.sports-reference.com/bot-traffic.html
+        self.wait_time = 7
 
     # ==============================================================================================
-    def _driver_init(self):
+    def _driver_init(self) -> None:
         """ Private, creates a headless selenium webdriver
         """
         options = Options()
@@ -172,14 +172,14 @@ class FBref():
         self.driver = webdriver.Chrome(options=options)
 
     # ==============================================================================================
-    def _driver_close(self):
+    def _driver_close(self) -> None:
         """ Private, closes the Selenium webdriver
         """
         self.driver.close()
         self.driver.quit()
 
     # ==============================================================================================
-    def _get(self, url):
+    def _get(self, url: str) -> requests.Response:
         """ Private, calls requests.get() and enforces FBref's wait time.
         """
         response = requests.get(url)
@@ -187,14 +187,14 @@ class FBref():
         return response
 
     # ==============================================================================================
-    def _driver_get(self, url):
+    def _driver_get(self, url: str) -> None:
         """ Private, calls driver.get() and enforces FBref's wait time.
         """
         self.driver.get(url)
         time.sleep(self.wait_time)
 
     # ==============================================================================================
-    def get_valid_seasons(self, league):
+    def get_valid_seasons(self, league: str) -> dict:
         """ Finds all of the valid years and their URLs for a given competition
 
         Parameters
@@ -213,17 +213,20 @@ class FBref():
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'FBref', list(comps.keys()))
 
-        url = comps[league]['history url']
-        soup = BeautifulSoup(self._get(url).content, 'html.parser')
+        url = comps[league]['history url']  # type: ignore
+        r = self._get(url)  # type: ignore
+        soup = BeautifulSoup(r.content, 'html.parser')
 
-        season_urls = dict([(x.text, x.find('a')['href'])
-                            for x in soup.find_all('th', {'data-stat': True, 'class': True})
-                            if x.find('a') is not None])
+        season_urls = dict([
+            (x.text, x.find('a')['href'])
+            for x in soup.find_all('th', {'data-stat': True, 'class': True})
+            if x.find('a') is not None
+        ])
 
         return season_urls
 
     # ==============================================================================================
-    def get_season_link(self, year, league):
+    def get_season_link(self, year: str, league: str) -> str:
         """ Returns the URL for the chosen league season.
 
         Parameters
@@ -254,7 +257,7 @@ class FBref():
         return 'https://fbref.com/' + seasons[year]
 
     # ==============================================================================================
-    def get_match_links(self, year, league):
+    def get_match_links(self, year: str, league: str) -> Sequence[str]:
         """ Gets all match links for the chosen league season.
 
         Parameters
@@ -305,7 +308,7 @@ class FBref():
         return match_urls
 
     # ==============================================================================================
-    def scrape_league_table(self, year, league):
+    def scrape_league_table(self, year: str, league: str) -> Sequence[pd.DataFrame]:
         """ Scrapes the league table of the chosen league season
 
         Parameters
@@ -335,7 +338,7 @@ class FBref():
         return tables
 
     # ==============================================================================================
-    def scrape_match(self, link):
+    def scrape_match(self, link: str) -> pd.DataFrame:
         """ Scrapes an FBref match page.
 
         Parameters
@@ -472,7 +475,9 @@ class FBref():
         return matches_df
 
     # ==============================================================================================
-    def scrape_stats(self, year, league, stat_category):
+    def scrape_stats(
+            self, year: str, league: str, stat_category: str
+    ) -> Sequence[Union[pd.DataFrame, None]]:
         """ Scrapes a single stats category
 
         Adds team and player ID columns to the stats tables
@@ -489,8 +494,9 @@ class FBref():
             The stat category to scrape.
         Returns
         -------
-        : tuple of DataFrames
-            (squad_stats, opponent_stats, player_stats)
+        : tuple of DataFrames or None
+            (squad_stats, opponent_stats, player_stats). Tuple elements will be None if the squad
+            stats category does not exist for the given `year` and `league`.
         """
 
         # Verify valid stat category
@@ -506,10 +512,12 @@ class FBref():
             first_half = '/'.join(season_url.split('/')[:-1])
             second_half = season_url.split('/')[-1]
             stats_category_url_filler = stats_categories[stat_category]['url']
-            players_stats_url = '/'.join([first_half, stats_category_url_filler, 'players',
-                                          second_half])
-            squads_stats_url = '/'.join([first_half, stats_category_url_filler, 'squads',
-                                         second_half])
+            players_stats_url = '/'.join([
+                first_half, stats_category_url_filler, 'players',second_half
+            ])
+            squads_stats_url = '/'.join([
+                first_half, stats_category_url_filler, 'squads', second_half
+            ])
 
             # Get the soups from the 2 pages
             players_soup = BeautifulSoup(self._get(players_stats_url).content, 'html.parser')
@@ -525,12 +533,16 @@ class FBref():
 
             # Gather squad and opponent squad IDs
             # These are 'td' elements for Big 5
-            squad_ids = [tag.find('a')['href'].split('/')[3] for tag
-                         in squad_stats_tag.find_all('td', {'data-stat': 'team'})
-                         if tag and tag.find('a')]
-            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag
-                            in opponent_stats_tag.find_all('td', {'data-stat': 'team'})
-                            if tag and tag.find('a')]
+            squad_ids = [
+                tag.find('a')['href'].split('/')[3] for tag
+                in squad_stats_tag.find_all('td', {'data-stat': 'team'})  # type: ignore
+                if tag and tag.find('a')
+            ]
+            opponent_ids = [
+                tag.find('a')['href'].split('/')[3] for tag
+                in opponent_stats_tag.find_all('td', {'data-stat': 'team'})  # type: ignore
+                if tag and tag.find('a')
+            ]
 
         else:
             # Get URL to stat category
@@ -553,16 +565,21 @@ class FBref():
             squad_stats_tag = soup.find('table', {'id': re.compile('for')})
             opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
             player_stats_tag = soup.find(
-                'table', {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')})
+                'table', {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')}
+            )
 
             # Gather squad and opponent squad IDs
             # These are 'th' elements for all other leagues
-            squad_ids = [tag.find('a')['href'].split('/')[3] for tag
-                         in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
-                         if tag and tag.find('a')]
-            opponent_ids = [tag.find('a')['href'].split('/')[3] for tag
-                            in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]
-                            if tag and tag.find('a')]
+            squad_ids = [
+                tag.find('a')['href'].split('/')[3] for tag
+                in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]  # type: ignore
+                if tag and tag.find('a')
+            ]
+            opponent_ids = [
+                tag.find('a')['href'].split('/')[3] for tag
+                in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]  # type: ignore
+                if tag and tag.find('a')
+            ]
 
         # Get stats dataframes
         squad_stats = (pd.read_html(StringIO(str(squad_stats_tag)))[0]
@@ -574,25 +591,29 @@ class FBref():
 
         # Drop rows that contain duplicated table headers, add team/player IDs
         if squad_stats is not None:
-            squad_drop_mask = (~squad_stats.loc[:, (slice(None), 'Squad')].isna()
-                               & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad'))
+            squad_drop_mask = (
+                ~squad_stats.loc[:, (slice(None), 'Squad')].isna()  # type: ignore
+                & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')  # type: ignore
+            )
             squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
             squad_stats['Team ID'] = squad_ids
 
         if opponent_stats is not None:
-            opponent_drop_mask = (~opponent_stats.loc[:, (slice(None), 'Squad')].isna()
-                                  & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad'))
+            opponent_drop_mask = (
+                ~opponent_stats.loc[:, (slice(None), 'Squad')].isna()  # type: ignore
+                & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')  # type: ignore
+            )
             opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
             opponent_stats['Team ID'] = opponent_ids
 
         if player_stats is not None:
-            keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values
+            keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values  # type: ignore
             player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
 
         # Add player links and ID's
         if player_stats is not None:
             player_links = ['https://fbref.com' + tag.find('a')['href'] for tag
-                            in player_stats_tag.find_all('td', {'data-stat': 'player'})
+                            in player_stats_tag.find_all('td', {'data-stat': 'player'})  # type: ignore
                             if tag and tag.find('a')]
             player_stats['Player Link'] = player_links
             player_stats['Player ID'] = [x.split('/')[-2] for x in player_links]
@@ -600,7 +621,7 @@ class FBref():
         return squad_stats, opponent_stats, player_stats
 
     # ==============================================================================================
-    def scrape_all_stats(self, year, league):
+    def scrape_all_stats(self, year: str, league: str) -> dict:
         """ Scrapes all stat categories
 
         Runs scrape_stats() for each stats category on dumps the returned tuple
@@ -614,6 +635,7 @@ class FBref():
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
+        
         Returns
         -------
         : dict
