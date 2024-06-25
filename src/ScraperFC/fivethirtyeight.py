@@ -45,15 +45,17 @@ class FiveThirtyEight:
         ----------
         year : int or str
             See the :ref:`fivethirtyeight_year` `year` parameter docs for details. If a str, must be
-            "ALL".
+            "All".
         league : str
-            League. Look in shared_functions.py for the available leagues for each module.
+            League. Can be "All" to return all leagues.
         Returns
         -------
         : DataFrame
         """
-        if not isinstance(year, int) and (not isinstance(year, str) and year != "ALL"):
-            raise TypeError('`year` must be an int or the string "ALL".')
+        if not isinstance(year, int) and not isinstance(year, str):
+            raise TypeError("`year` must be an int or string.")
+        if isinstance(year, str) and year != "All":
+            raise ValueError("If `year` is a string, it must be 'All'.")
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         

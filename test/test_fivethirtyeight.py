@@ -13,7 +13,9 @@ class TestFiveThirtyEight:
     @pytest.mark.parametrize(
         'year, league, expected',
         [(2020, 'La Liga', pytest.raises(InvalidLeagueException)),
-         (2020, 9, pytest.raises(TypeError))]
+         (2020, 9, pytest.raises(TypeError)),
+         (2020, 'All', does_not_raise()),
+         ({"a": 9}, "English League One", pytest.raises(TypeError))]
     )
     def test_invalid_league(self, year, league, expected):
         with expected:
@@ -22,7 +24,7 @@ class TestFiveThirtyEight:
     @pytest.mark.parametrize(
         'year, league, expected',
         [(2015, 'All', pytest.raises(InvalidYearException)),
-         ('a', 'Barclays Premier League', pytest.raises(TypeError)),
+         ('a', 'Barclays Premier League', pytest.raises(ValueError)),
          ('All', 'German Bundesliga', does_not_raise())]
     )
     def test_invalid_year(self, year, league, expected):
