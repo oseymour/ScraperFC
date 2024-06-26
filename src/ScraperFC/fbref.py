@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 from .scraperfc_exceptions import InvalidYearException, InvalidLeagueException, \
-    NoMatchLinksException
+    NoMatchLinksException, FBrefRateLimitException
 import time
 import numpy as np
 import pandas as pd
@@ -156,9 +156,9 @@ comps = {
 class FBref():
 
     # ==============================================================================================
-    def __init__(self) -> None:
+    def __init__(self, wait_time: int=7) -> None:
         # FBref rate limits bots -- https://www.sports-reference.com/bot-traffic.html
-        self.wait_time = 7
+        self.wait_time = wait_time
 
     # ==============================================================================================
     def _driver_init(self) -> None:
@@ -184,6 +184,8 @@ class FBref():
         """
         response = requests.get(url)
         time.sleep(self.wait_time)
+        if response.status_code == 429:
+            raise FBrefRateLimitException()
         return response
 
     # ==============================================================================================
@@ -192,6 +194,9 @@ class FBref():
         """
         self.driver.get(url)
         time.sleep(self.wait_time)
+        if "429 error" in self.driver.page_source:
+            self._driver_close()
+            raise FBrefRateLimitException()
 
     # ==============================================================================================
     def get_valid_seasons(self, league: str) -> dict:
@@ -243,7 +248,7 @@ class FBref():
             URL to the FBref page of the chosen league season
         """
         if not isinstance(year, str):
-            raise TypeError('`year` must be a string or int.')
+            raise TypeError('`year` must be a string.')
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
@@ -274,7 +279,7 @@ class FBref():
             FBref links to all matches for the chosen league season
         """
         if not isinstance(year, str):
-            raise TypeError('`year` must be a string or int.')
+            raise TypeError('`year` must be a string.')
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
@@ -396,32 +401,38 @@ class FBref():
             away_player_stats_dict[table_name] = table_df
 
         # Keeper stats tables
-        gk_stats_tags = soup.find_all("div", {"id": re.compile("all_keeper_stats")})
-        has_gk_stats = len(gk_stats_tags) > 0
-        if has_gk_stats:
-            home_gk_stats_tag, away_gk_stats_tag = gk_stats_tags
-
-            home_gk_table_tag = home_gk_stats_tag.find("table", {"id": re.compile("keeper_stats_")})
+        # Do home and away separately because some matches only have GK stats for 1 team
+        home_gk_table_tag = soup.find("table", {"id": re.compile(f"keeper_stats_{home_id}")})
+        if home_gk_table_tag:
             home_gk_df = pd.read_html(StringIO(str(home_gk_table_tag)))[0]
             home_player_stats_dict["Keeper"] = home_gk_df
-
-            away_gk_table_tag = away_gk_stats_tag.find("table", {"id": re.compile("keeper_stats_")})
+        else:
+            home_player_stats_dict["Keeper"] = None  # type: ignore
+        
+        away_gk_table_tag = soup.find("table", {"id": re.compile(f"keeper_stats_{away_id}")})
+        if away_gk_table_tag:
             away_gk_df = pd.read_html(StringIO(str(away_gk_table_tag)))[0]
             away_player_stats_dict["Keeper"] = away_gk_df
+        else:
+            away_player_stats_dict["Keeper"] = None  # type: ignore
 
         # Shots tables
-        shots_tag = soup.find("div", {"id": "all_shots"})
-        shots_tables = shots_tag.find_all("table") # type: ignore
-        has_shots_data = len(shots_tables) > 0
-        shots_dict = {}
-        if has_shots_data:
-            all_shots_table_tag, home_shots_table_tag, away_shots_table_tag = shots_tables
+        # Do these separately too because some matches only have data for 1 team
+        shots_dict = {"Both": None, "Home": None, "Away": None}
+        all_shots_table_tag = soup.find("table", {"id": "shots_all"})
+        if all_shots_table_tag:
             all_shots_df = pd.read_html(StringIO(str(all_shots_table_tag)))[0]
+            shots_dict["Both"] = all_shots_df  # type: ignore
+        
+        home_shots_table_tag = soup.find("table", {"id": f"shots_{home_id}"})
+        if home_shots_table_tag:
             home_shots_df = pd.read_html(StringIO(str(home_shots_table_tag)))[0]
+            shots_dict["Home"] = home_shots_df  # type: ignore
+        
+        away_shots_table_tag = soup.find("table", {"id": f"shots_{away_id}"})
+        if away_shots_table_tag:
             away_shots_df = pd.read_html(StringIO(str(away_shots_table_tag)))[0]
-            shots_dict["Both"] = all_shots_df
-            shots_dict["Home"] = home_shots_df
-            shots_dict["Away"] = away_shots_df
+            shots_dict["Away"] = away_shots_df  # type: ignore
 
         # 1-row df for output
         match_df_data = {
