@@ -27,7 +27,7 @@ comps = {
     'EPL': 17, 'La Liga': 8, 'Bundesliga': 35, 'Serie A': 23, 'Ligue 1': 34,
     # South America
     'Argentina Liga Profesional': 155, 'Argentina Copa de la Liga Profesional': 13475,
-    'Liga 1 Peru': 406,
+    'Liga 1 Peru': 406, "Copa Libertadores": 384,
     # USA
     'MLS': 242, 'USL Championship': 13363, 'USL1': 13362, 'USL2': 13546,
     # Men's international comps
