@@ -1,10 +1,6 @@
-from .fbref import FBref
-from .fivethirtyeight import FiveThirtyEight
-from .understat import Understat
-from .sofascore import Sofascore
-from .clubelo import ClubElo
 from .capology import Capology
+from .clubelo import ClubElo
+from .fbref import FBref
+from .sofascore import Sofascore
 from .transfermarkt import Transfermarkt
-# from .Oddsportal import Oddsportal
-# from .shared_functions import *
-# from .scraperfc_exceptions import *
+from .understat import Understat

@@ -18,7 +18,7 @@ jobs:
           python-version: ${{ matrix.python.version }}
       - name: Install tox
         run: pip install tox
-      - name: Run pytest
+      - name: Run tox test env
         run: tox -r -e ${{ matrix.python.toxenv }}
   
   docs:
@@ -31,5 +31,31 @@ jobs:
           python-version: "3.10"
       - name: Install tox
         run: pip install tox
-      - name: Build docs
+      - name: Rox tox evn to build docs
         run: tox -r -e docs
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox lint env
+        run: tox -r -e lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox typecheck env
+        run: tox -r -e typecheck

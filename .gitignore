@@ -6,3 +6,4 @@ build/lib/ScraperFC/
 .coverage
 docs/build/*
 .tox/
+prof/*

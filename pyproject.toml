@@ -25,10 +25,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov"]
+test = ["pytest", "pytest-cov", "pytest-instafail"]
 docs = ["sphinx", "furo"]
 build = ["build", "setuptools", "wheel"]
 publish = ["publish",]
+typecheck = ["mypy",]
+lint_format = ["ruff",]
 
 [project.urls]
 repository = "https://github.com/oseymour/ScraperFC/"
@@ -40,29 +42,28 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # -- Pytest and pytest coverage --------------------------------------------------------------------
-[tool.pytest.ini_options]
-testpaths = "./test/"
-addopts = "--cov=ScraperFC -s --durations=20"
+[tool.pytest]
+norecursedirs = ["docs", "*.egg-info", ".git", ".tox"]
 
 [tool.coverage.run]
 branch = true
+omit = ["*oddsportal.py"]
 
 [tool.coverage.report]
 show_missing = true
 
 # -- Linting ---------------------------------------------------------------------------------------
-# [tool.pylama]
-# max_line_length = 100
-# skip = "*oddsportal.py,*__init__.py"
-# ignore = "W293"
-# [tool.pylint]
-# disable="C0114,C0115,C0303"
-
 [tool.ruff]
 exclude = ["*oddsportal.py"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
+
+# -- Typechecking ----------------------------------------------------------------------------------
+[tool.mypy]
+exclude = ["/oddsportal\\.py$"]
+ignore_missing_imports = true
+disallow_untyped_defs = true
 
 # -- Tox environments ------------------------------------------------------------------------------
 [tool.tox]
@@ -75,9 +76,10 @@ legacy_tox_ini = """
     deps = 
         pytest
         pytest-cov
+        pytest-instafail
     commands = 
         python -m pip list
-        pytest ./test/test_fbref.py
+        pytest ./test/ --cov=ScraperFC -s --durations=20 --instafail
 
     [testenv:docs]
     deps = 
@@ -93,17 +95,11 @@ legacy_tox_ini = """
 
     [testenv:lint]
     skip_install = true
-    # deps = 
-    #     setuptools  # to get pkg_resources
-    #     pylama[toml]  # install toml so config loaded from pyproject.toml
-    # commands = pylama ./src/ScraperFC/
-    # deps = pylint
-    # commands = pylint ./src/ScraperFC/
     deps = ruff
     commands = ruff check ./src/ScraperFC
 
-
     [testenv:typecheck]
+    skip_install = true
     deps = 
         mypy
         pandas-stubs
@@ -112,5 +108,5 @@ legacy_tox_ini = """
         types-python-dateutil 
         types-requests 
         types-tqdm
-    commands = python -m mypy ./src/ --ignore-missing-imports --disallow-untyped-defs --exclude oddsportal.py
+    commands = python -m mypy ./src/
 """

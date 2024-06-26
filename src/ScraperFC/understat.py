@@ -342,14 +342,14 @@ class Understat:
         player_data = _json_from_script(player_data_tag.text)
 
         if as_df:
-            matches_df = pd.DataFrame.from_dict(matches_data)
+            matches_data = pd.DataFrame.from_dict(matches_data)  # type: ignore
             newcols = list()
-            for c in matches_df.columns:
-                if isinstance(matches_df.loc[0, c], dict):
-                    newcols.append(matches_df[c].apply(pd.Series).add_prefix(f'{c}_'))
+            for c in matches_data.columns:  # type: ignore
+                if isinstance(matches_data.loc[0, c], dict):  # type: ignore
+                    newcols.append(matches_data[c].apply(pd.Series).add_prefix(f'{c}_'))
                 else:
-                    newcols.append(matches_df[c])  # type: ignore
-            matches_df = pd.concat(newcols, axis=1)
+                    newcols.append(matches_data[c])  # type: ignore
+            matches_data = pd.concat(newcols, axis=1)
 
             for key, value in team_data.items():
                 table = list()
@@ -370,7 +370,7 @@ class Understat:
 
             player_data = pd.DataFrame.from_dict(player_data)  # type: ignore
 
-        return matches_df, team_data, player_data
+        return matches_data, team_data, player_data
 
     # ==============================================================================================
     def scrape_all_teams_data(self, year: str, league: str, as_df: bool = False) -> dict:
