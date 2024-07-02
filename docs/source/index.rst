@@ -15,6 +15,7 @@ Welcome to ScraperFC's documentation!
 
    getting_started
    apidocumentation
+   contributing
    year_parameter
 
 ==================
