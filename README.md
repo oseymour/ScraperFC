@@ -30,7 +30,7 @@ Data can be scraped from the following sources:
 * [ClubELO](http://clubelo.com/)
 * [FBref](https://fbref.com/en/)
 * [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
-* [SofaScore](https://www.sofascore.com/)
+* [Sofascore](https://www.sofascore.com/)
 * [Transfermarkt](https://www.transfermarkt.us/)
 * [Understat](https://understat.com/)
 
