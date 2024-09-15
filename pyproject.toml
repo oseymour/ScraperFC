@@ -1,10 +1,11 @@
 [project]
 # -- Metadata --------------------------------------------------------------------------------------
 name = "ScraperFC"
-version = "3.1.0"
+version = "3.1.1"
 description = "Package for scraping soccer data from a variety of sources."
 readme = "README.md"
 license = {file = "LICENSE"}
+requires-python = ">= 3.9"
 keywords = [
     "webscraping", "scraping", "soccer", "football", "soccer data", "football data", 
     "English Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Champions League",
@@ -16,7 +17,10 @@ authors = [
 ]
 classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Operating System :: OS Independent"
 ]
 dependencies = [
@@ -70,7 +74,7 @@ disallow_untyped_defs = true
 legacy_tox_ini = """
     [tox]
     isolated_build = true
-    envlist = py312
+    envlist = py39, py312
 
     [testenv]
     deps = 

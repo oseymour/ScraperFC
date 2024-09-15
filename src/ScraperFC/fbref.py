@@ -512,8 +512,10 @@ class FBref():
 
         # Verify valid stat category
         if stat_category not in stats_categories.keys():
-            raise ValueError((f'"{stat_category}" is not a valid FBref stats category. '
-                              f'Must be one of {list(stats_categories.keys())}.'))
+            raise ValueError(
+                f'"{stat_category}" is not a valid FBref stats category. '
+                f'Must be one of {list(stats_categories.keys())}.'
+            )
 
         season_url = self.get_season_link(year, league)
 
@@ -567,7 +569,8 @@ class FBref():
                 # Wait until player stats table is loaded
                 WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((
                     By.XPATH,
-                    f'//table[contains(@id, "stats_{stats_categories[stat_category]["html"]}")]')))
+                    f'//table[contains(@id, "stats_{stats_categories[stat_category]["html"]}")]'
+                )))
                 soup = BeautifulSoup(self.driver.page_source, 'html.parser')
             finally:
                 self._driver_close()

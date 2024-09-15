@@ -130,6 +130,31 @@ class Transfermarkt():
         return list(set(player_links))
     
     # ==============================================================================================
+    def get_match_links(self, year: str, league: str) -> Sequence[str]:
+        """ Returns all match links for a given competition season.
+
+        Parameters
+        ----------
+        year : str
+            See the :ref:`transfermarkt_year` `year` parameter docs for details.
+        league : str
+            League to scrape.
+        
+        Returns
+        -------
+        : list of str
+            List of the match URLs
+        """
+        valid_seasons = self.get_valid_seasons(league)
+        fixtures_url = f"{comps[league].replace('startseite', 'gesamtspielplan')}/saison_id/{valid_seasons[year]}"
+        scraper = cloudscraper.CloudScraper()
+        soup = BeautifulSoup(scraper.get(fixtures_url).content, "html.parser")
+        scraper.close()
+        match_tags = soup.find_all("a", {"class": "ergebnis-link"})
+        match_links = ["https://www.transfermarkt.us" + x["href"] for x in match_tags]
+        return match_links
+    
+    # ==============================================================================================
     def scrape_players(self, year: str, league: str) -> pd.DataFrame:
         """ Gathers all player info for the chosen league season.
         
@@ -299,6 +324,7 @@ class Transfermarkt():
         
         player = pd.Series(dtype=object)
         player['Name'] = name
+        player['ID'] = player_link.split("/")[-1]
         player['Value'] = value
         player['Value last updated'] = value_last_updated
         player['DOB'] = dob

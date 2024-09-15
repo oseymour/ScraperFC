@@ -4,6 +4,7 @@ from botasaurus.request import request, Request
 from botasaurus_requests import response
 import numpy as np
 from typing import Union, Sequence
+import warnings
 
 """ These are the status codes for Sofascore events. Found in event['status'] key.
 {100: {'code': 100, 'description': 'Ended', 'type': 'finished'},
@@ -259,6 +260,9 @@ class Sofascore:
                     player_data = item['player']
                     player_ids[player_data['name']] = player_data['id']
         else:
+            warnings.warn(
+                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
+            )
             player_ids = dict()
 
         return player_ids
@@ -352,8 +356,13 @@ class Sofascore:
 
         match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
         response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/graph')
-        match_momentum_df = pd.DataFrame(response.json()['graphPoints']) if \
-            response.status_code == 200 else pd.DataFrame()
+        if response.status_code == 200:
+            match_momentum_df = pd.DataFrame(response.json()['graphPoints'])
+        else:
+            warnings.warn(
+                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
+            )
+            match_momentum_df = pd.DataFrame()
 
         return match_momentum_df
 
@@ -386,7 +395,11 @@ class Sofascore:
                     temp['group'] = [group_name,] * temp.shape[0]
                     df = pd.concat([df, temp], ignore_index=True)
         else:
+            warnings.warn(
+                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
+            )
             df = pd.DataFrame()
+        
         return df
 
     # ==============================================================================================
@@ -406,9 +419,22 @@ class Sofascore:
             raise TypeError('`match` must a string or int')
 
         match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        
+        match_dict = self.get_match_dict(match_id)  # used to get home and away team names and IDs
+
         response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/lineups')
+        
         if response.status_code == 200:
-            players = response.json()['home']['players'] + response.json()['away']['players']
+            home_players = response.json()['home']['players']
+            away_players = response.json()['away']['players']
+            for p in home_players:
+                p["teamId"] = match_dict["homeTeam"]["id"]
+                p["teamName"] = match_dict["homeTeam"]["name"]
+            for p in away_players:
+                p["teamId"] = match_dict["awayTeam"]["id"]
+                p["teamName"] = match_dict["awayTeam"]["name"]
+                players = home_players + away_players
+                
             temp = pd.DataFrame(players)
             columns = list()
             for c in temp.columns:
@@ -420,7 +446,11 @@ class Sofascore:
                     columns.append(temp[c])  # type: ignore
             df = pd.concat(columns, axis=1)
         else:
+            warnings.warn(
+                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
+            )
             df = pd.DataFrame()
+        
         return df
 
     # ==============================================================================================
@@ -455,6 +485,9 @@ class Sofascore:
                 )
                 df = pd.concat([df, temp], axis=0, ignore_index=True)
         else:
+            warnings.warn(
+                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
+            )
             df = pd.DataFrame()
         return df
     
@@ -483,7 +516,12 @@ class Sofascore:
         for player in players:
             player_id = players[player]
             response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap')
-            heatmap = [(z['x'], z['y']) for z in response.json()['heatmap']]\
-                if response.status_code == 200 else []
+            if response.status_code == 200:
+                heatmap = [(z['x'], z['y']) for z in response.json()['heatmap']]
+            else:
+                warnings.warn(
+                    "Scraper did not get status code 200 from Sofascore. Returning empty heatmap."
+                )
+                heatmap = list()
             players[player] = {'id': player_id, 'heatmap': heatmap}
         return players
