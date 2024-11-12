@@ -34,15 +34,29 @@ comps = {
 class Capology():
 
     # ==============================================================================================
-    def __init__(self) -> None:
+    def __init__(self, headless: bool = False) -> None:
+        """ Initializer for the ScraperFC.Capology class.
+
+        Parameters
+        ----------
+        headless : bool, optional.
+            Controls whether the Selenium webdriver should be in headless mode or not. Setting
+            `headless=False` will usually lead to a more stable scraping experience. Defaults to 
+            False.
+        Returns
+        -------
+        None
+        """
         self.valid_currencies = ['eur', 'gbp', 'usd']
+        self.headless = headless
 
     # ==============================================================================================
     def _webdriver_init(self) -> None:
         """ Initializes a new webdriver
         """
         options = Options()
-        options.add_argument('--headless')
+        if self.headless:
+            options.add_argument('--headless')
         options.add_argument('--incognito')
         prefs = {'profile.managed_default_content_settings.images': 2}  # don't load images
         options.add_experimental_option('prefs', prefs)
@@ -159,48 +173,44 @@ class Capology():
         try:
             self.driver.get(self.get_season_url(year, league))
 
-            # Show all players on one page ---------------------------------------------------------
+            # -- Show 100 players per page ---------------------------------------------------------
             done = False
             while not done:
                 try:
-                    all_btn = WebDriverWait(self.driver, 10)\
-                        .until(EC.element_to_be_clickable((By.LINK_TEXT, 'All')))
-                    self.driver.execute_script('arguments[0].click()', all_btn)
+                    show_100_btn = WebDriverWait(self.driver, 10)\
+                        .until(EC.element_to_be_clickable((By.LINK_TEXT, '100')))
+                    self.driver.execute_script('arguments[0].click()', show_100_btn)
                     done = True
                 except StaleElementReferenceException:
                     pass
 
-            # Select the currency ------------------------------------------------------------------
+            # -- Select the currency ---------------------------------------------------------------
             currency_btn = WebDriverWait(self.driver, 10)\
                 .until(EC.element_to_be_clickable((By.ID, f'btn_{currency}')))
             self.driver.execute_script('arguments[0].click()', currency_btn)
-            print('Changed currency')
+            print(f'Changed currency to {currency}.')
 
-            # Table to pandas df -------------------------------------------------------------------
-            tbody_html = self.driver.find_element(By.ID, 'table')\
-                .find_element(By.TAG_NAME, 'tbody').get_attribute('outerHTML')
-            table_html = '<table>' + tbody_html + '</table>'  # type: ignore
-            df = pd.read_html(StringIO(table_html))[0]
-            if df.shape[1] == 13:
-                # drop check-mark column
-                df = df.drop(columns=[1])
-                df.columns = [
-                    'Player', 'Weekly Gross', 'Annual Gross', 'Expiration', 'Length', 'Total Gross',
-                    'Status', 'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
-                ]  # type: ignore
-            elif df.shape[1] == 17:
-                # drop check-mark column and True/False column (not sure what this one is)
-                df = df.drop(columns=[1, 16])
-                df.columns = [
-                    'Player', 'Weekly Gross', 'Annual Gross', 'Annual Bonus', 'Signed',
-                    'Expiration', 'Years Reamining', 'Gross Remaining', 'Release Clause', 'Status',
-                    'Pos. group', 'Pos.', 'Age', 'Country', 'Club'
-                ]  # type: ignore
-            else:
-                df.columns = [
-                    'Player', 'Weekly Gross', 'Annual Gross', 'Adj. Gross', 'Pos. group', 'Age',
-                    'Country', 'Club'
-                ]  # type: ignore
+            # -- Visit all of the player pages and get the salary tables ---------------------------
+            pages_visited = list()
+            df = pd.DataFrame()
+            current_page = BeautifulSoup(self.driver.page_source, "html.parser")\
+                .find("li", {"class": "page-item active"}).text  # type: ignore
+            while current_page not in pages_visited:
+                pages_visited.append(current_page)
+
+                # Get the salary table from the current page and and it df
+                temp = pd.read_html(
+                    StringIO(self.driver.find_element(By.ID, "table").get_attribute("outerHTML"))
+                )[0]
+                df = pd.concat([df, temp], axis=0, ignore_index=True)
+
+                # Go the next page
+                next_btn = self.driver.find_element(By.LINK_TEXT, "Next")
+                self.driver.execute_script('arguments[0].click()', next_btn)
+                current_page = BeautifulSoup(self.driver.page_source, "html.parser")\
+                    .find("li", {"class": "page-item active"}).text  # type: ignore
+
+            df.columns = df.columns.droplevel(0)
 
             return df
         finally:
@@ -213,52 +223,3 @@ class Capology():
         raise NotImplementedError(
             '`scrape_payrolls()` has been deprecated. Please use `scrape_salaries()` instead.'
         )
-        # """ Scrapes team payrolls for the given league season.
-
-        # Parameters
-        # ----------
-        # year : str
-        #     Season to be scraped (e.g, "2020-21"). Please use the same string that is in the
-        #     season dropdown on the Capology website. Call
-        #     ScraperFC.Capology.get_valid_seasons(league) to see valid seasons for a league.
-        # league : str
-        #     League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
-        #     valid leagues for this module.
-        # currency : str
-        #     The currency for the returned salaries. Options are "eur" for Euro, "gbp" for British
-        #     Pound, and "USD" for US Dollar
-        # Returns
-        # -------
-        # : Pandas DataFrame
-        #     The payrolls of all teams in the given league season
-        # """
-        # if type(currency) is not str:
-        #     raise TypeError('`currency` must be a string.')
-        # if currency not in self.valid_currencies:
-        #     raise InvalidCurrencyException()
-
-        # self._webdriver_init()
-        # try:
-        #     self.driver.get(self.get_season_url(year, league))
-
-        #     # select the currency
-        #     currency_btn = (
-        #         WebDriverWait(self.driver, 10)
-        #         .until(EC.element_to_be_clickable((By.ID, f'btn_{currency}')))
-        #     )
-        #     self.driver.execute_script('arguments[0].click()', currency_btn)
-
-        #     # table to pandas df
-        #     table = (
-        #         WebDriverWait(self.driver, 10).until(EC.element_to_be_clickable((By.ID, 'table')))
-        #     )
-        #     df = pd.read_html(StringIO(table.get_attribute('outerHTML')))[0]
-        #     # df.columns = [
-        #     #     'Club', 'Weekly Gross (000s)', 'Annual Gross (000s)',
-        #     #     'Inflcation-Adj. Gross (000s)', 'Keeper (000s)', 'Defense (000s)',
-        #     #     'Midfield (000s)', 'Forward (000s)'
-        #     # ]
-
-        #     return df
-        # finally:
-        #     self._webdriver_close()
