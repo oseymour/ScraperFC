@@ -46,6 +46,9 @@ nitpick_ignore = [
     ("py:class", "pandas.core.frame.DataFrame")
 ]
 
+# Validate numpy docstring formatting
+numpydoc_validation_checks = {"all"}
+
 
 # -- Options for HTML output -------------------------------------------------
 
