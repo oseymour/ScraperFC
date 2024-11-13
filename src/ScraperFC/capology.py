@@ -185,9 +185,8 @@ class Capology():
                 pages_visited.append(current_page)
 
                 # Get the salary table from the current page and and it df
-                temp = pd.read_html(
-                    StringIO(self.driver.find_element(By.ID, "table").get_attribute("outerHTML"))
-                )[0]
+                table_el = self.driver.find_element(By.ID, "table")
+                temp = pd.read_html(StringIO(table_el.get_attribute("outerHTML")))[0]
                 df = pd.concat([df, temp], axis=0, ignore_index=True)
 
                 # Go the next page
@@ -196,7 +195,30 @@ class Capology():
                 current_page = BeautifulSoup(self.driver.page_source, "html.parser")\
                     .find("li", {"class": "page-item active"}).text  # type: ignore
 
-            df.columns = df.columns.droplevel(0)
+            # Get the cleaned column names ---------------------------------------------------------
+            table_header = table_el.find_element(By.TAG_NAME, "thead")
+            table_header_rows = table_header.find_elements(By.TAG_NAME, "tr")
+            
+            level0_cols = list()
+            for th in table_header_rows[0].find_elements(By.TAG_NAME, "th"):
+                col_name = th.find_element(By.TAG_NAME, "div").text
+                col_span = int(th.get_attribute("colspan"))
+                [level0_cols.append(col_name) for _ in range(col_span)]
+            
+            level1_cols = list()
+            for th in table_header_rows[1].find_elements(By.TAG_NAME, "th"):
+                col_name = (
+                    th.get_attribute("data-field").upper() 
+                    if th.get_attribute("class") == "hide" 
+                    else th.find_element(By.TAG_NAME, "div").text
+                )
+                level1_cols.append(col_name)
+            
+            # Sometimes the level 0 header row has less colspans than cols in the 2nd header row
+            while len(level0_cols) < len(level1_cols):
+                level0_cols.append("")
+
+            df.columns = pd.MultiIndex.from_arrays([level0_cols, level1_cols])
 
             return df
         finally:
