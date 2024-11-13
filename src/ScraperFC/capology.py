@@ -34,29 +34,15 @@ comps = {
 class Capology():
 
     # ==============================================================================================
-    def __init__(self, headless: bool = False) -> None:
-        """ Initializer for the ScraperFC.Capology class.
-
-        Parameters
-        ----------
-        headless : bool, optional.
-            Controls whether the Selenium webdriver should be in headless mode or not. Setting
-            `headless=False` will usually lead to a more stable scraping experience. Defaults to 
-            False.
-        Returns
-        -------
-        None
-        """
+    def __init__(self) -> None:
         self.valid_currencies = ['eur', 'gbp', 'usd']
-        self.headless = headless
 
     # ==============================================================================================
     def _webdriver_init(self) -> None:
         """ Initializes a new webdriver
         """
         options = Options()
-        if self.headless:
-            options.add_argument('--headless')
+        options.add_argument('--headless')
         options.add_argument('--incognito')
         prefs = {'profile.managed_default_content_settings.images': 2}  # don't load images
         options.add_experimental_option('prefs', prefs)
