@@ -82,7 +82,43 @@ legacy_tox_ini = """
     extras = test
     commands = 
         python -m pip list
-        pytest ./test/ --cov=ScraperFC -s --durations=20 --instafail
+        pytest ./test/ --cov=ScraperFC --durations=20 -s
+
+    [testenv:test-capology]
+    extras = test
+    commands = 
+        pip list
+        pytest ./test/test_capology.py -s --cov ScraperFC
+
+    [testenv:test-clubelo]
+    extras = test
+    commands = 
+        pip list
+        pytest ./test/test_clubelo.py -s --cov ScraperFC
+
+    [testenv:test-fbref]
+    extras = test
+    commands = 
+        pip list
+        pytest ./test/test_fbref.py -s --cov ScraperFC
+
+    [testenv:test-sofascore]
+    extras = test
+    commands = 
+        pip list
+        pytest ./test/test_sofascore.py -s --cov ScraperFC
+
+    [testenv:test-transfermarkt]
+    extras = test
+    commands = 
+        pip list
+        pytest ./test/test_transfermarkt.py -s --cov ScraperFC
+
+    [testenv:test-understat]
+    extras = test
+    commands = 
+        pip list
+        pytest ./test/test_understat.py -s --cov ScraperFC
 
     [testenv:docs]
     extras = docs
