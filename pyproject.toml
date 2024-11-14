@@ -33,8 +33,10 @@ test = ["pytest", "pytest-cov", "pytest-instafail"]
 docs = ["sphinx", "furo"]
 build = ["build", "setuptools", "wheel"]
 publish = ["publish",]
-typecheck = ["mypy",]
-lint_format = ["ruff",]
+typecheck = [
+    "mypy", "pandas-stubs", "types-beautifulsoup4", "types-openpyxl", "types-python-dateutil", 
+    "types-requests", "types-tqdm"
+]
 
 [project.urls]
 repository = "https://github.com/oseymour/ScraperFC/"
@@ -77,24 +79,18 @@ legacy_tox_ini = """
     envlist = py39, py312
 
     [testenv]
-    deps = 
-        pytest
-        pytest-cov
-        pytest-instafail
+    extras = test
     commands = 
         python -m pip list
         pytest ./test/ --cov=ScraperFC -s --durations=20 --instafail
 
     [testenv:docs]
-    deps = 
-       furo
-       sphinx
+    extras = docs
     commands = sphinx-build -n -W --keep-going -b html ./docs/source/ ./docs/build/
 
     [testenv:build]
     skip_install = true
-    deps = 
-        build
+    deps = build
     commands = python -m build
 
     [testenv:lint]
@@ -103,14 +99,6 @@ legacy_tox_ini = """
     commands = ruff check ./src/ScraperFC
 
     [testenv:typecheck]
-    skip_install = true
-    deps = 
-        mypy
-        pandas-stubs
-        types-beautifulsoup4
-        types-openpyxl 
-        types-python-dateutil 
-        types-requests 
-        types-tqdm
+    extras = typecheck
     commands = python -m mypy ./src/
 """
