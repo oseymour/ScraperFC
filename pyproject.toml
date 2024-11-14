@@ -76,7 +76,7 @@ disallow_untyped_defs = true
 legacy_tox_ini = """
     [tox]
     isolated_build = true
-    envlist = py39, py312
+    envlist = py39, py310, py311, py312
 
     [testenv]
     extras = test
