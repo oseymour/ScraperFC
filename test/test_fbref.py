@@ -121,10 +121,11 @@ class TestFBref:
     @pytest.mark.parametrize(
         "link",
         [
-            # Only has GK stats for 1 team
-            "https://fbref.com/en/matches/2bc716a2/Columbus-Crew-LA-Galaxy-May-17-1998-Major-League-Soccer",
-            # Only has shots data for 1 team
-            "https://fbref.com/en/matches/38293f32/Manchester-United-Aston-Villa-March-7-2021-Womens-Super-League"
+            "https://fbref.com/en/matches/2bc716a2/Columbus-Crew-LA-Galaxy-May-17-1998-Major-League-Soccer",  # Only has GK stats for 1 team, has scorebox_meta tag
+            "https://fbref.com/en/matches/38293f32/Manchester-United-Aston-Villa-March-7-2021-Womens-Super-League",  # only has shots data for 1 team
+            "https://fbref.com/en/matches/40e49e72/North-West-Derby-Liverpool-Manchester-United-May-5-2024-Womens-Super-League",  # No scorebox_meta tag
+            "https://fbref.com/en/matches/bdbe67a7/Lanus-Chapecoense-May-17-2017-Copa-Libertadores",  # was awarded to one team
+            "https://fbref.com/en/matches/ec86d292/Standard-Liege-Anderlecht-April-12-2019-Belgian-First-Division-A",  # was awarded to one team
         ]
     )
     def test_scrape_specific_matches(self, link):
@@ -163,6 +164,27 @@ class TestFBref:
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
         
+        stats = fbref.scrape_all_stats(year, league)
+        assert type(stats) is dict
+        for key, value in stats.items():
+            assert key in stats_categories.keys()
+            assert type(value) is tuple
+            assert len(value) == 3
+            assert type(value[0]) is pd.DataFrame or value[0] is None
+            assert type(value[1]) is pd.DataFrame or value[1] is None
+            assert type(value[2]) is pd.DataFrame or value[2] is None
+
+    # ==============================================================================================
+    @pytest.mark.parametrize(
+        "year, league",
+        [
+            ("1954-1955", "EPL"),  # doesn't have any stat categories data
+            ("2024-2025", "Champions League"),  # should be "normal"
+            ("2024-2025", "Big 5 combined"),  # cuz it's different
+        ]
+    )
+    def test_scrape_specific_all_stats(self, year, league):
+        fbref = FBref()
         stats = fbref.scrape_all_stats(year, league)
         assert type(stats) is dict
         for key, value in stats.items():
