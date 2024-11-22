@@ -524,6 +524,8 @@ class FBref():
         season_url = self.get_season_link(year, league)
 
         if league == 'Big 5 combined':
+            squad_id_finder = "td"  # for squad and opponent squad IDs
+            squad_id_start_idx = 0  # to index the squad id elements list, to match shape of df
             # Big 5 combined has separate pages for squad and player stats
             # Make the URLs to these pages
             first_half = '/'.join(season_url.split('/')[:-1])
@@ -548,20 +550,9 @@ class FBref():
                 {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')}
             )
 
-            # Gather squad and opponent squad IDs
-            # These are 'td' elements for Big 5
-            squad_ids = [
-                tag.find('a')['href'].split('/')[3] for tag
-                in squad_stats_tag.find_all('td', {'data-stat': 'team'})  # type: ignore
-                if tag and tag.find('a')
-            ]
-            opponent_ids = [
-                tag.find('a')['href'].split('/')[3] for tag
-                in opponent_stats_tag.find_all('td', {'data-stat': 'team'})  # type: ignore
-                if tag and tag.find('a')
-            ]
-
-        else:
+        else:  # not big 5 leagues
+            squad_id_finder = "th"
+            squad_id_start_idx = 1
             # Get URL to stat category
             old_suffix = season_url.split('/')[-1]  # suffix is last element 202X-202X-divider-stats
             new_suffix = f'{stats_categories[stat_category]["url"]}/{old_suffix}'
@@ -579,33 +570,27 @@ class FBref():
             finally:
                 self._driver_close()
 
-            # Gather stats table tags
-            squad_stats_tag = soup.find('table', {'id': re.compile('for')})
-            opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
-            player_stats_tag = soup.find(
-                'table', {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')}
-            )
+                # Gather stats table tags
+                squad_stats_tag = soup.find('table', {'id': re.compile('for')})
+                opponent_stats_tag = soup.find('table', {'id': re.compile('against')})
+                player_stats_tag = soup.find(
+                    'table', {'id': re.compile(f'stats_{stats_categories[stat_category]["html"]}')}
+                )
 
-            # Gather squad and opponent squad IDs
-            # These are 'th' elements for all other leagues
-            squad_ids = [
-                tag.find('a')['href'].split('/')[3] for tag
-                in squad_stats_tag.find_all('th', {'data-stat': 'team'})[1:]  # type: ignore
-                if tag and tag.find('a')
-            ]
-            opponent_ids = [
-                tag.find('a')['href'].split('/')[3] for tag
-                in opponent_stats_tag.find_all('th', {'data-stat': 'team'})[1:]  # type: ignore
-                if tag and tag.find('a')
-            ]
-
+        # DO THESE THINGS WHETHER BIG 5 OR NOT
         # Get stats dataframes
-        squad_stats = (pd.read_html(StringIO(str(squad_stats_tag)))[0]
-                       if squad_stats_tag is not None else None)
-        opponent_stats = (pd.read_html(StringIO(str(opponent_stats_tag)))[0]
-                          if opponent_stats_tag is not None else None)
-        player_stats = (pd.read_html(StringIO(str(player_stats_tag)))[0]
-                        if player_stats_tag is not None else None)
+        squad_stats = (
+            None if squad_stats_tag is None
+            else pd.read_html(StringIO(str(squad_stats_tag)))[0]
+        )
+        opponent_stats = (
+            None if opponent_stats_tag is None
+            else pd.read_html(StringIO(str(opponent_stats_tag)))[0]
+        )
+        player_stats = (
+            None if player_stats_tag is None
+            else pd.read_html(StringIO(str(player_stats_tag)))[0]
+        )
 
         # Drop rows that contain duplicated table headers, add team/player IDs
         if squad_stats is not None:
@@ -614,6 +599,13 @@ class FBref():
                 & (squad_stats.loc[:, (slice(None), 'Squad')] != 'Squad')  # type: ignore
             )
             squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
+
+            # Squad IDs
+            squad_ids = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag in squad_stats_tag.find_all(squad_id_finder, {'data-stat': 'team'})[squad_id_start_idx:]  # type: ignore
+                if tag and tag.find('a')
+            ]
             squad_stats['Team ID'] = squad_ids
 
         if opponent_stats is not None:
@@ -622,17 +614,25 @@ class FBref():
                 & (opponent_stats.loc[:, (slice(None), 'Squad')] != 'Squad')  # type: ignore
             )
             opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
+
+            # Opponent squad IDs
+            opponent_ids = [
+                tag.find('a')['href'].split('/')[3] 
+                for tag in opponent_stats_tag.find_all(squad_id_finder, {'data-stat': 'team'})[squad_id_start_idx:]  # type: ignore
+                if tag and tag.find('a')
+            ]
             opponent_stats['Team ID'] = opponent_ids
 
         if player_stats is not None:
             keep_players_mask = (player_stats.loc[:, (slice(None), 'Rk')] != 'Rk').values  # type: ignore
             player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
 
-        # Add player links and ID's
-        if player_stats is not None:
-            player_links = ['https://fbref.com' + tag.find('a')['href'] for tag
-                            in player_stats_tag.find_all('td', {'data-stat': 'player'})  # type: ignore
-                            if tag and tag.find('a')]
+            # Add player links and ID's
+            player_links = [
+                'https://fbref.com' + tag.find('a')['href'] 
+                for tag in player_stats_tag.find_all('td', {'data-stat': 'player'})  # type: ignore
+                if tag and tag.find('a')
+            ]
             player_stats['Player Link'] = player_links
             player_stats['Player ID'] = [x.split('/')[-2] for x in player_links]
 
