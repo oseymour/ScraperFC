@@ -30,7 +30,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest", "pytest-cov", "pytest-instafail"]
-docs = ["sphinx", "furo"]
+docs = ["sphinx", "furo", "myst-nb"]
 build = ["build", "setuptools", "wheel"]
 publish = ["publish",]
 typecheck = [
