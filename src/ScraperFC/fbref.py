@@ -364,7 +364,11 @@ class FBref():
         soup = BeautifulSoup(r.content, 'html.parser')
 
         # General match info
-        date = soup.find("div", {"class": "scorebox_meta"}).find("strong").text  # type: ignore
+        scorebox_meta_tag = soup.find("div", {"class": "scorebox_meta"})
+        if scorebox_meta_tag is not None:
+            date = scorebox_meta_tag.find("strong").text  # type: ignore
+        else:
+            date = soup.find("span", {"class": "venuetime"})["data-venue-date"]  # type: ignore
         stage = soup.find("div", {"role": "main"}).find("div").text  # type: ignore
 
         # Team names, IDs, goals, and xG
