@@ -13,7 +13,9 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
 from typing import Sequence, Union
+import warnings
 
 stats_categories = {
     'standard': {'url': 'stats', 'html': 'standard'},
@@ -560,14 +562,21 @@ class FBref():
 
             self._driver_init()
             try:
+                # Wait for the player stats table to load
                 self._driver_get(new_url)
-                # Wait until player stats table is loaded
                 WebDriverWait(self.driver, 10).until(EC.visibility_of_element_located((
                     By.XPATH,
                     f'//table[contains(@id, "stats_{stats_categories[stat_category]["html"]}")]'
                 )))
-                soup = BeautifulSoup(self.driver.page_source, 'html.parser')
+            except TimeoutException:
+                # Don't raise this exception, the table tags won't be found. They'll be None and
+                # appropriately handled later in this function.
+                warnings.warn(
+                    f"No player stats table ever loaded for {year} {league} {stat_category}"
+                    f" ({new_url}). It is likely that there is no data for this year-league."
+                )
             finally:
+                soup = BeautifulSoup(self.driver.page_source, 'html.parser')
                 self._driver_close()
 
                 # Gather stats table tags
