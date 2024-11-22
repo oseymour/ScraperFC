@@ -202,13 +202,13 @@ class Capology():
             level0_cols = list()
             for th in table_header_rows[0].find_elements(By.TAG_NAME, "th"):
                 col_name = th.find_element(By.TAG_NAME, "div").text
-                col_span = int(th.get_attribute("colspan"))
-                [level0_cols.append(col_name) for _ in range(col_span)]
+                col_span = int(th.get_attribute("colspan"))  # type: ignore
+                _ = [level0_cols.append(col_name) for _ in range(col_span)]  # type: ignore
             
             level1_cols = list()
             for th in table_header_rows[1].find_elements(By.TAG_NAME, "th"):
                 col_name = (
-                    th.get_attribute("data-field").upper() 
+                    th.get_attribute("data-field").upper()  # type: ignore
                     if th.get_attribute("class") == "hide" 
                     else th.find_element(By.TAG_NAME, "div").text
                 )

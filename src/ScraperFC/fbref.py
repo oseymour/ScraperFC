@@ -511,9 +511,9 @@ class FBref():
             The stat category to scrape.
         Returns
         -------
-        : tuple of DataFrames or None
+        : tuple of DataFrames or tuple of None
             (squad_stats, opponent_stats, player_stats). Tuple elements will be None if the squad
-            stats category does not exist for the given `year` and `league`.
+            stats category does not contain data for the given `year` and `league`.
         """
 
         # Verify valid stat category
