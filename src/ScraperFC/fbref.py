@@ -377,11 +377,11 @@ class FBref():
 
         home_name = home_el.find("div").text.strip()
         home_id = home_el.find("div").find("strong").find("a")["href"].split("/")[3]
-        home_goals = int(home_el.find("div", {"class": "score"}).text)
+        home_goals = home_el.find("div", {"class": "score"}).text # don't cast to int because games that were awarded to one team have `*` by that team's goals
 
         away_name = away_el.find("div").text.strip()
         away_id = away_el.find("div").find("strong").find("a")["href"].split("/")[3]
-        away_goals = int(away_el.find("div", {"class": "score"}).text)
+        away_goals = away_el.find("div", {"class": "score"}).text
 
         # Outfield player stats tables
         home_player_stats_tag, away_player_stats_tag = soup.find_all(
