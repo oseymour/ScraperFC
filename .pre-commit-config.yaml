@@ -1,0 +1,13 @@
+repos:
+- repo: https://github.com/astral-sh/ruff-pre-commit
+  rev: v0.8.0
+  hooks:
+    - id: ruff
+      args: [--exclude, "*dev_testing.ipynb,*second_tester_notebook.ipynb"]
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.13.0
+  hooks:
+    - id: mypy
+      args: ["./src", --ignore-missing-imports, --disallow-untyped-defs]
+      additional_dependencies: [types-requests]
+      pass_filenames: false

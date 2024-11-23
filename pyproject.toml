@@ -60,14 +60,13 @@ show_missing = true
 
 # -- Linting ---------------------------------------------------------------------------------------
 [tool.ruff]
-exclude = ["*oddsportal.py"]
+exclude = ["*dev_testing.ipynb", "*second_tester_notebook.ipynb"]
 
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["F401"]
 
 # -- Typechecking ----------------------------------------------------------------------------------
 [tool.mypy]
-exclude = ["/oddsportal\\.py$"]
 ignore_missing_imports = true
 disallow_untyped_defs = true
 
@@ -132,7 +131,7 @@ legacy_tox_ini = """
     [testenv:lint]
     skip_install = true
     deps = ruff
-    commands = ruff check ./src/ScraperFC
+    commands = ruff check
 
     [testenv:typecheck]
     extras = typecheck
