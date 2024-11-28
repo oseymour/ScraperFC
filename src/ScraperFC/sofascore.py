@@ -250,7 +250,8 @@ class Sofascore:
             raise TypeError('`match` must a string or int')
 
         match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
-        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/lineups')
+        url = f"{API_PREFIX}/event/{match_id}/lineups"
+        response = _botasaurus_get(url)
         teams = ['home', 'away']
         if response.status_code == 200:
             player_ids = dict()
@@ -260,18 +261,18 @@ class Sofascore:
                     player_data = item['player']
                     player_ids[player_data['name']] = player_data['id']
         else:
-            warnings.warn(
-                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
-            )
+            warnings.warn(f"\nReturned {response.status_code} from {url}. Returning empty dict.")
             player_ids = dict()
 
         return player_ids
     
     # ==============================================================================================
     def scrape_player_league_stats(
-        self, year: str, league: str, accumulation: str='total',
-        selected_positions: Sequence[str]=['Goalkeepers', 'Defenders', 'Midfielders', 'Forwards']
-    ) -> pd.DataFrame:
+            self, year: str, league: str, accumulation: str='total',
+            selected_positions: Sequence[str]=[
+                'Goalkeepers', 'Defenders', 'Midfielders', 'Forwards'
+            ]
+        ) -> pd.DataFrame:
         """ Get every player statistic that can be asked in league pages on Sofascore.
 
         Parameters
@@ -355,13 +356,12 @@ class Sofascore:
             raise TypeError('`match` must a string or int')
 
         match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
-        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/graph')
+        url = f'{API_PREFIX}/event/{match_id}/graph'
+        response = _botasaurus_get(url)
         if response.status_code == 200:
             match_momentum_df = pd.DataFrame(response.json()['graphPoints'])
         else:
-            warnings.warn(
-                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
-            )
+            warnings.warn(f"\nReturned {response.status_code} from {url}. Returning empty dataframe.")
             match_momentum_df = pd.DataFrame()
 
         return match_momentum_df
@@ -383,7 +383,8 @@ class Sofascore:
             raise TypeError('`match` must a string or int')
 
         match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
-        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/statistics')
+        url = f'{API_PREFIX}/event/{match_id}/statistics'
+        response = _botasaurus_get(url)
         if response.status_code == 200:
             df = pd.DataFrame()
             for period in response.json()['statistics']:
@@ -395,9 +396,7 @@ class Sofascore:
                     temp['group'] = [group_name,] * temp.shape[0]
                     df = pd.concat([df, temp], ignore_index=True)
         else:
-            warnings.warn(
-                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
-            )
+            warnings.warn(f"\nReturned {response.status_code} from {url}. Returning empty dataframe.")
             df = pd.DataFrame()
         
         return df
@@ -421,8 +420,8 @@ class Sofascore:
         match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
         
         match_dict = self.get_match_dict(match_id)  # used to get home and away team names and IDs
-
-        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/lineups')
+        url = f'{API_PREFIX}/event/{match_id}/lineups'
+        response = _botasaurus_get(url)
         
         if response.status_code == 200:
             home_players = response.json()['home']['players']
@@ -446,9 +445,7 @@ class Sofascore:
                     columns.append(temp[c])  # type: ignore
             df = pd.concat(columns, axis=1)
         else:
-            warnings.warn(
-                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
-            )
+            warnings.warn(f"\nReturned {response.status_code} from {url}. Returning empty dataframe.")
             df = pd.DataFrame()
         
         return df
@@ -473,7 +470,8 @@ class Sofascore:
 
         home_name, away_name = self.get_team_names(match)
         match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
-        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/average-positions')
+        url = f'{API_PREFIX}/event/{match_id}/average-positions'
+        response = _botasaurus_get(url)
         if response.status_code == 200:
             df = pd.DataFrame()
             for key, name in [('home', home_name), ('away', away_name)]:
@@ -485,9 +483,7 @@ class Sofascore:
                 )
                 df = pd.concat([df, temp], axis=0, ignore_index=True)
         else:
-            warnings.warn(
-                "Scraper did not get status code 200 from Sofascore. Returning empty dataframe."
-            )
+            warnings.warn(f"\nReturned {response.status_code} from {url}. Returning empty dataframe.")
             df = pd.DataFrame()
         return df
     
@@ -515,13 +511,13 @@ class Sofascore:
         players = self.get_player_ids(match)
         for player in players:
             player_id = players[player]
-            response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap')
+            url = f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap'
+            response = _botasaurus_get(url)
             if response.status_code == 200:
                 heatmap = [(z['x'], z['y']) for z in response.json()['heatmap']]
             else:
-                warnings.warn(
-                    "Scraper did not get status code 200 from Sofascore. Returning empty heatmap."
-                )
+                # Players that didn't play have empty heatmaps. Don't print warning because there
+                # would be a lot of them.
                 heatmap = list()
             players[player] = {'id': player_id, 'heatmap': heatmap}
         return players
