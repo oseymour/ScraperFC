@@ -70,6 +70,24 @@ class Sofascore:
         self.concatenated_fields = '%2C'.join(self.league_stats_fields)
 
     # ==============================================================================================
+    def _check_and_convert_to_match_id(self, match: Union[str, int]) -> int:
+        """ Helper function that will take a Sofascore match URL or match ID and return a match ID
+
+        Parameters
+        ----------
+        match : str or int
+            Strings will be interprated as URLs and ints will be interpreted as match IDs.
+
+        Returns
+        -------
+        match_id : int
+        """
+        if not isinstance(match, int) and not isinstance(match, str):
+            raise TypeError('`match` must a string or int')
+        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        return match_id
+
+    # ==============================================================================================
     def get_valid_seasons(self, league: str) -> dict:
         """ Returns the valid seasons and their IDs for the given league
 
@@ -181,9 +199,7 @@ class Sofascore:
         : dict
             Generic data about a match
         """
-        if not isinstance(match, int) and not isinstance(match, str):
-            raise TypeError('`match` must a string or int')
-        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        match_id = self._check_and_convert_to_match_id(match)
         response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}')
         data = response.json()['event']
         return data
@@ -246,10 +262,7 @@ class Sofascore:
         : dict
             Name and ID of every player in the match, {name: id, ...}
         """
-        if not isinstance(match, int) and not isinstance(match, str):
-            raise TypeError('`match` must a string or int')
-
-        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        match_id = self._check_and_convert_to_match_id(match)
         url = f"{API_PREFIX}/event/{match_id}/lineups"
         response = _botasaurus_get(url)
         teams = ['home', 'away']
@@ -352,10 +365,7 @@ class Sofascore:
             Dataframe of match momentum values. Will be empty if the match does not have
             match momentum data.
         """
-        if not isinstance(match, int) and not isinstance(match, str):
-            raise TypeError('`match` must a string or int')
-
-        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        match_id = self._check_and_convert_to_match_id(match)
         url = f'{API_PREFIX}/event/{match_id}/graph'
         response = _botasaurus_get(url)
         if response.status_code == 200:
@@ -379,10 +389,7 @@ class Sofascore:
         -------
         : DataFrame
         """
-        if not isinstance(match, int) and not isinstance(match, str):
-            raise TypeError('`match` must a string or int')
-
-        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        match_id = self._check_and_convert_to_match_id(match)
         url = f'{API_PREFIX}/event/{match_id}/statistics'
         response = _botasaurus_get(url)
         if response.status_code == 200:
@@ -414,11 +421,7 @@ class Sofascore:
         -------
         : DataFrame
         """
-        if not isinstance(match, int) and not isinstance(match, str):
-            raise TypeError('`match` must a string or int')
-
-        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
-        
+        match_id = self._check_and_convert_to_match_id(match)
         match_dict = self.get_match_dict(match_id)  # used to get home and away team names and IDs
         url = f'{API_PREFIX}/event/{match_id}/lineups'
         response = _botasaurus_get(url)
@@ -465,11 +468,8 @@ class Sofascore:
             Each row is a player and columns averageX and averageY denote their average position on
             the match.
         """
-        if not isinstance(match, int) and not isinstance(match, str):
-            raise TypeError('`match` must a string or int')
-
+        match_id = self._check_and_convert_to_match_id(match)
         home_name, away_name = self.get_team_names(match)
-        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
         url = f'{API_PREFIX}/event/{match_id}/average-positions'
         response = _botasaurus_get(url)
         if response.status_code == 200:
@@ -504,10 +504,7 @@ class Sofascore:
             Dict of players, their IDs and their heatmap coordinates, {player name: {'id':
             player_id, 'heatmap': heatmap}, ...}
         """
-        if not isinstance(match, int) and not isinstance(match, str):
-            raise TypeError('`match` must a string or int')
-
-        match_id = match if isinstance(match, int) else self.get_match_id_from_url(match)
+        match_id = self._check_and_convert_to_match_id(match)
         players = self.get_player_ids(match)
         for player in players:
             player_id = players[player]
