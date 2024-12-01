@@ -507,3 +507,28 @@ class Sofascore:
                 heatmap = list()
             players[player] = {'id': player_id, 'heatmap': heatmap}
         return players
+    
+    # ==============================================================================================
+    def scrape_match_shots(self, match: Union[str, int]) -> pd.DataFrame:
+        """ Scrape shots for a match
+
+        Parameters
+        ----------
+        match : str or int
+            Sofascore match URL or match ID
+        
+        Returns
+        -------
+        : DataFrame
+        """
+        match_id = self._check_and_convert_to_match_id(match)
+        url = f"{API_PREFIX}/event/{match_id}/shotmap"
+        response = botasaurus_get(url)
+        if response.status_code == 200:
+            df = pd.DataFrame.from_dict(response.json()["shotmap"])
+        else:
+            warnings.warn(
+                f"Returned {response.status_code} from {url}. Returning empty dataframe."
+            )
+            df = pd.DataFrame()
+        return df

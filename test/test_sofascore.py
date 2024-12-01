@@ -197,3 +197,18 @@ class TestSofascore:
         assert np.all(['heatmap' in x.keys() for x in heatmaps.values()])
         # Heatmap coords are a list
         assert np.all([isinstance(x['heatmap'], list) for x in heatmaps.values()])
+
+    # ==============================================================================================
+    def test_scrape_match_shots(self):
+        """ Test the outputs of the scrape_match_shots() function
+        """
+        ss = Sofascore()
+        league = random.sample(list(comps.keys()), 1)[0]
+        year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
+        
+        match_dicts = ss.get_match_dicts(year, league)
+        match_id = random.sample(match_dicts, 1)[0]['id']
+        shots = ss.scrape_match_shots(match_id)
+        assert isinstance(shots, pd.DataFrame)
+        assert shots.shape[0] > 0
+        assert shots.shape[1] > 0
