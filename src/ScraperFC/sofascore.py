@@ -30,6 +30,8 @@ comps = {
     'Liga 1 Peru': 406, "Copa Libertadores": 384,
     # USA
     'MLS': 242, 'USL Championship': 13363, 'USL1': 13362, 'USL2': 13546,
+    # Middle East
+    "Saudi Pro League": 955,
     # Men's international comps
     'World Cup': 16, 'Euros': 1, 'Gold Cup': 140,
     # Women's international comps
