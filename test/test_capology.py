@@ -14,9 +14,9 @@ class TestCapology:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [(2017, 'EPL', pytest.raises(TypeError)), 
-         ('2020-21', 'Bundesliga', does_not_raise()),
-         ('2020-2021', 'Bundesliga', pytest.raises(InvalidYearException))]
+        [[2017, 'EPL', pytest.raises(TypeError)], 
+         ['2020-21', 'Bundesliga', does_not_raise()],
+         ['2020-2021', 'Bundesliga', pytest.raises(InvalidYearException)]]
     )
     def test_invalid_year(self, year, league, expected):
         with expected:
