@@ -95,6 +95,9 @@ comps = {
     'Argentina Liga Profesional': {
         'history url': 'https://fbref.com/en/comps/21/history/Primera-Division-Seasons',
         'finders': ['Primera-Division']},
+    "Saudi Pro League": {
+        "history url": "https://fbref.com/en/comps/70/history/Saudi-Professional-League-Seasons",
+        "finders": ["Saudi-Professional-League"]},
     # Men's domestic league - 2nd tier
     'EFL Championship': {
         'history url': 'https://fbref.com/en/comps/10/history/Championship-Seasons',
@@ -168,6 +171,7 @@ class FBref():
         options = Options()
         options.add_argument('--incognito')
         options.add_argument('--headless')
+        options.add_argument("--log-level=2")
         prefs = {'profile.managed_default_content_settings.images': 2}  # don't load images
         options.add_experimental_option('prefs', prefs)
         self.driver = webdriver.Chrome(options=options)
