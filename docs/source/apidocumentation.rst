@@ -6,11 +6,11 @@ API Documentation
    :maxdepth: 1
    :caption: Modules:
 
-   capology <capology.rst>
-   clubelo <clubelo.rst>
-   fbref <fbref.rst>
-   fivethirtyeight <fivethirtyeight.rst>
-   sofascore <sofascore.rst>
-   transfermarkt <transfermarkt.rst>
-   understat <understat.rst>
-   shared_functions <shared_functions.rst>
+   capology.rst
+   clubelo.rst
+   fbref.rst
+   fivethirtyeight.rst
+   sofascore.rst
+   transfermarkt.rst
+   understat.rst
+   utils.rst

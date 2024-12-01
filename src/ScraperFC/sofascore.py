@@ -1,7 +1,6 @@
 import pandas as pd
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from botasaurus.request import request, Request
-from botasaurus_requests import response
+from .utils import botasaurus_get
 import numpy as np
 from typing import Union, Sequence
 import warnings
@@ -36,16 +35,6 @@ comps = {
     # Women's international comps
     "Women's World Cup": 290
 }
-
-
-@request(output=None, create_error_logs=False)
-def _botasaurus_get(request: Request, url: str) -> response.Response:
-    """ Sofascore introduced some anti-scraping measures. Using Botasaurus gets around them.
-    """
-    if not isinstance(url, str):
-        raise TypeError('`url` must be a string.')
-    response = request.get(url)
-    return response
 
 
 class Sofascore:
@@ -106,7 +95,7 @@ class Sofascore:
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Sofascore', list(comps.keys()))
             
-        response = _botasaurus_get(f'{API_PREFIX}/unique-tournament/{comps[league]}/seasons/')
+        response = botasaurus_get(f'{API_PREFIX}/unique-tournament/{comps[league]}/seasons/')
         seasons = dict([(x['year'], x['id']) for x in response.json()['seasons']])
         return seasons
 
@@ -135,7 +124,7 @@ class Sofascore:
         matches = list()
         i = 0
         while 1:
-            response = _botasaurus_get(
+            response = botasaurus_get(
                 f'{API_PREFIX}/unique-tournament/{comps[league]}/season/{valid_seasons[year]}/' +
                 f'events/last/{i}'
             )
@@ -200,7 +189,7 @@ class Sofascore:
             Generic data about a match
         """
         match_id = self._check_and_convert_to_match_id(match)
-        response = _botasaurus_get(f'{API_PREFIX}/event/{match_id}')
+        response = botasaurus_get(f'{API_PREFIX}/event/{match_id}')
         data = response.json()['event']
         return data
 
@@ -264,7 +253,7 @@ class Sofascore:
         """
         match_id = self._check_and_convert_to_match_id(match)
         url = f"{API_PREFIX}/event/{match_id}/lineups"
-        response = _botasaurus_get(url)
+        response = botasaurus_get(url)
         teams = ['home', 'away']
         if response.status_code == 200:
             player_ids = dict()
@@ -330,7 +319,7 @@ class Sofascore:
                 f'&accumulation={accumulation}' +\
                 f'&fields={self.concatenated_fields}' +\
                 f'&filters=position.in.{positions}'
-            response = _botasaurus_get(request_url)
+            response = botasaurus_get(request_url)
             results += response.json()['results']
             if (response.json()['page'] == response.json()['pages']) or\
                     (response.json()['pages'] == 0):
@@ -367,7 +356,7 @@ class Sofascore:
         """
         match_id = self._check_and_convert_to_match_id(match)
         url = f'{API_PREFIX}/event/{match_id}/graph'
-        response = _botasaurus_get(url)
+        response = botasaurus_get(url)
         if response.status_code == 200:
             match_momentum_df = pd.DataFrame(response.json()['graphPoints'])
         else:
@@ -391,7 +380,7 @@ class Sofascore:
         """
         match_id = self._check_and_convert_to_match_id(match)
         url = f'{API_PREFIX}/event/{match_id}/statistics'
-        response = _botasaurus_get(url)
+        response = botasaurus_get(url)
         if response.status_code == 200:
             df = pd.DataFrame()
             for period in response.json()['statistics']:
@@ -424,7 +413,7 @@ class Sofascore:
         match_id = self._check_and_convert_to_match_id(match)
         match_dict = self.get_match_dict(match_id)  # used to get home and away team names and IDs
         url = f'{API_PREFIX}/event/{match_id}/lineups'
-        response = _botasaurus_get(url)
+        response = botasaurus_get(url)
         
         if response.status_code == 200:
             home_players = response.json()['home']['players']
@@ -471,7 +460,7 @@ class Sofascore:
         match_id = self._check_and_convert_to_match_id(match)
         home_name, away_name = self.get_team_names(match)
         url = f'{API_PREFIX}/event/{match_id}/average-positions'
-        response = _botasaurus_get(url)
+        response = botasaurus_get(url)
         if response.status_code == 200:
             df = pd.DataFrame()
             for key, name in [('home', home_name), ('away', away_name)]:
@@ -509,7 +498,7 @@ class Sofascore:
         for player in players:
             player_id = players[player]
             url = f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap'
-            response = _botasaurus_get(url)
+            response = botasaurus_get(url)
             if response.status_code == 200:
                 heatmap = [(z['x'], z['y']) for z in response.json()['heatmap']]
             else:
