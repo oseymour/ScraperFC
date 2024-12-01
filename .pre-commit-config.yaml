@@ -3,7 +3,7 @@ repos:
   rev: v0.8.0
   hooks:
     - id: ruff
-      args: [--exclude, "*dev_testing.ipynb,*second_tester_notebook.ipynb"]
+      args: [--exclude, "*dev_testing.ipynb,*second_tester_notebook.ipynb", "--show-files"]
 - repo: https://github.com/pre-commit/mirrors-mypy
   rev: v1.13.0
   hooks:

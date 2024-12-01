@@ -131,7 +131,7 @@ legacy_tox_ini = """
     [testenv:lint]
     skip_install = true
     deps = ruff
-    commands = ruff check
+    commands = ruff check --show-files
 
     [testenv:typecheck]
     extras = typecheck
