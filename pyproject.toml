@@ -121,7 +121,7 @@ legacy_tox_ini = """
 
     [testenv:docs]
     extras = docs
-    commands = sphinx-build -n -W --keep-going -b html ./docs/source/ ./docs/build/
+    commands = sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
 
     [testenv:build]
     skip_install = true
