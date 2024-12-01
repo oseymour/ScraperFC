@@ -29,7 +29,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "pytest-instafail", "pytest-xdist"]
+test = ["pytest", "pytest-cov", "pytest-instafail"]
 docs = ["sphinx", "furo", "myst-nb"]
 build = ["build", "setuptools", "wheel"]
 publish = ["publish",]
@@ -81,7 +81,7 @@ legacy_tox_ini = """
     extras = test
     commands = 
         python -m pip list
-        pytest ./test/ --cov=ScraperFC --dist=loadscope -n 6 --durations=20
+        pytest ./test/ --cov=ScraperFC --durations=20 -s
 
     [testenv:test-capology]
     extras = test
