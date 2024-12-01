@@ -381,7 +381,7 @@ class Understat:
         year : str
             See the :ref:`understat_year` `year` parameter docs for details.
         league : str
-            League. Look in shared_functions.py for the available leagues for each module.
+            League. Look in ScraperFC.Understat comps variable for available leagues.
         as_df : bool, optional, default False
             If True, each team's data will be returned as DataFrames. If False, dicts.
 
