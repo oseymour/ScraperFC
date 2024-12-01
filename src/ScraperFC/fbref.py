@@ -3,7 +3,6 @@ import requests
 from .scraperfc_exceptions import InvalidYearException, InvalidLeagueException, \
     NoMatchLinksException, FBrefRateLimitException
 import time
-import numpy as np
 import pandas as pd
 from io import StringIO
 import re
@@ -307,9 +306,9 @@ class FBref():
             raise NoMatchLinksException(year, league, fixtures_url)
         for x in possible_els:
             a = x.find('a')
-            if (a is not None
-                    and 'match' in a['href']
-                    and np.any([f in a['href'] for f in comps[league]['finders']])):
+            if (a is not None and 'match' in a['href'] 
+                    and any([f in a['href'] for f in comps[league]['finders']])
+                ):
                 match_urls.append('https://fbref.com' + a['href'])
         match_urls = list(set(match_urls))
         return match_urls
@@ -371,6 +370,7 @@ class FBref():
             date = scorebox_meta_tag.find("strong").text  # type: ignore
         else:
             date = soup.find("span", {"class": "venuetime"})["data-venue-date"]  # type: ignore
+        
         stage = soup.find("div", {"role": "main"}).find("div").text  # type: ignore
 
         # Team names, IDs, goals, and xG
