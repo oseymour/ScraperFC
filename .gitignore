@@ -7,3 +7,4 @@ build/lib/ScraperFC/
 docs/build/*
 .tox/
 prof/*
+docs/jupyter_execute/*
