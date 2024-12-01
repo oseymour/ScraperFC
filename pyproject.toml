@@ -81,7 +81,7 @@ legacy_tox_ini = """
     extras = test
     commands = 
         python -m pip list
-        pytest ./test/ --cov=ScraperFC --dist=loadscope -n 6 --durations=20 -s
+        pytest ./test/ --cov=ScraperFC --dist=loadscope -n 6 --durations=20
 
     [testenv:test-capology]
     extras = test
