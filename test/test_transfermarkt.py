@@ -10,7 +10,7 @@ from contextlib import nullcontext as does_not_raise
 
 class TestTransfermarkt:
 
-    #===============================================================================================
+    # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
         [('23/24', 'EFL2', does_not_raise()),
@@ -24,7 +24,7 @@ class TestTransfermarkt:
         with expected:
             tm.get_player_links(year, league)
 
-    #===============================================================================================
+    # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
         [('76/77', 'La Liga', does_not_raise()),
@@ -40,7 +40,19 @@ class TestTransfermarkt:
         with expected:
             tm.get_player_links(year, league)
 
-    #===============================================================================================
+    # ==============================================================================================
+    @pytest.mark.parametrize(
+        "year, league", 
+        [("1901/02", "Jupiler Pro League"),]
+    )
+    def test_no_club_links(self, year, league):
+        tm = Transfermarkt()
+        with pytest.warns(UserWarning) as warning_info:
+            club_links = tm.get_club_links(year, league)
+        assert isinstance(club_links, list)
+        assert len(club_links) == 0
+
+    # ==============================================================================================
     def test_scrape_players(self):
         tm = Transfermarkt()
         league = random.sample(list(comps.keys()), 1)[0]
