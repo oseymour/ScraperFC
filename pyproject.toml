@@ -119,6 +119,13 @@ legacy_tox_ini = """
         pip list
         pytest ./test/test_understat.py -s --cov ScraperFC
 
+    [testenv:test-parallel]
+    extras = test
+    deps = pytest-xdist
+    commands = 
+        pip list
+        pytest ./test/ --cov=ScraperFC --durations=20 -s -n 6 --dist=loadscope
+
     [testenv:docs]
     extras = docs
     commands = sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
