@@ -5,6 +5,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import cloudscraper
 from typing import Sequence
+import warnings
 
 TRANSFERMARKT_ROOT = 'https://www.transfermarkt.us'
 
@@ -55,12 +56,13 @@ class Transfermarkt():
             raise InvalidLeagueException(league, 'Transfermarkt', list(comps.keys()))
         
         scraper = cloudscraper.CloudScraper()
-        soup = BeautifulSoup(scraper.get(comps[league]).content, 'html.parser')
-        season_tags = soup.find('select', {'name': 'saison_id'}).find_all('option')  # type: ignore
-        valid_seasons = dict([(x.text, x['value']) for x in season_tags])
-        scraper.close()
-        
-        return valid_seasons
+        try:
+            soup = BeautifulSoup(scraper.get(comps[league]).content, 'html.parser')
+            season_tags = soup.find('select', {'name': 'saison_id'}).find_all('option')  # type: ignore
+            valid_seasons = dict([(x.text, x['value']) for x in season_tags])
+            return valid_seasons
+        finally:
+            scraper.close()
         
     # ==============================================================================================
     def get_club_links(self, year: str, league: str) -> Sequence[str]:
@@ -85,16 +87,23 @@ class Transfermarkt():
             raise InvalidYearException(year, league, list(valid_seasons.keys()))
         
         scraper = cloudscraper.CloudScraper()
-        soup = BeautifulSoup(
-            scraper.get(f'{comps[league]}/plus/?saison_id={valid_seasons[year]}').content,
-            'html.parser'
-        )
-        club_els = soup.find('table', {'class': 'items'})\
-            .find_all('td', {'class': 'hauptlink no-border-links'})  # type: ignore
-        club_links = [TRANSFERMARKT_ROOT + x.find('a')['href'] for x in club_els]
-        scraper.close()
-        
-        return club_links
+        try:
+            soup = BeautifulSoup(
+                scraper.get(f'{comps[league]}/plus/?saison_id={valid_seasons[year]}').content,
+                'html.parser'
+            )
+            items_table_tag = soup.find('table', {'class': 'items'})
+            if items_table_tag is None:
+                warnings.warn(
+                    f"No club links table found for {year} {league}. Returning empty list."
+                )
+                club_links = list()
+            else:
+                club_els = items_table_tag.find_all('td', {'class': 'hauptlink no-border-links'})  # type: ignore
+                club_links = [TRANSFERMARKT_ROOT + x.find('a')['href'] for x in club_els]
+            return club_links
+        finally:
+            scraper.close()
     
     # ==============================================================================================
     def get_player_links(self, year: str, league: str) -> Sequence[str]:
@@ -114,20 +123,21 @@ class Transfermarkt():
         """
         player_links = list()
         scraper = cloudscraper.CloudScraper()
-        club_links = self.get_club_links(year, league)
-        for club_link in tqdm(club_links, desc=f'{year} {league} player links'):
-            soup = BeautifulSoup(scraper.get(club_link).content, 'html.parser')
-            player_table = soup.find('table', {'class': 'items'})
-            if player_table is not None:
-                player_els = player_table.find_all('td', {'class': 'hauptlink'})  # type: ignore
-                p_links = [
-                    TRANSFERMARKT_ROOT + x.find('a')['href'] for x in player_els
-                    if x.find('a') is not None
-                ]
-                player_links += p_links
-        scraper.close()
-        
-        return list(set(player_links))
+        try:
+            club_links = self.get_club_links(year, league)
+            for club_link in tqdm(club_links, desc=f'{year} {league} player links'):
+                soup = BeautifulSoup(scraper.get(club_link).content, 'html.parser')
+                player_table = soup.find('table', {'class': 'items'})
+                if player_table is not None:
+                    player_els = player_table.find_all('td', {'class': 'hauptlink'})  # type: ignore
+                    p_links = [
+                        TRANSFERMARKT_ROOT + x.find('a')['href'] for x in player_els
+                        if x.find('a') is not None
+                    ]
+                    player_links += p_links
+            return list(set(player_links))
+        finally:
+            scraper.close()
     
     # ==============================================================================================
     def get_match_links(self, year: str, league: str) -> Sequence[str]:
@@ -148,11 +158,13 @@ class Transfermarkt():
         valid_seasons = self.get_valid_seasons(league)
         fixtures_url = f"{comps[league].replace('startseite', 'gesamtspielplan')}/saison_id/{valid_seasons[year]}"
         scraper = cloudscraper.CloudScraper()
-        soup = BeautifulSoup(scraper.get(fixtures_url).content, "html.parser")
-        scraper.close()
-        match_tags = soup.find_all("a", {"class": "ergebnis-link"})
-        match_links = ["https://www.transfermarkt.us" + x["href"] for x in match_tags]
-        return match_links
+        try:
+            soup = BeautifulSoup(scraper.get(fixtures_url).content, "html.parser")
+            match_tags = soup.find_all("a", {"class": "ergebnis-link"})
+            match_links = ["https://www.transfermarkt.us" + x["href"] for x in match_tags]
+            return match_links
+        finally:
+            scraper.close()
     
     # ==============================================================================================
     def scrape_players(self, year: str, league: str) -> pd.DataFrame:
