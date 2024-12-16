@@ -24,7 +24,7 @@ comps = {
     # European continental club comps
     'Champions League': 7, 'Europa League': 679, 'Europa Conference League': 17015,
     # European domestic leagues
-    'EPL': 17, 'La Liga': 8, 'Bundesliga': 35, 'Serie A': 23, 'Ligue 1': 34,
+    'EPL': 17, 'La Liga': 8, 'Bundesliga': 35, 'Serie A': 23, 'Ligue 1': 34, 'TSL': 52,
     # South America
     'Argentina Liga Profesional': 155, 'Argentina Copa de la Liga Profesional': 13475,
     'Liga 1 Peru': 406, "Copa Libertadores": 384,
