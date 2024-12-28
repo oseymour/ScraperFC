@@ -38,4 +38,4 @@ For documentation, head over to the [Read the Docs page](https://scraperfc.readt
 
 Join our [Discord](https://discord.gg/C5N8dqCJAq)!
 
-I'd love to hear your feedback, bugs you find, or new features you want! The best way is to open an issue on this repository and I can respond to it there. Otherwise, you can reach me via email at osmour043@gmail.com or my Twitter handle is [@owen_seymour](https://twitter.com/owen_seymour).
+I'd love to hear your feedback, bugs you find, or new features you want! The best way is to open an issue on this repository and I can respond to it there. Otherwise, you can reach me via email at osmour043@gmail.com.
