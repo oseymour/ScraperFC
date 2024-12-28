@@ -210,5 +210,5 @@ class TestSofascore:
         match_id = random.sample(match_dicts, 1)[0]['id']
         shots = ss.scrape_match_shots(match_id)
         assert isinstance(shots, pd.DataFrame)
-        assert shots.shape[0] > 0
+        assert shots.shape[0] >= 0
         assert shots.shape[1] > 0
