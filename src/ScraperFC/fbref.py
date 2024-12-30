@@ -98,6 +98,9 @@ comps = {
     "Saudi Pro League": {
         "history url": "https://fbref.com/en/comps/70/history/Saudi-Professional-League-Seasons",
         "finders": ["Saudi-Professional-League"]},
+    "Turkish Super Lig": {
+        "history url": "https://fbref.com/en/comps/26/history/Super-Lig-Seasons",
+        "finders": ["Super-Lig"]},
     # Men's domestic league - 2nd tier
     'EFL Championship': {
         'history url': 'https://fbref.com/en/comps/10/history/Championship-Seasons',
