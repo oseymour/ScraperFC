@@ -30,7 +30,8 @@ comps = {
     'Russian Premier League': 'https://www.transfermarkt.us/premier-liga/startseite/wettbewerb/RU1',
     'Brasileirao': 'https://www.transfermarkt.us/campeonato-brasileiro-serie-a/startseite/wettbewerb/BRA1',  # noqa: E501
     'Argentina Liga Profesional': 'https://www.transfermarkt.us/superliga/startseite/wettbewerb/AR1N',  # noqa: E501
-    'MLS': 'https://www.transfermarkt.us/major-league-soccer/startseite/wettbewerb/MLS1'
+    'MLS': 'https://www.transfermarkt.us/major-league-soccer/startseite/wettbewerb/MLS1',
+    'Turkish Super Lig': 'https://www.transfermarkt.us/super-lig/startseite/wettbewerb/TR1'
 }
 
 
