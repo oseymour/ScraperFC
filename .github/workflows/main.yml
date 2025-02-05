@@ -27,6 +27,7 @@ jobs:
 
   codacy-coverage-reporter:
     needs: test
+    if: ${{ needs.test.result != 'cancelled' }}
     runs-on: ubuntu-latest
     name: codacy-coverage-reporter
     steps:
