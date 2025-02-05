@@ -1,7 +1,7 @@
 [project]
 # -- Metadata --------------------------------------------------------------------------------------
 name = "ScraperFC"
-version = "3.2.0"
+version = "3.2.1"
 description = "Package for scraping soccer data from a variety of sources."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -24,18 +24,48 @@ classifiers = [
     "Operating System :: OS Independent"
 ]
 dependencies = [
-    "botasaurus", "bs4", "cloudscraper", "datetime", "lxml", "numpy", "pandas", "requests",
-    "selenium", "tqdm"
+    "botasaurus>=4.0.76",
+    "bs4>=0.0.2",
+    "cloudscraper>=1.2.71",
+    "datetime>=5.5",
+    "lxml>=5.3.0",
+    "numpy>=2.0.2",
+    "pandas>=2.2.3",
+    "requests>=2.32.3",
+    "selenium>=4.28.1",
+    "tqdm>=4.67.1",
 ]
 
 [project.optional-dependencies]
-test = ["pytest", "pytest-cov", "pytest-instafail"]
-docs = ["sphinx", "furo", "myst-nb"]
-build = ["build", "setuptools", "wheel"]
-publish = ["publish",]
+test = [
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+    "pytest-instafail>=0.5.0",
+]
+docs = [
+    "furo>=2024.8.6",
+    "myst-nb>=1.1.2",
+    "sphinx>=7.4.7",
+]
+build = [
+    "build>=1.2.2.post1",
+    "setuptools>=75.8.0",
+    "wheel>=0.45.1",
+]
+publish = [
+    "publish>=0.3.6",
+]
+dev = [
+    "marimo>=0.10.19",
+]
 typecheck = [
-    "mypy", "pandas-stubs", "types-beautifulsoup4", "types-openpyxl", "types-python-dateutil", 
-    "types-requests", "types-tqdm"
+    "mypy>=1.14.1",
+    "pandas-stubs>=2.2.2.240807",
+    "types-beautifulsoup4>=4.12.0.20241020",
+    "types-openpyxl>=3.1.5.20241225",
+    "types-python-dateutil>=2.9.0.20241206",
+    "types-requests>=2.32.0.20241016",
+    "types-tqdm>=4.67.0.20241221",
 ]
 
 [project.urls]
