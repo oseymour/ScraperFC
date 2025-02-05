@@ -21,13 +21,14 @@ jobs:
       - name: Run tox test env
         run: tox -r -e ${{ matrix.python.toxenv }}
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: coverage-file
           path: coverage.xml
 
   codacy-coverage-reporter:
     needs: test
-    if: ${{ needs.test.result != 'cancelled' }}
+    if: always()
     runs-on: ubuntu-latest
     name: codacy-coverage-reporter
     steps:
