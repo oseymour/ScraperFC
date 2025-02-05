@@ -111,7 +111,7 @@ legacy_tox_ini = """
     extras = test
     commands = 
         python -m pip list
-        pytest ./test/ -s --cov ScraperFC --durations 20 --cov-report xml
+        pytest ./test/ --cov ScraperFC --durations 20 --cov-report xml:coverage.xml --cov-report term
 
     [testenv:test-capology]
     extras = test
