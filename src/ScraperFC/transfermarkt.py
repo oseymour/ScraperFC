@@ -31,6 +31,10 @@ comps = {
     "Brasileirao": "https://www.transfermarkt.us/campeonato-brasileiro-serie-a/startseite/wettbewerb/BRA1",  # noqa: E501
     "Argentina Liga Profesional": "https://www.transfermarkt.us/superliga/startseite/wettbewerb/AR1N",  # noqa: E501
     "MLS": "https://www.transfermarkt.us/major-league-soccer/startseite/wettbewerb/MLS1",
+    "Primavera 1": "https://www.transfermarkt.us/primavera-1/startseite/wettbewerb/IJ1",
+    "Primavera 2 - A": "https://www.transfermarkt.us/primavera-2a/startseite/wettbewerb/IJ2A",
+    "Primavera 2 - B": "https://www.transfermarkt.us/primavera-2b/startseite/wettbewerb/IJ2B",
+    "Campionato U18": "https://www.transfermarkt.us/campionato-nazionale-under-18/startseite/wettbewerb/ITJ7",  # noqa: E501
 }
 
 
