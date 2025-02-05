@@ -4,7 +4,7 @@ on: push
 
 jobs:
   test:
-    name: Test
+    name: test
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -20,9 +20,21 @@ jobs:
         run: pip install tox
       - name: Run tox test env
         run: tox -r -e ${{ matrix.python.toxenv }}
+
+  codacy-coverage-reporter:
+    needs: test
+    runs-on: ubuntu-latest
+    name: codacy-coverage-reporter
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run codacy-coverage-reporter
+        uses: codacy/codacy-coverage-reporter-action@v1.3.0
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ./coverage.xml
   
   docs:
-    name: Docs
+    name: docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
