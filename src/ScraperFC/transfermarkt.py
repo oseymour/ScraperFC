@@ -161,7 +161,7 @@ class Transfermarkt():
             List of the match URLs
         """
         valid_seasons = self.get_valid_seasons(league)
-        fixtures_url = f"{comps[league].replace("startseite", "gesamtspielplan")}/saison_id/{valid_seasons[year]}"
+        fixtures_url = f"{comps[league].replace('startseite', 'gesamtspielplan')}/saison_id/{valid_seasons[year]}"
         scraper = cloudscraper.CloudScraper()
         try:
             soup = BeautifulSoup(scraper.get(fixtures_url).content, "html.parser")
