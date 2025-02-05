@@ -20,6 +20,10 @@ jobs:
         run: pip install tox
       - name: Run tox test env
         run: tox -r -e ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-file
+          path: coverage.xml
 
   codacy-coverage-reporter:
     needs: test
@@ -27,11 +31,15 @@ jobs:
     name: codacy-coverage-reporter
     steps:
       - uses: actions/checkout@v2
+      - uses: actions/download-artifact@v4
+        with:
+          name: coverage-file
+          path: coverage.xml
       - name: Run codacy-coverage-reporter
         uses: codacy/codacy-coverage-reporter-action@v1.3.0
         with:
           project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: ./coverage.xml
+          coverage-reports: coverage.xml
   
   docs:
     name: docs
