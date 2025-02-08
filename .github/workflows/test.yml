@@ -4,7 +4,7 @@ on: push
 
 jobs:
   test-capology:
-    name: test-clubelo
+    name: test-capology
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -16,8 +16,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python.version }}
-      - name: Install tox
-        run: pip install tox
+      - name: Install tox and uv
+        run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-capology -- --basepython ${{ matrix.python.toxenv }}
       - uses: actions/upload-artifact@v4
@@ -38,8 +38,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python.version }}
-      - name: Install tox
-        run: pip install tox
+      - name: Install tox and uv
+        run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-clubelo -- --basepython ${{ matrix.python.toxenv }}
       - uses: actions/upload-artifact@v4
