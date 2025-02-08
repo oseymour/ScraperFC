@@ -143,7 +143,7 @@ jobs:
       - name: download deepsource CLI
         run: curl https://deepsource.io/cli | sh
       - name: set DEEPSOURCE_DSN env var
-        run: export DEEPSOURCE_DSN=https://sampledsn@deepsource.io
+        run: set DEEPSOURCE_DSN=https://sampledsn@deepsource.io
       - name: download capology coverage artifact
         uses: actions/download-artifact@v4
         with:
