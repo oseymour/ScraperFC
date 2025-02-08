@@ -57,6 +57,7 @@ publish = [
 ]
 dev = [
     "marimo>=0.10.19",
+    "tox>=4.24.1",
 ]
 typecheck = [
     "mypy>=1.14.1",
@@ -115,46 +116,51 @@ legacy_tox_ini = """
 
     [testenv:test-capology]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_capology.py -s --cov ScraperFC
+        pytest ./test/test_capology.py --cov ScraperFC --cov-report term
 
     [testenv:test-clubelo]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_clubelo.py -s --cov ScraperFC
+        pytest ./test/test_clubelo.py --cov ScraperFC --cov-report term
 
     [testenv:test-fbref]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_fbref.py -s --cov ScraperFC
 
     [testenv:test-sofascore]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_sofascore.py -s --cov ScraperFC
 
     [testenv:test-transfermarkt]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_transfermarkt.py -s --cov ScraperFC
 
     [testenv:test-understat]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_understat.py -s --cov ScraperFC
-
-    [testenv:test-parallel]
-    extras = test
-    deps = pytest-xdist
-    commands = 
-        pip list
-        pytest ./test/ --cov=ScraperFC --durations=20 -s -n 6 --dist=loadscope
 
     [testenv:docs]
     extras = docs

@@ -1,0 +1,149 @@
+name: test
+
+on: push
+
+jobs:
+  test-capology:
+    name: test-capology
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-capology -- --basepython ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capology-coverage-file
+          path: capology-coverage.xml
+  test-clubelo:
+    name: test-clubelo
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-clubelo -- --basepython ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: clubelo-coverage-file
+          path: clubelo-coverage.xml
+  test-fbref:
+    name: test-fbref
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-fbref -- --basepython ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fbref-coverage-file
+          path: fbref-coverage.xml
+  test-sofascore:
+    name: test-sofascore
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-sofascore -- --basepython ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sofascore-coverage-file
+          path: sofascore-coverage.xml
+  test-transfermarkt:
+    name: test-transfermarkt
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-transfermarkt -- --basepython ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: transfermarkt-coverage-file
+          path: transfermarkt-coverage.xml
+  test-understat:
+    name: test-understat
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-understat -- --basepython ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: understat-coverage-file
+          path: understat-coverage.xml
+  docs:
+    name: docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install tox
+        run: pip install tox
+      - name: Rox tox env to build docs
+        run: tox -r -e docs
