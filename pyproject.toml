@@ -57,6 +57,7 @@ publish = [
 ]
 dev = [
     "marimo>=0.10.19",
+    "tox>=4.24.1",
 ]
 typecheck = [
     "mypy>=1.14.1",
@@ -115,15 +116,19 @@ legacy_tox_ini = """
 
     [testenv:test-capology]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_capology.py -s --cov ScraperFC
+        pytest ./test/test_capology.py --cov ScraperFC --cov-report term
 
     [testenv:test-clubelo]
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_clubelo.py -s --cov ScraperFC
+        pytest ./test/test_clubelo.py --cov ScraperFC --cov-report term
 
     [testenv:test-fbref]
     extras = test

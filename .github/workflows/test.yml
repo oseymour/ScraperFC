@@ -1,10 +1,10 @@
-name: main
+name: test
 
 on: push
 
 jobs:
-  test:
-    name: test
+  test-capology:
+    name: test-clubelo
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -19,30 +19,34 @@ jobs:
       - name: Install tox
         run: pip install tox
       - name: Run tox test env
-        run: tox -r -e ${{ matrix.python.toxenv }}
+        run: tox -r -e test-capology -- --basepython ${{ matrix.python.toxenv }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: coverage-file
-          path: coverage.xml
-
-  codacy-coverage-reporter:
-    needs: test
-    if: always()
+          name: capology-coverage-file
+          path: capology-coverage.xml
+  test-clubelo:
+    name: test-clubelo
     runs-on: ubuntu-latest
-    name: codacy-coverage-reporter
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
-          name: coverage-file
-          path: coverage.xml
-      - name: Run codacy-coverage-reporter
-        uses: codacy/codacy-coverage-reporter-action@v1.3.0
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox
+        run: pip install tox
+      - name: Run tox test env
+        run: tox -r -e test-clubelo -- --basepython ${{ matrix.python.toxenv }}
+      - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-          coverage-reports: coverage.xml
-  
+          name: clubelo-coverage-file
+          path: clubelo-coverage.xml
   docs:
     name: docs
     runs-on: ubuntu-latest
