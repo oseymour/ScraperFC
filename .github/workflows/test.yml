@@ -135,6 +135,22 @@ jobs:
         with:
           name: understat-coverage-file
           path: understat-coverage.xml
+  upload-coverage-to-deepsource:
+    name: upload-coverage-to-deepsource
+    needs: [test-capology, test-clubelo, test-fbref, test-sofascore, test-transfermarkt, test-understat]
+    runs-on: ubuntu-latest
+    steps:
+      - name: download deepsource CLI
+        run: curl https://deepsource.io/cli | sh
+      - name: set DEEPSOURCE_DSN env var
+        run: export DEEPSOURCE_DSN=https://sampledsn@deepsource.io
+      - name: download capology coverage artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: capology-coverage-file
+          path: capology-coverage.xml
+      - name: upload capology artifact
+        run: ./bin/deepsource report --analyzer test-coverage --key python --value-file ./capology-coverage.xml
   docs:
     name: docs
     runs-on: ubuntu-latest
