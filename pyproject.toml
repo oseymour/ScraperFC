@@ -120,7 +120,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_capology.py --cov ScraperFC --cov-report term
+        pytest ./test/test_capology.py --cov ScraperFC --cov-report term --cov-report xml:coverage_capology.xml
 
     [testenv:test-clubelo]
     extras = test
@@ -128,7 +128,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_clubelo.py --cov ScraperFC --cov-report term
+        pytest ./test/test_clubelo.py --cov ScraperFC --cov-report term --cov-report xml:coverage_clubelo.xml
 
     [testenv:test-fbref]
     extras = test
@@ -136,7 +136,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_fbref.py -s --cov ScraperFC
+        pytest ./test/test_fbref.py --cov ScraperFC --cov-report term --cov-report xml:coverage_fbref.xml
 
     [testenv:test-sofascore]
     extras = test
@@ -144,7 +144,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_sofascore.py -s --cov ScraperFC
+        pytest ./test/test_sofascore.py --cov ScraperFC --cov-report term --cov-report xml:coverage_sofascore.xml
 
     [testenv:test-transfermarkt]
     extras = test
@@ -152,7 +152,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_transfermarkt.py -s --cov ScraperFC
+        pytest ./test/test_transfermarkt.py --cov ScraperFC --cov-report term --cov-report xml:coverage_transfermarkt.xml
 
     [testenv:test-understat]
     extras = test
@@ -160,7 +160,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_understat.py -s --cov ScraperFC
+        pytest ./test/test_understat.py --cov ScraperFC --cov-report term --cov-report xml:coverage_understat.xml
 
     [testenv:docs]
     extras = docs

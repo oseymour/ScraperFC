@@ -20,11 +20,13 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-capology -- --basepython ${{ matrix.python.toxenv }}
-      - uses: actions/upload-artifact@v4
+      - name: Send coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
         if: always()
         with:
-          name: capology-coverage-file
-          path: capology-coverage.xml
+          key: python
+          coverage-file: coverage_capology.xml
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
   test-clubelo:
     name: test-clubelo
     runs-on: ubuntu-latest
@@ -42,11 +44,13 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-clubelo -- --basepython ${{ matrix.python.toxenv }}
-      - uses: actions/upload-artifact@v4
+      - name: Send coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
         if: always()
         with:
-          name: clubelo-coverage-file
-          path: clubelo-coverage.xml
+          key: python
+          coverage-file: coverage_clubelo.xml
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
   test-fbref:
     name: test-fbref
     runs-on: ubuntu-latest
@@ -64,11 +68,13 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-fbref -- --basepython ${{ matrix.python.toxenv }}
-      - uses: actions/upload-artifact@v4
+      - name: Send coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
         if: always()
         with:
-          name: fbref-coverage-file
-          path: fbref-coverage.xml
+          key: python
+          coverage-file: coverage_fbref.xml
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
   test-sofascore:
     name: test-sofascore
     runs-on: ubuntu-latest
@@ -86,11 +92,13 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-sofascore -- --basepython ${{ matrix.python.toxenv }}
-      - uses: actions/upload-artifact@v4
+      - name: Send coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
         if: always()
         with:
-          name: sofascore-coverage-file
-          path: sofascore-coverage.xml
+          key: python
+          coverage-file: coverage_sofascore.xml
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
   test-transfermarkt:
     name: test-transfermarkt
     runs-on: ubuntu-latest
@@ -108,11 +116,13 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-transfermarkt -- --basepython ${{ matrix.python.toxenv }}
-      - uses: actions/upload-artifact@v4
+      - name: Send coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
         if: always()
         with:
-          name: transfermarkt-coverage-file
-          path: transfermarkt-coverage.xml
+          key: python
+          coverage-file: coverage_transfermarkt.xml
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
   test-understat:
     name: test-understat
     runs-on: ubuntu-latest
@@ -130,13 +140,15 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-understat -- --basepython ${{ matrix.python.toxenv }}
-      - uses: actions/upload-artifact@v4
+      - name: Send coverage to DeepSource
+        uses: deepsourcelabs/test-coverage-action@master
         if: always()
         with:
-          name: understat-coverage-file
-          path: understat-coverage.xml
-  docs:
-    name: docs
+          key: python
+          coverage-file: coverage_understat.xml
+          dsn: ${{ secrets.DEEPSOURCE_DSN }}
+  test-build-docs:
+    name: test-build-docs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
