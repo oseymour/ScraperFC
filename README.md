@@ -29,7 +29,6 @@ Data can be scraped from the following sources:
 * [Capology](https://www.capology.com/)
 * [ClubELO](http://clubelo.com/)
 * [FBref](https://fbref.com/en/)
-* [FiveThirtyEight](https://projects.fivethirtyeight.com/soccer-predictions/)
 * [Sofascore](https://www.sofascore.com/)
 * [Transfermarkt](https://www.transfermarkt.us/)
 * [Understat](https://understat.com/)
