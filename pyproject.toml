@@ -40,7 +40,6 @@ dependencies = [
 test = [
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
-    "pytest-instafail>=0.5.0",
 ]
 docs = [
     "furo>=2024.8.6",
@@ -57,6 +56,7 @@ publish = [
 ]
 dev = [
     "marimo>=0.10.19",
+    "tox>=4.24.1",
 ]
 typecheck = [
     "mypy>=1.14.1",
@@ -108,53 +108,43 @@ legacy_tox_ini = """
     envlist = py39, py310, py311, py312
 
     [testenv]
+    usedevelop = True
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         python -m pip list
-        pytest ./test/ --cov ScraperFC --durations 20 --cov-report xml:coverage.xml --cov-report term
+        pytest ./test/ --cov ScraperFC
 
     [testenv:test-capology]
-    extras = test
     commands = 
         pip list
-        pytest ./test/test_capology.py -s --cov ScraperFC
+        pytest ./test/test_capology.py --cov ScraperFC
 
     [testenv:test-clubelo]
-    extras = test
     commands = 
         pip list
-        pytest ./test/test_clubelo.py -s --cov ScraperFC
+        pytest ./test/test_clubelo.py --cov ScraperFC
 
     [testenv:test-fbref]
-    extras = test
     commands = 
         pip list
-        pytest ./test/test_fbref.py -s --cov ScraperFC
+        pytest ./test/test_fbref.py --cov ScraperFC
 
     [testenv:test-sofascore]
-    extras = test
     commands = 
         pip list
-        pytest ./test/test_sofascore.py -s --cov ScraperFC
+        pytest ./test/test_sofascore.py --cov ScraperFC
 
     [testenv:test-transfermarkt]
-    extras = test
     commands = 
         pip list
-        pytest ./test/test_transfermarkt.py -s --cov ScraperFC
+        pytest ./test/test_transfermarkt.py --cov ScraperFC
 
     [testenv:test-understat]
-    extras = test
     commands = 
         pip list
-        pytest ./test/test_understat.py -s --cov ScraperFC
-
-    [testenv:test-parallel]
-    extras = test
-    deps = pytest-xdist
-    commands = 
-        pip list
-        pytest ./test/ --cov=ScraperFC --durations=20 -s -n 6 --dist=loadscope
+        pytest ./test/test_understat.py --cov ScraperFC
 
     [testenv:docs]
     extras = docs
