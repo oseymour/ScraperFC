@@ -55,6 +55,9 @@ jobs:
       - name: Rename coverage artifact
         if: always()
         run: mv .coverage .coverage_clubelo
+      - name: View folder contents after rename
+        if: always()
+        run: ls -la
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
