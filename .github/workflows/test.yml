@@ -6,32 +6,34 @@ env:
   DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
 
 jobs:
-  # test-capology:
-  #   name: test-capology
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python:
-  #         - version: "3.12"
-  #           toxenv: "py312"
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: ${{ matrix.python.version }}
-  #     - name: Install tox and uv
-  #       run: pip install tox uv
-  #     - name: Run tox test env
-  #       run: tox -r -e test-capology -- --basepython ${{ matrix.python.toxenv }}
-  #     - name: Rename coverage artifact
-  #       if: always()
-  #       run: mv .coverage .coverage_capology
-  #     - name: Upload coverage artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: capology-coverage
-  #         path: .coverage_capology
+  test-capology:
+    name: test-capology
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-capology -- --basepython ${{ matrix.python.toxenv }}
+      - name: Rename coverage artifact
+        if: always()
+        run: mv .coverage .coverage_capology
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capology-coverage
+          path: .coverage_capology
+          if-no-files-found: error
+          include-hidden-files: true
   test-clubelo:
     name: test-clubelo
     runs-on: ubuntu-latest
@@ -49,15 +51,9 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-clubelo -- --basepython ${{ matrix.python.toxenv }}
-      - name: View folder contents after test
-        if: always()
-        run: ls -la
       - name: Rename coverage artifact
         if: always()
         run: mv .coverage .coverage_clubelo
-      - name: View folder contents after rename
-        if: always()
-        run: ls -la
       - name: Upload coverage artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -66,138 +62,146 @@ jobs:
           path: .coverage_clubelo
           if-no-files-found: error
           include-hidden-files: true
-  # test-fbref:
-  #   name: test-fbref
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python:
-  #         - version: "3.12"
-  #           toxenv: "py312"
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: ${{ matrix.python.version }}
-  #     - name: Install tox and uv
-  #       run: pip install tox uv
-  #     - name: Run tox test env
-  #       run: tox -r -e test-fbref -- --basepython ${{ matrix.python.toxenv }}
-  #     - name: Rename coverage artifact
-  #       if: always()
-  #       run: mv .coverage .coverage_fbref
-  #     - name: Upload coverage artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: fbref-coverage
-  #         path: .coverage_fbref
-  # test-sofascore:
-  #   name: test-sofascore
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python:
-  #         - version: "3.12"
-  #           toxenv: "py312"
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: ${{ matrix.python.version }}
-  #     - name: Install tox and uv
-  #       run: pip install tox uv
-  #     - name: Run tox test env
-  #       run: tox -r -e test-sofascore -- --basepython ${{ matrix.python.toxenv }}
-  #     - name: Rename coverage artifact
-  #       if: always()
-  #       run: mv .coverage .coverage_sofascore
-  #     - name: Upload coverage artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: sofascore-coverage
-  #         path: .coverage_sofascore
-  # test-transfermarkt:
-  #   name: test-transfermarkt
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python:
-  #         - version: "3.12"
-  #           toxenv: "py312"
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: ${{ matrix.python.version }}
-  #     - name: Install tox and uv
-  #       run: pip install tox uv
-  #     - name: Run tox test env
-  #       run: tox -r -e test-transfermarkt -- --basepython ${{ matrix.python.toxenv }}
-  #     - name: Rename coverage artifact
-  #       if: always()
-  #       run: mv .coverage .coverage_transfermarkt
-  #     - name: Upload coverage artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: transfermarkt-coverage
-  #         path: .coverage_transfermarkt
-  # test-understat:
-  #   name: test-understat
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     matrix:
-  #       python:
-  #         - version: "3.12"
-  #           toxenv: "py312"
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: ${{ matrix.python.version }}
-  #     - name: Install tox and uv
-  #       run: pip install tox uv
-  #     - name: Run tox test env
-  #       run: tox -r -e test-understat -- --basepython ${{ matrix.python.toxenv }}
-  #     - name: Rename coverage artifact
-  #       if: always()
-  #       run: mv .coverage .coverage_understat
-  #     - name: Upload coverage artifact
-  #       if: always()
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: understat-coverage
-  #         path: .coverage_understat
-  # send-coverage-to-deepsource:
-  #   name: send-coverage-to-deepsource
-  #   runs-on: ubuntu-latest
-  #   needs: [
-  #     test-capology, test-clubelo, test-fbref, test-sofascore, test-transfermarkt, test-understat
-  #   ]
-  #   steps:
-  #     - name: Download coverage files
-  #       uses: actions/download-artifact@v4
-  #     - name: Combine coverage files and convert to XML
-  #       run: |
-  #         pip install coverage
-  #         coverage combine .coverage_capology .coverage_clubelo .coverage_fbref .coverage_sofascore\
-  #           .coverage_transfermarkt .coverage_understat
-  #         coverage xml
-  #     - name: Send coverage to DeepSource
-  #       run: |
-  #         curl https://deepsource.io/cli | sh
-  #         ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage.xml
-  # test-build-docs:
-  #   name: test-build-docs
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-python@v5
-  #       with:
-  #         python-version: "3.10"
-  #     - name: Install tox
-  #       run: pip install tox
-  #     - name: Rox tox env to build docs
-  #       run: tox -r -e docs
+  test-fbref:
+    name: test-fbref
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-fbref -- --basepython ${{ matrix.python.toxenv }}
+      - name: Rename coverage artifact
+        if: always()
+        run: mv .coverage .coverage_fbref
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fbref-coverage
+          path: .coverage_fbref
+          if-no-files-found: error
+          include-hidden-files: true
+  test-sofascore:
+    name: test-sofascore
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-sofascore -- --basepython ${{ matrix.python.toxenv }}
+      - name: Rename coverage artifact
+        if: always()
+        run: mv .coverage .coverage_sofascore
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sofascore-coverage
+          path: .coverage_sofascore
+          if-no-files-found: error
+          include-hidden-files: true
+  test-transfermarkt:
+    name: test-transfermarkt
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-transfermarkt -- --basepython ${{ matrix.python.toxenv }}
+      - name: Rename coverage artifact
+        if: always()
+        run: mv .coverage .coverage_transfermarkt
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transfermarkt-coverage
+          path: .coverage_transfermarkt
+          if-no-files-found: error
+          include-hidden-files: true
+  test-understat:
+    name: test-understat
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python:
+          - version: "3.12"
+            toxenv: "py312"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python.version }}
+      - name: Install tox and uv
+        run: pip install tox uv
+      - name: Run tox test env
+        run: tox -r -e test-understat -- --basepython ${{ matrix.python.toxenv }}
+      - name: Rename coverage artifact
+        if: always()
+        run: mv .coverage .coverage_understat
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: understat-coverage
+          path: .coverage_understat
+          if-no-files-found: error
+          include-hidden-files: true
+  send-coverage-to-deepsource:
+    name: send-coverage-to-deepsource
+    runs-on: ubuntu-latest
+    needs: [
+      test-capology, test-clubelo, test-fbref, test-sofascore, test-transfermarkt, test-understat
+    ]
+    steps:
+      - name: Download coverage files
+        uses: actions/download-artifact@v4
+      - name: Combine coverage files and convert to XML
+        run: |
+          pip install coverage
+          coverage combine .coverage_capology .coverage_clubelo .coverage_fbref .coverage_sofascore\
+            .coverage_transfermarkt .coverage_understat
+          coverage xml
+      - name: Send coverage to DeepSource
+        run: |
+          curl https://deepsource.io/cli | sh
+          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage.xml
+  test-build-docs:
+    name: test-build-docs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+      - name: Install tox
+        run: pip install tox
+      - name: Rox tox env to build docs
+        run: tox -r -e docs
