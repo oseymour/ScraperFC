@@ -63,7 +63,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: clubelo-coverage
-          path: ./.coverage_clubelo
+          path: .coverage_clubelo
+          if-no-files-found: error
+          include-hidden-files: true
   # test-fbref:
   #   name: test-fbref
   #   runs-on: ubuntu-latest
