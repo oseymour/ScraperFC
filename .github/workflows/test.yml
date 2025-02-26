@@ -23,11 +23,15 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-capology -- --basepython ${{ matrix.python.toxenv }}
-      - name: Send coverage to DeepSource
+      - name: Rename coverage artifact
         if: always()
-        run: |
-          curl https://deepsource.io/cli | sh
-          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage_capology.xml
+        run: mv .coverage .coverage_capology
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capology-coverage
+          path: .coverage_capology
   test-clubelo:
     name: test-clubelo
     runs-on: ubuntu-latest
@@ -45,11 +49,15 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-clubelo -- --basepython ${{ matrix.python.toxenv }}
-      - name: Send coverage to DeepSource
+      - name: Rename coverage artifact
         if: always()
-        run: |
-          curl https://deepsource.io/cli | sh
-          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage_clubelo.xml
+        run: mv .coverage .coverage_clubelo
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: clubelo-coverage
+          path: .coverage_clubelo
   test-fbref:
     name: test-fbref
     runs-on: ubuntu-latest
@@ -67,11 +75,15 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-fbref -- --basepython ${{ matrix.python.toxenv }}
-      - name: Send coverage to DeepSource
+      - name: Rename coverage artifact
         if: always()
-        run: |
-          curl https://deepsource.io/cli | sh
-          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage_fbref.xml
+        run: mv .coverage .coverage_fbref
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fbref-coverage
+          path: .coverage_fbref
   test-sofascore:
     name: test-sofascore
     runs-on: ubuntu-latest
@@ -89,11 +101,15 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-sofascore -- --basepython ${{ matrix.python.toxenv }}
-      - name: Send coverage to DeepSource
+      - name: Rename coverage artifact
         if: always()
-        run: |
-          curl https://deepsource.io/cli | sh
-          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage_sofascore.xml
+        run: mv .coverage .coverage_sofascore
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sofascore-coverage
+          path: .coverage_sofascore
   test-transfermarkt:
     name: test-transfermarkt
     runs-on: ubuntu-latest
@@ -111,11 +127,15 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-transfermarkt -- --basepython ${{ matrix.python.toxenv }}
-      - name: Send coverage to DeepSource
+      - name: Rename coverage artifact
         if: always()
-        run: |
-          curl https://deepsource.io/cli | sh
-          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage_transfermarkt.xml
+        run: mv .coverage .coverage_transfermarkt
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transfermarkt-coverage
+          path: .coverage_transfermarkt
   test-understat:
     name: test-understat
     runs-on: ubuntu-latest
@@ -133,11 +153,34 @@ jobs:
         run: pip install tox uv
       - name: Run tox test env
         run: tox -r -e test-understat -- --basepython ${{ matrix.python.toxenv }}
-      - name: Send coverage to DeepSource
+      - name: Rename coverage artifact
         if: always()
+        run: mv .coverage .coverage_understat
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: understat-coverage
+          path: .coverage_understat
+  send-coverage-to-deepsource:
+    name: send-coverage-to-deepsource
+    runs-on: ubuntu-latest
+    needs: [
+      test-capology, test-clubelo, test-fbref, test-sofascore, test-transfermarkt, test-understat
+    ]
+    steps:
+      - name: Download coverage files
+        uses: actions/download-artifact@v4
+      - name: Combine coverage files and convert to XML
+        run: |
+          pip install coverage
+          coverage combine .coverage_capology .coverage_clubelo .coverage_fbref .coverage_sofascore\
+            .coverage_transfermarkt .coverage_understat
+          coverage xml
+      - name: Send coverage to DeepSource
         run: |
           curl https://deepsource.io/cli | sh
-          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage_understat.xml
+          ./bin/deepsource report --analyzer test-coverage --key python --value-file coverage.xml
   test-build-docs:
     name: test-build-docs
     runs-on: ubuntu-latest

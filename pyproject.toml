@@ -112,7 +112,7 @@ legacy_tox_ini = """
     extras = test
     commands = 
         python -m pip list
-        pytest ./test/ --cov ScraperFC --durations 20 --cov-report xml:coverage.xml --cov-report term
+        pytest ./test/ --cov ScraperFC
 
     [testenv:test-capology]
     extras = test
@@ -120,7 +120,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_capology.py --cov ScraperFC --cov-report term --cov-report xml:coverage_capology.xml
+        pytest ./test/test_capology.py --cov ScraperFC
 
     [testenv:test-clubelo]
     extras = test
@@ -128,7 +128,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_clubelo.py --cov ScraperFC --cov-report term --cov-report xml:coverage_clubelo.xml
+        pytest ./test/test_clubelo.py --cov ScraperFC
 
     [testenv:test-fbref]
     extras = test
@@ -136,7 +136,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_fbref.py --cov ScraperFC --cov-report term --cov-report xml:coverage_fbref.xml
+        pytest ./test/test_fbref.py --cov ScraperFC
 
     [testenv:test-sofascore]
     extras = test
@@ -144,7 +144,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_sofascore.py --cov ScraperFC --cov-report term --cov-report xml:coverage_sofascore.xml
+        pytest ./test/test_sofascore.py --cov ScraperFC
 
     [testenv:test-transfermarkt]
     extras = test
@@ -152,7 +152,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_transfermarkt.py --cov ScraperFC --cov-report term --cov-report xml:coverage_transfermarkt.xml
+        pytest ./test/test_transfermarkt.py --cov ScraperFC
 
     [testenv:test-understat]
     extras = test
@@ -160,7 +160,7 @@ legacy_tox_ini = """
     install_command = uv pip install
     commands = 
         pip list
-        pytest ./test/test_understat.py --cov ScraperFC --cov-report term --cov-report xml:coverage_understat.xml
+        pytest ./test/test_understat.py --cov ScraperFC
 
     [testenv:docs]
     extras = docs
