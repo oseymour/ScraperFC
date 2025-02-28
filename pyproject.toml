@@ -40,7 +40,6 @@ dependencies = [
 test = [
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
-    "pytest-instafail>=0.5.0",
 ]
 docs = [
     "furo>=2024.8.6",
@@ -109,55 +108,40 @@ legacy_tox_ini = """
     envlist = py39, py310, py311, py312
 
     [testenv]
+    usedevelop = True
     extras = test
+    allowlist_externals = uv
+    install_command = uv pip install
     commands = 
         python -m pip list
         pytest ./test/ --cov ScraperFC
 
     [testenv:test-capology]
-    extras = test
-    allowlist_externals = uv
-    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_capology.py --cov ScraperFC
 
     [testenv:test-clubelo]
-    extras = test
-    allowlist_externals = uv
-    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_clubelo.py --cov ScraperFC
 
     [testenv:test-fbref]
-    extras = test
-    allowlist_externals = uv
-    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_fbref.py --cov ScraperFC
 
     [testenv:test-sofascore]
-    extras = test
-    allowlist_externals = uv
-    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_sofascore.py --cov ScraperFC
 
     [testenv:test-transfermarkt]
-    extras = test
-    allowlist_externals = uv
-    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_transfermarkt.py --cov ScraperFC
 
     [testenv:test-understat]
-    extras = test
-    allowlist_externals = uv
-    install_command = uv pip install
     commands = 
         pip list
         pytest ./test/test_understat.py --cov ScraperFC
