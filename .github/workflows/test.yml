@@ -187,8 +187,10 @@ jobs:
       - name: Combine coverage files and convert to XML
         run: |
           pip install coverage
-          coverage combine .coverage_capology .coverage_clubelo .coverage_fbref .coverage_sofascore\
-            .coverage_transfermarkt .coverage_understat
+          coverage combine ./capology-coverage/.coverage_capology ./clubelo-coverage/.coverage_clubelo\
+            ./fbref-coverage/.coverage_fbref ./sofascore-coverage/.coverage_sofascore\
+            ./transfermarkt-coverage/.coverage_transfermarkt ./understat-coverage/.coverage_understat
+          coverage report
           coverage xml
       - name: Send coverage to DeepSource
         run: |
