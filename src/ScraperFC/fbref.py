@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
+from cloudscraper import CloudScraper
 from .scraperfc_exceptions import InvalidYearException, InvalidLeagueException, \
     NoMatchLinksException, FBrefRateLimitException
 import time
@@ -166,6 +167,7 @@ class FBref():
     def __init__(self, wait_time: int=7) -> None:
         # FBref rate limits bots -- https://www.sports-reference.com/bot-traffic.html
         self.wait_time = wait_time
+        self.scraper = CloudScraper()
 
     # ==============================================================================================
     def _driver_init(self) -> None:
@@ -188,9 +190,9 @@ class FBref():
 
     # ==============================================================================================
     def _get(self, url: str) -> requests.Response:
-        """ Private, calls requests.get() and enforces FBref's wait time.
+        """ Private, uses cloudscraper to get response and enforces FBref's wait time.
         """
-        response = requests.get(url)
+        response = self.scraper.get(url)
         time.sleep(self.wait_time)
         if response.status_code == 429:
             raise FBrefRateLimitException()
