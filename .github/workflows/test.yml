@@ -1,6 +1,6 @@
 name: test
 
-on: push
+on: [push, pull_request]
 
 env:
   DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
