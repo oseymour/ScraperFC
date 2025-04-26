@@ -18,7 +18,7 @@ import warnings
  0: {'code': 0, 'description': 'Not started', 'type': 'notstarted'}}
 """
 
-API_PREFIX = 'https://api.sofascore.com/api/v1'
+API_PREFIX = 'https://www.sofascore.com/api/v1'
 
 comps = {
     # European continental club comps
@@ -98,6 +98,7 @@ class Sofascore:
             raise InvalidLeagueException(league, 'Sofascore', list(comps.keys()))
             
         response = botasaurus_get(f'{API_PREFIX}/unique-tournament/{comps[league]}/seasons/')
+        print(response)
         seasons = dict([(x['year'], x['id']) for x in response.json()['seasons']])
         return seasons
 
