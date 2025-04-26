@@ -96,7 +96,7 @@ class Sofascore:
             raise TypeError('`league` must be a string.')
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Sofascore', list(comps.keys()))
-            
+        print(f'{API_PREFIX}/unique-tournament/{comps[league]}/seasons/')
         response = botasaurus_get(f'{API_PREFIX}/unique-tournament/{comps[league]}/seasons/')
         print(response)
         seasons = dict([(x['year'], x['id']) for x in response.json()['seasons']])
