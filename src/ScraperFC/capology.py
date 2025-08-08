@@ -12,9 +12,9 @@ from typing import Sequence
 
 from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException, \
     InvalidYearException
-from ScraperFC.utils import load_comps
+from ScraperFC.utils import get_module_comps
 
-comps = load_comps()
+comps = get_module_comps("Capology")
 
 class Capology():
 

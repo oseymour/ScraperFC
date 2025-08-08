@@ -1,13 +1,15 @@
 import sys
 sys.path.append('./src/')
 from ScraperFC import Capology
-from ScraperFC.capology import comps
 from ScraperFC.scraperfc_exceptions import InvalidYearException, InvalidLeagueException
+from ScraperFC.utils import get_module_comps
 
 import pytest
 from contextlib import nullcontext as does_not_raise
 import random
 import pandas as pd
+
+comps = get_module_comps("Capology")
 
 class TestCapology:
 
