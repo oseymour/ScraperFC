@@ -2,28 +2,35 @@ Belgium Pro League:
   Capology: be/first-division-a
 England Premier League:
   Capology: uk/premier-league
+  Understat: https://understat.com/league/EPL
 England EFL Championship:
   Capology: uk/championship
 France Ligue 1:
   Capology: fr/ligue-1
+  Understat: https://understat.com/league/Ligue_1
 France Ligue 2:
   Capology: fr/ligue-2
 Germany Bundesliga:
   Capology: de/1-bundesliga
+  Understat: https://understat.com/league/Bundesliga
 Germany 2.Bundesliga:
   Capology: de/2-bundesliga
 Italy Serie A:
   Capology: it/serie-a
+  Understat: https://understat.com/league/Serie_A
 Italy Serie B:
   Capology: it/serie-b
 Netherlands Eredivisie:
   Capology: ne/eredivisie
 Portugal Primeira Liga:
   Capology: pt/primeira-liga
+Russia Premier League:
+  Understat: https://understat.com/league/RFPL
 Scotland Premier League:
   Capology: uk/scottish-premiership
 Spain La Liga:
   Capology: es/la-liga
+  Understat: https://understat.com/league/La_liga
 Spain La Liga 2:
   Capology: es/la-liga-2
 Turkiye Super Lig:

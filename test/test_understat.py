@@ -1,22 +1,25 @@
 import sys
 sys.path.append('./src')
 from ScraperFC import Understat
-from ScraperFC.understat import comps
 from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
+from ScraperFC.utils import get_module_comps
 
 import random
 import pandas as pd
 import pytest
 from contextlib import nullcontext as does_not_raise
 
+comps = get_module_comps("Understat")
+
+
 class TestUnderstat:
 
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('2019/2020', 'Ligue 1', does_not_raise()),
-         (2020, 'Ligue 1', pytest.raises(TypeError)),
-         ('fake year', 'Ligue 1', pytest.raises(InvalidYearException))]
+        [('2019/2020', 'France Ligue 1', does_not_raise()),
+         (2020, 'France Ligue 1', pytest.raises(TypeError)),
+         ('fake year', 'France Ligue 1', pytest.raises(InvalidYearException))]
     )
     def test_invalid_year(self, year, league, expected):
         us = Understat()
@@ -38,8 +41,8 @@ class TestUnderstat:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('2023/2024', 'RFPL', does_not_raise()),
-         ('2023/2024', {'league': 'RFPL'}, pytest.raises(TypeError)),
+        [('2023/2024', 'Russia Premier League', does_not_raise()),
+         ('2023/2024', {'league': 'Russia Premier League'}, pytest.raises(TypeError)),
          ('2023/2024', 'fake league', pytest.raises(InvalidLeagueException))]
     )
     def test_invalid_league(self, year, league, expected):
