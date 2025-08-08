@@ -39,11 +39,13 @@ exclude_patterns = ["*.ipynb_checkpoints"]
 nitpick_ignore = [
     ("py:class", "DataFrame"), ("py:class", "DataFrames"), ("py:class", "optional"),
     ("py:class", "default True"), ("py:class", "default False"), ("py:class", "bs4.element.Tag"),
-    ("py:class", "bs4.element.NavigableString"), ("py:class", "dicts"), 
-    ("py:class", "pandas.core.frame.DataFrame"), 
+    ("py:class", "bs4.element.NavigableString"), ("py:class", "dicts"),
+    ("py:class", "pandas.core.frame.DataFrame"),
     ("py:class", "botasaurus_requests.request_class.Request"),
     ("py:class", "botasaurus_requests.response.Response"),
-    ("py:class", "botasaurus.request.Request")
+    ("py:class", "botasaurus.request.Request"),
+    ("py:class", "botasaurus.browser.Driver"),
+    ("py:class", "botasaurus_driver.driver.Driver"),
 ]
 
 # Validate numpy docstring formatting

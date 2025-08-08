@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.10.19"
+__generated_with = "0.14.16"
 app = marimo.App(width="medium")
 
 
@@ -9,54 +9,30 @@ def _():
     import sys
     sys.path.append("../src")
     import ScraperFC as sfc
-    return sfc, sys
+    return (sfc,)
 
 
 @app.cell
 def _(sfc):
-    tm = sfc.Transfermarkt()
-    return (tm,)
+    from ScraperFC.sofascore import API_PREFIX, comps
 
+    ss = sfc.Sofascore()
 
-@app.cell
-def _():
-    league = "Turkish Super Lig"
-    return (league,)
-
-
-@app.cell
-def _(league, tm):
-    tm.get_valid_seasons(league)
-    return
-
-
-@app.cell
-def _():
+    league = "EPL"
     year = "24/25"
-    return (year,)
+    match_id = 61627
+
+    match_id = ss._check_and_convert_match_id(match_id)
+    url = f"{API_PREFIX}/event/{match_id}/lineups"
+
+    response = sfc.utils.botasaurus_browser_get_json(url)
+    # response = sfc.utils.botasaurus_request_get_json(url)
+    return (response,)
 
 
 @app.cell
-def _(league, tm, year):
-    tm.get_club_links(year, league)
-    return
-
-
-@app.cell
-def _(league, tm, year):
-    tm.get_match_links(year, league)
-    return
-
-
-@app.cell
-def _(league, tm, year):
-    tm.get_player_links(year, league)
-    return
-
-
-@app.cell
-def _(league, tm, year):
-    tm.scrape_players(year, league)
+def _(response):
+    response['error']
     return
 
 
