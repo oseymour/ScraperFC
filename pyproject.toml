@@ -1,10 +1,10 @@
 [project]
 # -- Metadata --------------------------------------------------------------------------------------
 name = "ScraperFC"
-version = "3.3.0"
+version = "3.4.0"
 description = "Package for scraping soccer data from a variety of sources."
 readme = "README.md"
-license = {file = "LICENSE"}
+license-files = ["LICENSE"]
 requires-python = ">= 3.9"
 keywords = [
     "webscraping", "scraping", "soccer", "football", "soccer data", "football data", 
@@ -158,7 +158,7 @@ legacy_tox_ini = """
 
     [testenv:build]
     skip_install = true
-    commands = python -m build
+    commands = uv build
 
     [testenv:lint]
     commands = 
