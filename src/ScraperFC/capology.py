@@ -7,29 +7,14 @@ from selenium.common.exceptions import StaleElementReferenceException
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup
-from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException, \
-    InvalidYearException
 from io import StringIO
 from typing import Sequence
 
-comps = {
-    "Bundesliga":  {'url': 'de/1-bundesliga'},
-    "2.Bundesliga":  {'url': 'de/2-bundesliga'},
-    "EPL":  {'url': 'uk/premier-league'},
-    "EFL Championship":  {'url': 'uk/championship'},
-    "Serie A":  {'url': 'it/serie-a'},
-    "Serie B":  {'url': 'it/serie-b'},
-    "La Liga":  {'url': 'es/la-liga'},
-    "La Liga 2":  {'url': 'es/la-liga-2'},
-    "Ligue 1":  {'url': 'fr/ligue-1'},
-    "Ligue 2":  {'url': 'fr/ligue-2'},
-    "Eredivisie":  {'url': 'ne/eredivisie'},
-    "Primeira Liga":  {'url': 'pt/primeira-liga'},
-    "Scottish PL":  {'url': 'uk/scottish-premiership'},
-    "Super Lig":  {'url': 'tr/super-lig'},
-    "Belgian 1st Division":  {'url': 'be/first-division-a'},
-}
+from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException, \
+    InvalidYearException
+from ScraperFC.utils import load_comps
 
+comps = load_comps()
 
 class Capology():
 
@@ -74,7 +59,7 @@ class Capology():
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Capology', list(comps.keys()))
 
-        return f'https://www.capology.com/{comps[league]["url"]}/salaries/'
+        return f'https://www.capology.com/{comps[league]["Capology"]}/salaries/'
 
     # ==============================================================================================
     def get_valid_seasons(self, league: str) -> Sequence[str]:

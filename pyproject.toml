@@ -31,7 +31,9 @@ dependencies = [
     "lxml>=5.3.0",
     "numpy>=2.0.2",
     "pandas>=2.2.3",
+    "pyyaml>=6.0.2",
     "requests>=2.32.3",
+    "rootutils>=1.0.7",
     "selenium>=4.28.1",
     "tqdm>=4.67.1",
 ]
@@ -65,6 +67,7 @@ dev = [
     "types-tqdm>=4.67.0.20241221",
     "ty>=0.0.1a17",
     "mypy>=1.14.1",
+    "types-pyyaml>=6.0.12.20250516",
 ]
 
 [project.urls]
@@ -120,41 +123,41 @@ legacy_tox_ini = """
     [testenv:test-all]
     commands = 
         python -m pip list
-        uv run pytest ./test/ --cov ScraperFC
+        uv run --active pytest ./test/ --cov ScraperFC
 
     [testenv:test-capology]
     commands = 
         pip list
-        uv run pytest ./test/test_capology.py --cov ScraperFC
+        uv run --active pytest ./test/test_capology.py --cov ScraperFC
 
     [testenv:test-clubelo]
     commands = 
         pip list
-        uv run pytest ./test/test_clubelo.py --cov ScraperFC
+        uv run --active pytest ./test/test_clubelo.py --cov ScraperFC
 
     [testenv:test-fbref]
     commands = 
         pip list
-        uv run pytest ./test/test_fbref.py --cov ScraperFC
+        uv run --active pytest ./test/test_fbref.py --cov ScraperFC
 
     [testenv:test-sofascore]
     commands = 
         pip list
-        uv run pytest ./test/test_sofascore.py --cov ScraperFC
+        uv run --active pytest ./test/test_sofascore.py --cov ScraperFC
 
     [testenv:test-transfermarkt]
     commands = 
         pip list
-        uv run pytest ./test/test_transfermarkt.py --cov ScraperFC
+        uv run --active pytest ./test/test_transfermarkt.py --cov ScraperFC
 
     [testenv:test-understat]
     commands = 
         pip list
-        uv run pytest ./test/test_understat.py --cov ScraperFC
+        uv run --active pytest ./test/test_understat.py --cov ScraperFC
 
     [testenv:docs]
     extras = dev
-    commands = uv run sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
+    commands = uv run --active sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
 
     [testenv:build]
     skip_install = true
@@ -162,11 +165,11 @@ legacy_tox_ini = """
 
     [testenv:lint]
     commands = 
-        uv run ruff check --select W291 --fix  # fix trailing whitespace
-        uv run ruff check --select W292 --fix  # fix missing new line at end of file
-        uv run ruff check --select W293 --fix --unsafe-fixes  # fix blank line with whitespace
-        uv run ruff check
+        uv run --active ruff check --select W291 --fix  # fix trailing whitespace
+        uv run --active ruff check --select W292 --fix  # fix missing new line at end of file
+        uv run --active ruff check --select W293 --fix --unsafe-fixes  # fix blank line with whitespace
+        uv run --active ruff check
 
     [testenv:typecheck]
-    commands = uv run mypy ./src
+    commands = uv run --active mypy ./src
 """
