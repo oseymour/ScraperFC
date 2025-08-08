@@ -34,7 +34,7 @@ class TestUnderstat:
             us.scrape_matches(year, league)
         with expected:
             us.scrape_all_teams_data(year, league)
-    
+
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
@@ -60,13 +60,13 @@ class TestUnderstat:
             us.scrape_matches(year, league)
         with expected:
             us.scrape_all_teams_data(year, league)
-    
+
     # ==============================================================================================
     def test_scrape_season_data(self):
         understat = Understat()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        
+
         season_data = understat.scrape_season_data(year, league)
         assert len(season_data) == 3
         assert isinstance(season_data[0], list)
@@ -78,7 +78,7 @@ class TestUnderstat:
         understat = Understat()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        
+
         tables = understat.scrape_league_tables(year, league)
         assert len(tables) == 3
         for x in tables:
@@ -91,11 +91,11 @@ class TestUnderstat:
         understat = Understat()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        
+
         # Use as_df=True so we test that code
         matches = understat.scrape_matches(year, league, as_df=True)
         assert isinstance(matches, dict)
-        
+
         first_key = list(matches.keys())[0]
         first_value = matches[first_key]
         assert isinstance(first_value['shots_data'], pd.DataFrame)
@@ -107,11 +107,11 @@ class TestUnderstat:
         understat = Understat()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(understat.get_valid_seasons(league)), 1)[0]
-        
+
         # Use as_df=True so we test that code
         teams_data = understat.scrape_all_teams_data(year, league, as_df=True)
         assert isinstance(teams_data, dict)
-        
+
         first_key = list(teams_data.keys())[0]
         first_value = teams_data[first_key]
         assert isinstance(first_value['matches'], pd.DataFrame)

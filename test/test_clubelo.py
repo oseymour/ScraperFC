@@ -17,7 +17,7 @@ class TestClubElo:
     def test_invalid_team(self, team, date, expected):
         with expected:
             ClubElo().scrape_team_on_date(team, date)
-    
+
     # ==============================================================================================
     @pytest.mark.parametrize(
         'team, date, expected',
@@ -31,7 +31,7 @@ class TestClubElo:
     def test_invalid_date(self, team, date, expected):
         with expected:
             ClubElo().scrape_team_on_date(team, date)
-    
+
     # ==============================================================================================
     @pytest.mark.parametrize(
         'team, date, expected',

@@ -9,3 +9,4 @@ docs/build/
 prof/
 docs/jupyter_execute/
 uv.lock
+__marimo__

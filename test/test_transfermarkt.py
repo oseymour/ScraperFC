@@ -42,7 +42,7 @@ class TestTransfermarkt:
 
     # ==============================================================================================
     @pytest.mark.parametrize(
-        "year, league", 
+        "year, league",
         [("1901/02", "Jupiler Pro League"),]
     )
     def test_no_club_links(self, year, league):

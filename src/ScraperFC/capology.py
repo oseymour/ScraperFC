@@ -123,7 +123,7 @@ class Capology():
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons:
             raise InvalidYearException(year, league, valid_seasons)
-        
+
         soup = BeautifulSoup(requests.get(self.get_league_url(league)).content, 'html.parser')
         year_dropdown_tags = soup.find('select', {'id': 'nav-submenu2'})\
             .find_all('option', value=True)  # type: ignore
@@ -198,22 +198,22 @@ class Capology():
             # Get the cleaned column names ---------------------------------------------------------
             table_header = table_el.find_element(By.TAG_NAME, "thead")
             table_header_rows = table_header.find_elements(By.TAG_NAME, "tr")
-            
+
             level0_cols = list()
             for th in table_header_rows[0].find_elements(By.TAG_NAME, "th"):
                 col_name = th.find_element(By.TAG_NAME, "div").text
                 col_span = int(th.get_attribute("colspan"))  # type: ignore
                 _ = [level0_cols.append(col_name) for _ in range(col_span)]  # type: ignore
-            
+
             level1_cols = list()
             for th in table_header_rows[1].find_elements(By.TAG_NAME, "th"):
                 col_name = (
                     th.get_attribute("data-field").upper()  # type: ignore
-                    if th.get_attribute("class") == "hide" 
+                    if th.get_attribute("class") == "hide"
                     else th.find_element(By.TAG_NAME, "div").text
                 )
                 level1_cols.append(col_name)
-            
+
             # Sometimes the level 0 header row has less colspans than cols in the 2nd header row
             while len(level0_cols) < len(level1_cols):
                 level0_cols.append("")

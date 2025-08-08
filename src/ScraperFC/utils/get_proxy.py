@@ -7,11 +7,11 @@ from io import StringIO
 
 def get_proxy() -> str:
     """ Gets a proxy address.
-    
+
     Adapted from
     https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address.
     Randomly chooses one proxy.
-    
+
     Parameters
     ----------
     None

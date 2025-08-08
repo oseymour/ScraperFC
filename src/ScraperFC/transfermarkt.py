@@ -44,22 +44,22 @@ class Transfermarkt():
     # ==============================================================================================
     def get_valid_seasons(self, league: str) -> dict:
         """ Return valid seasons for the chosen league
-        
+
         Parameters
         ----------
         league : str
             The league to gather valid seasons for
-        
+
         Returns
         -------
         : dict
             {year str: year id, ...}
         """
-        if not isinstance(league, str): 
+        if not isinstance(league, str):
             raise TypeError("`league` must be a string.")
         if league not in comps.keys():
             raise InvalidLeagueException(league, "Transfermarkt", list(comps.keys()))
-        
+
         scraper = cloudscraper.CloudScraper()
         try:
             soup = BeautifulSoup(scraper.get(comps[league]).content, "html.parser")
@@ -68,18 +68,18 @@ class Transfermarkt():
             return valid_seasons
         finally:
             scraper.close()
-        
+
     # ==============================================================================================
     def get_club_links(self, year: str, league: str) -> Sequence[str]:
         """ Gathers all Transfermarkt club URL"s for the chosen league season.
-        
+
         Parameters
         ----------
         year : str
             See the :ref:`transfermarkt_year` `year` parameter docs for details.
         league : str
             League to scrape.
-        
+
         Returns
         -------
         : list of str
@@ -90,7 +90,7 @@ class Transfermarkt():
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons.keys():
             raise InvalidYearException(year, league, list(valid_seasons.keys()))
-        
+
         scraper = cloudscraper.CloudScraper()
         try:
             soup = BeautifulSoup(
@@ -109,18 +109,18 @@ class Transfermarkt():
             return club_links
         finally:
             scraper.close()
-    
+
     # ==============================================================================================
     def get_player_links(self, year: str, league: str) -> Sequence[str]:
         """ Gathers all Transfermarkt player URL"s for the chosen league season.
-        
+
         Parameters
         ----------
         year : str
             See the :ref:`transfermarkt_year` `year` parameter docs for details.
         league : str
             League to scrape.
-        
+
         Returns
         -------
         : list of str
@@ -143,7 +143,7 @@ class Transfermarkt():
             return list(set(player_links))
         finally:
             scraper.close()
-    
+
     # ==============================================================================================
     def get_match_links(self, year: str, league: str) -> Sequence[str]:
         """ Returns all match links for a given competition season.
@@ -154,7 +154,7 @@ class Transfermarkt():
             See the :ref:`transfermarkt_year` `year` parameter docs for details.
         league : str
             League to scrape.
-        
+
         Returns
         -------
         : list of str
@@ -170,18 +170,18 @@ class Transfermarkt():
             return match_links
         finally:
             scraper.close()
-    
+
     # ==============================================================================================
     def scrape_players(self, year: str, league: str) -> pd.DataFrame:
         """ Gathers all player info for the chosen league season.
-        
+
         Parameters
         ----------
         year : str
             See the :ref:`transfermarkt_year` `year` parameter docs for details.
         league : str
             League to scrape.
-        
+
         Returns
         -------
         : DataFrame
@@ -193,7 +193,7 @@ class Transfermarkt():
         for player_link in tqdm(player_links, desc=f"{year} {league} players"):
             player = self.scrape_player(player_link)
             df = pd.concat([df, player], axis=0, ignore_index=True)
-        
+
         return df
 
     # ==============================================================================================
@@ -218,11 +218,11 @@ class Transfermarkt():
             }
         )
         soup = BeautifulSoup(r.content, "html.parser")
-        
+
         # Name
         name_tag = soup.find("h1", {"class": "data-header__headline-wrapper"})
         name = name_tag.text.split("\n")[-1].strip()  # type: ignore
-        
+
         # Value
         try:
             value_tag = soup.find("a", {"class": "data-header__market-value-wrapper"})
@@ -232,7 +232,7 @@ class Transfermarkt():
         except AttributeError:
             value = None
             value_last_updated = None
-            
+
         # DOB and age
         dob_el = soup.find("span", {"itemprop": "birthDate"})
         if dob_el is None:
@@ -240,7 +240,7 @@ class Transfermarkt():
         else:
             dob = " ".join(dob_el.text.strip().split(" ")[:3])
             age = int(dob_el.text.strip().split(" ")[-1].replace("(", "").replace(")", ""))
-        
+
         # Height
         height_tag = soup.find("span", {"itemprop": "height"})
         if height_tag is None:
@@ -267,7 +267,7 @@ class Transfermarkt():
             for flag_el in el.find_all("img", {"class": "flaggenrahmen"})
         ]
         citizenship = list(set([el["title"] for el in flag_els]))
-        
+
         # Position
         position_el = soup.find("dd", {"class": "detail-position__position"})
         if position_el is None:
@@ -317,7 +317,7 @@ class Transfermarkt():
         ]
         assert len(contract_expiration) < 2
         contract_expiration = None if len(contract_expiration) == 0 else contract_expiration[0]  # type: ignore
-        
+
         # Market value history
         try:
             script = [
@@ -332,7 +332,7 @@ class Transfermarkt():
             market_value_history = pd.DataFrame({"date": dates, "value": values})
         except IndexError:
             market_value_history = None
-        
+
         # Transfer History
         rows = soup.find_all("div", {"class": "grid tm-player-transfer-history-grid"})
         transfer_history = pd.DataFrame(
@@ -341,7 +341,7 @@ class Transfermarkt():
         ).drop(
             columns=[""]
         )
-        
+
         player = pd.Series(dtype=object)
         player["Name"] = name
         player["ID"] = player_link.split("/")[-1]

@@ -315,7 +315,7 @@ class FBref():
             raise NoMatchLinksException(year, league, fixtures_url)
         for x in possible_els:
             a = x.find('a')
-            if (a is not None and 'match' in a['href'] 
+            if (a is not None and 'match' in a['href']
                     and any([f in a['href'] for f in comps[league]['finders']])
                 ):
                 match_urls.append('https://fbref.com' + a['href'])
@@ -379,7 +379,7 @@ class FBref():
             date = scorebox_meta_tag.find("strong").text  # type: ignore
         else:
             date = soup.find("span", {"class": "venuetime"})["data-venue-date"]  # type: ignore
-        
+
         stage = soup.find("div", {"role": "main"}).find("div").text  # type: ignore
 
         # Team names, IDs, goals, and xG
@@ -423,7 +423,7 @@ class FBref():
             home_player_stats_dict["Keeper"] = home_gk_df
         else:
             home_player_stats_dict["Keeper"] = None  # type: ignore
-        
+
         away_gk_table_tag = soup.find("table", {"id": re.compile(f"keeper_stats_{away_id}")})
         if away_gk_table_tag:
             away_gk_df = pd.read_html(StringIO(str(away_gk_table_tag)))[0]
@@ -438,12 +438,12 @@ class FBref():
         if all_shots_table_tag:
             all_shots_df = pd.read_html(StringIO(str(all_shots_table_tag)))[0]
             shots_dict["Both"] = all_shots_df  # type: ignore
-        
+
         home_shots_table_tag = soup.find("table", {"id": f"shots_{home_id}"})
         if home_shots_table_tag:
             home_shots_df = pd.read_html(StringIO(str(home_shots_table_tag)))[0]
             shots_dict["Home"] = home_shots_df  # type: ignore
-        
+
         away_shots_table_tag = soup.find("table", {"id": f"shots_{away_id}"})
         if away_shots_table_tag:
             away_shots_df = pd.read_html(StringIO(str(away_shots_table_tag)))[0]
@@ -516,7 +516,7 @@ class FBref():
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
-        stat_cateogry : str
+        stat_category : str
             The stat category to scrape.
         Returns
         -------
@@ -620,7 +620,7 @@ class FBref():
 
             # Squad IDs
             squad_ids = [
-                tag.find('a')['href'].split('/')[3] 
+                tag.find('a')['href'].split('/')[3]
                 for tag in squad_stats_tag.find_all(squad_id_finder, {'data-stat': 'team'})[squad_id_start_idx:]  # type: ignore
                 if tag and tag.find('a')
             ]
@@ -635,7 +635,7 @@ class FBref():
 
             # Opponent squad IDs
             opponent_ids = [
-                tag.find('a')['href'].split('/')[3] 
+                tag.find('a')['href'].split('/')[3]
                 for tag in opponent_stats_tag.find_all(squad_id_finder, {'data-stat': 'team'})[squad_id_start_idx:]  # type: ignore
                 if tag and tag.find('a')
             ]
@@ -647,7 +647,7 @@ class FBref():
 
             # Add player links and ID's
             player_links = [
-                'https://fbref.com' + tag.find('a')['href'] 
+                'https://fbref.com' + tag.find('a')['href']
                 for tag in player_stats_tag.find_all('td', {'data-stat': 'player'})  # type: ignore
                 if tag and tag.find('a')
             ]
@@ -671,7 +671,7 @@ class FBref():
             The league to retrieve valid seasons for. Examples include "EPL" and
             "La Liga". To see all possible options import `comps` from the FBref
             module file and look at the keys.
-        
+
         Returns
         -------
         : dict

@@ -24,7 +24,7 @@ def _json_from_script(text: str) -> dict:
 
 
 class Understat:
-        
+
     # ==============================================================================================
     def get_season_link(self, year: str, league: str) -> str:
         """ Gets Understat URL of the chosen league season.
@@ -35,7 +35,7 @@ class Understat:
             See the :ref:`understat_year` `year` parameter docs for details.
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
-        
+
         Returns
         -------
         : str
@@ -50,9 +50,9 @@ class Understat:
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons:
             raise InvalidYearException(year, league, valid_seasons)
-        
+
         return f'{comps[league]}/{year.split("/")[0]}'
-    
+
     # ==============================================================================================
     def get_valid_seasons(self, league: str) -> Sequence[str]:
         """ Returns valid season strings for the chosen league.
@@ -61,7 +61,7 @@ class Understat:
         ----------
         league : str
             League. Look in ScraperFC.Understat comps variable for available leagues.
-        
+
         Returns
         ------
         : list of str
@@ -69,12 +69,12 @@ class Understat:
         """
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Understat', list(comps.keys()))
-        
+
         soup = BeautifulSoup(requests.get(comps[league]).content, 'html.parser')
         valid_season_tags = soup.find('select', {'name': 'season'}).find_all('option')  # type: ignore
         valid_seasons = [x.text for x in valid_season_tags]
         return valid_seasons
-        
+
     # ==============================================================================================
     def get_match_links(self, year: str, league: str) -> Sequence[str]:
         """ Gets all of the match links for the chosen league season
@@ -93,7 +93,7 @@ class Understat:
         """
         matches_data, _, _ = self.scrape_season_data(year, league)
         return [f'https://understat.com/match/{x["id"]}' for x in matches_data if x['isResult']]
-    
+
     # ==============================================================================================
     def get_team_links(self, year: str, league: str) -> Sequence[str]:
         """ Gets all of the team links for the chosen league season
@@ -145,7 +145,7 @@ class Understat:
         players_data = _json_from_script(players_data_tag.text)
 
         return matches_data, teams_data, players_data
-          
+
     # ==============================================================================================
     def scrape_league_tables(self, year: str, league: str) -> Sequence[pd.DataFrame]:
         """ Scrapes the league table for the chosen league season.
@@ -224,7 +224,7 @@ class Understat:
         a_tbl = a_tbl[ordered_cols]
 
         return lg_tbl, h_tbl, a_tbl
-    
+
     # ==============================================================================================
     def scrape_match(self, link: str, as_df: bool = False) -> Sequence[Union[dict, pd.DataFrame]]:
         """ Scrapes a single match from Understat.
@@ -245,7 +245,7 @@ class Understat:
             raise TypeError('`link` must be a string.')
         if not isinstance(as_df, bool):
             raise TypeError('`as_df` must be a boolean.')
-        
+
         r = requests.get(link)
         if r.status_code == 404:
             warnings.warn(f"404 error for {link}. Returning empty dicts/DataFrames.")
@@ -274,13 +274,13 @@ class Understat:
                 rosters_data = pd.DataFrame.from_dict(
                     list(rosters_data['h'].values()) + list(rosters_data['a'].values())    # type: ignore
                 )   # type: ignore
-        
+
         return shots_data, match_info, rosters_data
 
     # ==============================================================================================
     def scrape_matches(self, year: str, league: str, as_df: bool = False) -> dict:
         """ Scrapes all of the matches from the chosen league season.
-        
+
         Gathers all match links from the chosen league season and then calls scrape_match() on each
         one.
 
@@ -300,27 +300,27 @@ class Understat:
             {link: {'shots_data': shots, 'match_info': info, 'rosters_data': rosters}, ...}
         """
         links = self.get_match_links(year, league)
-        
+
         matches = dict()
         for link in tqdm(links, desc=f'{year} {league} matches'):
             shots, info, rosters = self.scrape_match(link, as_df)
             matches[link] = {'shots_data': shots, 'match_info': info, 'rosters_data': rosters}
-        
+
         return matches
 
     # ==============================================================================================
     def scrape_team_data(self, team_link: str, as_df: bool = False) -> Sequence:
         """ Scrapes team data from a team's Understat link
-        
+
         Note that for Understat, team links are season-specific.
-        
+
         Parameters
         ----------
         team_link : str
 
         as_df : bool, optional, default False
             If True, data will be returned as DataFrames. If False, dicts.
-            
+
         Returns
         -------
         : tuple
@@ -399,7 +399,7 @@ class Understat:
                 'matches': matches, 'team_data': team, 'players_data': players
             }
         return return_package
-        
+
     # ==============================================================================================
     def scrape_shot_xy(self, year: str, league: str, as_df: bool = False) -> None:
         """ Deprecated. Use `scrape_matches()` instead.

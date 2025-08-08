@@ -86,7 +86,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         match_dicts = ss.get_match_dicts(year, league)
         assert isinstance(match_dicts, list)
         assert np.all([isinstance(x, dict) for x in match_dicts])
@@ -111,7 +111,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         stats = ss.scrape_player_league_stats(year, league)
         assert isinstance(stats, pd.DataFrame)
         assert ((stats.shape[0] > 0) and (stats.shape[1] > 0)) or (stats.shape == (0,0))
@@ -123,13 +123,13 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
         momentum = ss.scrape_match_momentum(match_id)
         assert isinstance(momentum, pd.DataFrame)
         assert ((momentum.shape[0] > 0) and (momentum.shape[1] > 0)) or (momentum.shape == (0,0))
-        
+
     # ==============================================================================================
     def test_scrape_team_match_stats(self):
         """ Test the outputs of the scrape_team_match_stats() function
@@ -137,7 +137,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
         team_stats = ss.scrape_team_match_stats(match_id)
@@ -152,7 +152,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
         player_stats = ss.scrape_player_match_stats(match_id)
@@ -167,7 +167,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
         avg_pos = ss.scrape_player_average_positions(match_id)
@@ -181,7 +181,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
         heatmaps = ss.scrape_heatmaps(match_id)
@@ -205,7 +205,7 @@ class TestSofascore:
         ss = Sofascore()
         league = random.sample(list(comps.keys()), 1)[0]
         year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
-        
+
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
         shots = ss.scrape_match_shots(match_id)

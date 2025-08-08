@@ -60,7 +60,7 @@ class InvalidCurrencyException(Exception):
 
     def __str__(self) -> str:
         return 'Currency must be one of "eur", "gbp", or "usd".'
-    
+
 class FBrefRateLimitException(Exception):
     """ Raised when FBref returns HTTP status 429, rate limit request
     """
@@ -69,4 +69,4 @@ class FBrefRateLimitException(Exception):
 
     def __str__(self) -> str:
         return "FBref returned a 429 status, Too Many Requests. See " +\
-            "https://www.sports-reference.com/bot-traffic.html for more details."    
+            "https://www.sports-reference.com/bot-traffic.html for more details."
