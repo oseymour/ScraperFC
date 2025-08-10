@@ -1,21 +1,23 @@
 import sys
-sys.path.append('./src/')
-from ScraperFC import Transfermarkt
-from ScraperFC.transfermarkt import comps
-from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 import random
 import pandas as pd
 import pytest
 from contextlib import nullcontext as does_not_raise
+
+sys.path.append('./src/')
+from ScraperFC import Transfermarkt
+from ScraperFC.transfermarkt import comps
+from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
+from ScraperFC.utils import get_module_comps
 
 class TestTransfermarkt:
 
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('23/24', 'EFL2', does_not_raise()),
-         (2024, 'Serie A', pytest.raises(TypeError)),
-         ('fake year', 'Serie B', pytest.raises(InvalidYearException))]
+        [('23/24', 'England EFL League 2', does_not_raise()),
+         (2024, 'Italy Serie A', pytest.raises(TypeError)),
+         ('fake year', 'Italy Serie B', pytest.raises(InvalidYearException))]
     )
     def test_invalid_year(self, year, league, expected):
         tm = Transfermarkt()
@@ -27,7 +29,7 @@ class TestTransfermarkt:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('76/77', 'La Liga', does_not_raise()),
+        [('76/77', 'Spain La Liga', does_not_raise()),
          ('76/77', -1, pytest.raises(TypeError)),
          ('76/77', 'fake league', pytest.raises(InvalidLeagueException))]
     )
@@ -43,7 +45,7 @@ class TestTransfermarkt:
     # ==============================================================================================
     @pytest.mark.parametrize(
         "year, league",
-        [("1901/02", "Jupiler Pro League"),]
+        [("1901/02", "Belgium Pro League"),]
     )
     def test_no_club_links(self, year, league):
         tm = Transfermarkt()

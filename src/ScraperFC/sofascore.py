@@ -1,9 +1,10 @@
 import pandas as pd
-from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from .utils import botasaurus_browser_get_json
 import numpy as np
 from typing import Union, Sequence
 import warnings
+
+from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
+from .utils import botasaurus_browser_get_json, get_module_comps
 
 """ These are the status codes for Sofascore events. Found in event['status'] key.
 {100: {'code': 100, 'description': 'Ended', 'type': 'finished'},
@@ -20,23 +21,7 @@ import warnings
 
 API_PREFIX = 'https://api.sofascore.com/api/v1'
 
-comps = {
-    # European continental club comps
-    'Champions League': 7, 'Europa League': 679, 'Europa Conference League': 17015,
-    # European domestic leagues
-    'EPL': 17, 'La Liga': 8, 'Bundesliga': 35, 'Serie A': 23, 'Ligue 1': 34, 'Turkish Super Lig': 52,
-    # South America
-    'Argentina Liga Profesional': 155, 'Argentina Copa de la Liga Profesional': 13475,
-    'Liga 1 Peru': 406, "Copa Libertadores": 384,
-    # USA
-    'MLS': 242, 'USL Championship': 13363, 'USL1': 13362, 'USL2': 13546,
-    # Middle East
-    "Saudi Pro League": 955,
-    # Men's international comps
-    'World Cup': 16, 'Euros': 1, 'Gold Cup': 140,
-    # Women's international comps
-    "Women's World Cup": 290
-}
+comps = get_module_comps("Sofascore")
 
 
 class Sofascore:
@@ -97,7 +82,8 @@ class Sofascore:
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Sofascore', list(comps.keys()))
 
-        response = botasaurus_browser_get_json(f'{API_PREFIX}/unique-tournament/{comps[league]}/seasons/')
+        url = f'{API_PREFIX}/unique-tournament/{comps[league]["Sofascore"]}/seasons/'
+        response = botasaurus_browser_get_json(url)
         seasons = dict([(x['year'], x['id']) for x in response['seasons']])
         return seasons
 
@@ -127,8 +113,8 @@ class Sofascore:
         i = 0
         while 1:
             response = botasaurus_browser_get_json(
-                f'{API_PREFIX}/unique-tournament/{comps[league]}/season/' +
-                f'{valid_seasons[year]}/events/last/{i}'
+                f'{API_PREFIX}/unique-tournament/{comps[league]["Sofascore"]}/' +
+                f'season/{valid_seasons[year]}/events/last/{i}'
             )
             if 'events' not in response:
                 break
@@ -313,7 +299,7 @@ class Sofascore:
 
         positions = self.get_positions(selected_positions)
         season_id = valid_seasons[year]
-        league_id = comps[league]
+        league_id = comps[league]["Sofascore"]
 
         # Get all player stats from Sofascore API
         offset = 0
