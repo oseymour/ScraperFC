@@ -4,7 +4,7 @@ name = "ScraperFC"
 version = "3.4.0"
 description = "Package for scraping soccer data from a variety of sources."
 readme = "README.md"
-license-files = ["LICENSE"]
+license = {file = "LICENSE"}
 requires-python = ">= 3.9"
 keywords = [
     "webscraping", "scraping", "soccer", "football", "soccer data", "football data", 
@@ -36,36 +36,38 @@ dependencies = [
     "tqdm>=4.67.1",
 ]
 
-[dependency-groups]
-dev = [
-    # General
-    "marimo>=0.14.16",
-    "tox>=4.24.1",
-    # Test
+# LEAVE AS OPTIONAL DEPENDENCIES, NOT DEPENDENCY GROUPS
+# readthedocs needs docs to be optional dependency group, so just leave the others as them also
+[project.optional-dependencies]
+test = [
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
-    # Lint
-    "ruff>=0.11.10",
-    # Docs
+]
+docs = [
     "furo>=2024.8.6",
     "myst-nb>=1.1.2",
     "sphinx>=7.4.7",
-    # Build
+]
+build = [
     "build>=1.2.2.post1",
     "setuptools>=75.8.0",
     "wheel>=0.45.1",
-    # Publish
-    "publish>=0.3.6",
-    # Typecheck
+]
+publish = ["publish>=0.3.6",]
+dev = [
+    "marimo>=0.14.16",
+    "tox>=4.24.1",
+]
+typecheck = [
     "pandas-stubs>=2.2.2.240807",
     "types-beautifulsoup4>=4.12.0.20241020",
     "types-openpyxl>=3.1.5.20241225",
     "types-python-dateutil>=2.9.0.20241206",
     "types-requests>=2.32.0.20241016",
     "types-tqdm>=4.67.0.20241221",
-    "ty>=0.0.1a17",
     "mypy>=1.14.1",
 ]
+lint = ["ruff>=0.11.10",]
 
 [project.urls]
 repository = "https://github.com/oseymour/ScraperFC/"
@@ -112,8 +114,8 @@ legacy_tox_ini = """
     envlist = py39, py310, py311, py312
 
     [testenv]
-    usedevelop = True
-    extras = dev
+    usedevelop = true
+    extras = test
     allowlist_externals = uv, sphinx-build
     install_command = uv pip install
 
@@ -153,14 +155,16 @@ legacy_tox_ini = """
         uv run pytest ./test/test_understat.py --cov ScraperFC
 
     [testenv:docs]
-    extras = dev
+    extras = docs
     commands = uv run sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
 
     [testenv:build]
     skip_install = true
+    extras = build
     commands = uv build
 
     [testenv:lint]
+    extras = lint
     commands = 
         uv run ruff check --select W291 --fix  # fix trailing whitespace
         uv run ruff check --select W292 --fix  # fix missing new line at end of file
@@ -168,5 +172,6 @@ legacy_tox_ini = """
         uv run ruff check
 
     [testenv:typecheck]
+    extras = typecheck
     commands = uv run mypy ./src
 """
