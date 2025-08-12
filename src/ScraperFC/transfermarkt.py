@@ -37,7 +37,6 @@ class Transfermarkt():
         scraper = cloudscraper.CloudScraper()
         try:
             response = scraper.get(comps[league]["TRANSFERMARKT"])
-            print(response.status_code)
             soup = BeautifulSoup(response.content, "html.parser")
             season_tags = soup.find("select", {"name": "saison_id"}).find_all("option")  # type: ignore
             valid_seasons = dict([(x.text, x["value"]) for x in season_tags])
