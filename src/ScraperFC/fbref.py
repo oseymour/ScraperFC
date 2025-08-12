@@ -409,7 +409,7 @@ class FBref():
 
         season_url = self.get_season_link(year, league)
 
-        if league == 'Big 5 combined':
+        if 'big 5 combined' in league.lower():
             squad_id_finder = "td"  # for squad and opponent squad IDs
             squad_id_start_idx = 0  # to index the squad id elements list, to match shape of df
             # Big 5 combined has separate pages for squad and player stats
