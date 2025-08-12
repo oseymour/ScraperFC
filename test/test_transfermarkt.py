@@ -3,12 +3,15 @@ import random
 import pandas as pd
 import pytest
 from contextlib import nullcontext as does_not_raise
+from rootutils import find_root
 
-sys.path.append('./src/')
+sys.path.append(str(find_root() / 'src'))
 from ScraperFC import Transfermarkt
 from ScraperFC.transfermarkt import comps
 from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from ScraperFC.utils import get_module_comps
+
+comps = get_module_comps("TRANSFERMARKT")
 
 class TestTransfermarkt:
 

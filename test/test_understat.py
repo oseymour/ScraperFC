@@ -1,15 +1,16 @@
 import sys
-sys.path.append('./src')
-from ScraperFC import Understat
-from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from ScraperFC.utils import get_module_comps
-
 import random
 import pandas as pd
 import pytest
 from contextlib import nullcontext as does_not_raise
+from rootutils import find_root
 
-comps = get_module_comps("Understat")
+sys.path.append(str(find_root() / 'src'))
+from ScraperFC import Understat
+from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
+from ScraperFC.utils import get_module_comps
+
+comps = get_module_comps("UNDERSTAT")
 
 
 class TestUnderstat:

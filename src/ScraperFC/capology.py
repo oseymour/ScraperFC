@@ -14,7 +14,7 @@ from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeag
     InvalidYearException
 from ScraperFC.utils import get_module_comps
 
-comps = get_module_comps("Capology")
+comps = get_module_comps("CAPOLOGY")
 
 class Capology():
 
@@ -59,7 +59,7 @@ class Capology():
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Capology', list(comps.keys()))
 
-        return f'https://www.capology.com/{comps[league]["Capology"]}/salaries/'
+        return f'https://www.capology.com/{comps[league]["CAPOLOGY"]}/salaries/'
 
     # ==============================================================================================
     def get_valid_seasons(self, league: str) -> Sequence[str]:

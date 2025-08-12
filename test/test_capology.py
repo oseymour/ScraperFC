@@ -9,7 +9,7 @@ from contextlib import nullcontext as does_not_raise
 import random
 import pandas as pd
 
-comps = get_module_comps("Capology")
+comps = get_module_comps("CAPOLOGY")
 
 class TestCapology:
 

@@ -128,32 +128,32 @@ legacy_tox_ini = """
     [testenv:test-capology]
     commands = 
         pip list
-        uv run --active pytest ./test/test_capology.py --cov ScraperFC
+        uv run --active pytest ./test/test_capology.py --cov ScraperFC -s
 
     [testenv:test-clubelo]
     commands = 
         pip list
-        uv run --active pytest ./test/test_clubelo.py --cov ScraperFC
+        uv run --active pytest ./test/test_clubelo.py --cov ScraperFC -s
 
     [testenv:test-fbref]
     commands = 
         pip list
-        uv run --active pytest ./test/test_fbref.py --cov ScraperFC
+        uv run --active pytest ./test/test_fbref.py --cov ScraperFC -s
 
     [testenv:test-sofascore]
     commands = 
         pip list
-        uv run --active pytest ./test/test_sofascore.py --cov ScraperFC
+        uv run --active pytest ./test/test_sofascore.py --cov ScraperFC -s
 
     [testenv:test-transfermarkt]
     commands = 
         pip list
-        uv run --active pytest ./test/test_transfermarkt.py --cov ScraperFC
+        uv run --active pytest ./test/test_transfermarkt.py --cov ScraperFC -s
 
     [testenv:test-understat]
     commands = 
         pip list
-        uv run --active pytest ./test/test_understat.py --cov ScraperFC
+        uv run --active pytest ./test/test_understat.py --cov ScraperFC -s
 
     [testenv:docs]
     extras = dev

@@ -10,7 +10,7 @@ from ScraperFC.utils import get_module_comps
 
 TRANSFERMARKT_ROOT = "https://www.transfermarkt.us"
 
-comps = get_module_comps("Transfermarkt")
+comps = get_module_comps("TRANSFERMARKT")
 
 
 class Transfermarkt():
@@ -36,7 +36,7 @@ class Transfermarkt():
 
         scraper = cloudscraper.CloudScraper()
         try:
-            response = scraper.get(comps[league]["Transfermarkt"])
+            response = scraper.get(comps[league]["TRANSFERMARKT"])
             print(response.status_code)
             soup = BeautifulSoup(response.content, "html.parser")
             season_tags = soup.find("select", {"name": "saison_id"}).find_all("option")  # type: ignore
@@ -70,7 +70,7 @@ class Transfermarkt():
         scraper = cloudscraper.CloudScraper()
         try:
             soup = BeautifulSoup(
-                scraper.get(f"{comps[league]['Transfermarkt']}/plus/?saison_id={valid_seasons[year]}").content,
+                scraper.get(f"{comps[league]['TRANSFERMARKT']}/plus/?saison_id={valid_seasons[year]}").content,
                 "html.parser"
             )
             items_table_tag = soup.find("table", {"class": "items"})
@@ -137,7 +137,7 @@ class Transfermarkt():
             List of the match URLs
         """
         valid_seasons = self.get_valid_seasons(league)
-        fixtures_url = f"{comps[league]['Transfermarkt'].replace('startseite', 'gesamtspielplan')}/saison_id/{valid_seasons[year]}"
+        fixtures_url = f"{comps[league]['TRANSFERMARKT'].replace('startseite', 'gesamtspielplan')}/saison_id/{valid_seasons[year]}"
         scraper = cloudscraper.CloudScraper()
         try:
             soup = BeautifulSoup(scraper.get(fixtures_url).content, "html.parser")

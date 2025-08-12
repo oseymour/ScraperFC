@@ -21,7 +21,7 @@ from .utils import botasaurus_browser_get_json, get_module_comps
 
 API_PREFIX = 'https://api.sofascore.com/api/v1'
 
-comps = get_module_comps("Sofascore")
+comps = get_module_comps("SOFASCORE")
 
 
 class Sofascore:
@@ -82,7 +82,7 @@ class Sofascore:
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Sofascore', list(comps.keys()))
 
-        url = f'{API_PREFIX}/unique-tournament/{comps[league]["Sofascore"]}/seasons/'
+        url = f'{API_PREFIX}/unique-tournament/{comps[league]["SOFASCORE"]}/seasons/'
         response = botasaurus_browser_get_json(url)
         seasons = dict([(x['year'], x['id']) for x in response['seasons']])
         return seasons
@@ -113,7 +113,7 @@ class Sofascore:
         i = 0
         while 1:
             response = botasaurus_browser_get_json(
-                f'{API_PREFIX}/unique-tournament/{comps[league]["Sofascore"]}/' +
+                f'{API_PREFIX}/unique-tournament/{comps[league]["SOFASCORE"]}/' +
                 f'season/{valid_seasons[year]}/events/last/{i}'
             )
             if 'events' not in response:
@@ -299,7 +299,7 @@ class Sofascore:
 
         positions = self.get_positions(selected_positions)
         season_id = valid_seasons[year]
-        league_id = comps[league]["Sofascore"]
+        league_id = comps[league]["SOFASCORE"]
 
         # Get all player stats from Sofascore API
         offset = 0

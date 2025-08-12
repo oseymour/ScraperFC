@@ -10,7 +10,7 @@ from ScraperFC import Sofascore
 from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from ScraperFC.utils import get_module_comps
 
-comps = get_module_comps("Sofascore")
+comps = get_module_comps("SOFASCORE")
 
 match_url = 'https://www.sofascore.com/fc-bayern-munchen-manchester-united/Ksxdb#id:11605966'
 match_id = 11605966
