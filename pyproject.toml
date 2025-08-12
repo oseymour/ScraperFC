@@ -38,37 +38,39 @@ dependencies = [
     "tqdm>=4.67.1",
 ]
 
-[dependency-groups]
-dev = [
-    # General
-    "marimo>=0.14.16",
-    "tox>=4.24.1",
-    # Test
+# LEAVE AS OPTIONAL DEPENDENCIES, NOT DEPENDENCY GROUPS
+# readthedocs needs docs to be optional dependency group, so just leave the others as them also
+[project.optional-dependencies]
+test = [
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
-    # Lint
-    "ruff>=0.11.10",
-    # Docs
+]
+docs = [
     "furo>=2024.8.6",
     "myst-nb>=1.1.2",
     "sphinx>=7.4.7",
-    # Build
+]
+build = [
     "build>=1.2.2.post1",
     "setuptools>=75.8.0",
     "wheel>=0.45.1",
-    # Publish
-    "publish>=0.3.6",
-    # Typecheck
+]
+publish = ["publish>=0.3.6",]
+dev = [
+    "marimo>=0.14.16",
+    "tox>=4.24.1",
+]
+typecheck = [
     "pandas-stubs>=2.2.2.240807",
     "types-beautifulsoup4>=4.12.0.20241020",
     "types-openpyxl>=3.1.5.20241225",
     "types-python-dateutil>=2.9.0.20241206",
     "types-requests>=2.32.0.20241016",
     "types-tqdm>=4.67.0.20241221",
-    "ty>=0.0.1a17",
-    "mypy>=1.14.1",
     "types-pyyaml>=6.0.12.20250516",
+    "mypy>=1.14.1",
 ]
+lint = ["ruff>=0.11.10",]
 
 [project.urls]
 repository = "https://github.com/oseymour/ScraperFC/"
@@ -109,67 +111,71 @@ disallow_untyped_defs = true
 
 # -- Tox  ------------------------------------------------------------------------------------------
 [tool.tox]
+# DO NOT put `--active` in `uv run` commands. GitHub Actions fail with this option.
 legacy_tox_ini = """
     [tox]
     isolated_build = true
-    envlist = py39, py310, py311, py312
+    envlist = py39, py310, py311, py312, py313
 
     [testenv]
-    usedevelop = True
-    extras = dev
+    usedevelop = true
+    extras = test
     allowlist_externals = uv, sphinx-build
     install_command = uv pip install
 
     [testenv:test-all]
     commands = 
         python -m pip list
-        uv run --active pytest ./test/ --cov ScraperFC
+        uv run pytest ./test/ --cov ScraperFC
 
     [testenv:test-capology]
     commands = 
         pip list
-        uv run --active pytest ./test/test_capology.py --cov ScraperFC -s
+        uv run pytest ./test/test_capology.py --cov ScraperFC -s
 
     [testenv:test-clubelo]
     commands = 
         pip list
-        uv run --active pytest ./test/test_clubelo.py --cov ScraperFC -s
+        uv run pytest ./test/test_clubelo.py --cov ScraperFC -s
 
     [testenv:test-fbref]
     commands = 
         pip list
-        uv run --active pytest ./test/test_fbref.py --cov ScraperFC -s
+        uv run pytest ./test/test_fbref.py --cov ScraperFC -s
 
     [testenv:test-sofascore]
     commands = 
         pip list
-        uv run --active pytest ./test/test_sofascore.py --cov ScraperFC -s
+        uv run pytest ./test/test_sofascore.py --cov ScraperFC -s
 
     [testenv:test-transfermarkt]
     commands = 
         pip list
-        uv run --active pytest ./test/test_transfermarkt.py --cov ScraperFC -s
+        uv run pytest ./test/test_transfermarkt.py --cov ScraperFC -s
 
     [testenv:test-understat]
     commands = 
         pip list
-        uv run --active pytest ./test/test_understat.py --cov ScraperFC -s
+        uv run pytest ./test/test_understat.py --cov ScraperFC -s
 
     [testenv:docs]
-    extras = dev
-    commands = uv run --active sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
+    extras = docs
+    commands = uv run sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
 
     [testenv:build]
     skip_install = true
-    commands = python -m build
+    extras = build
+    commands = uv build
 
     [testenv:lint]
+    extras = lint
     commands = 
-        uv run --active ruff check --select W291 --fix  # fix trailing whitespace
-        uv run --active ruff check --select W292 --fix  # fix missing new line at end of file
-        uv run --active ruff check --select W293 --fix --unsafe-fixes  # fix blank line with whitespace
-        uv run --active ruff check
+        uv run ruff check --select W291 --fix  # fix trailing whitespace
+        uv run ruff check --select W292 --fix  # fix missing new line at end of file
+        uv run ruff check --select W293 --fix --unsafe-fixes  # fix blank line with whitespace
+        uv run ruff check
 
     [testenv:typecheck]
-    commands = uv run --active mypy ./src
+    extras = typecheck
+    commands = uv run mypy ./src
 """
