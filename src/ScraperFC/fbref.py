@@ -87,16 +87,11 @@ class FBref():
     def get_valid_seasons(self, league: str) -> dict:
         """ Finds all of the valid years and their URLs for a given competition
 
-        Parameters
-        ----------
-        league : str
-            The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBref
-            module file and look at the keys.
-        Returns
-        -------
-        : dict
-            {year: URL, ...}, URLs need to be appended to "https://fbref.com" to be a complete URL.
+        :param str league: .. include:: ./arg_docstrings/league.rst
+        
+        :return: dict(year: url, ...), URLs need to be appended to "https://fbref.com" to be a 
+            complete URL.
+        :rtype: dict
         """
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
@@ -119,18 +114,11 @@ class FBref():
     def get_season_link(self, year: str, league: str) -> str:
         """ Returns the URL for the chosen league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`fbref_year` `year` parameter docs for details.
-        league : str
-            The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBref
-            module file and look at the keys.
-        Returns
-        -------
-        : str
-            URL to the FBref page of the chosen league season
+        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :returns: URL to the FBref page of the chosen league season
+        :rtype: str
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
@@ -150,18 +138,11 @@ class FBref():
     def get_match_links(self, year: str, league: str) -> Sequence[str]:
         """ Gets all match links for the chosen league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`fbref_year` `year` parameter docs for details.
-        league : str
-            The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBref
-            module file and look at the keys.
-        Returns
-        -------
-        : list of str
-            FBref links to all matches for the chosen league season
+        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :returns: FBref links to all matches for the chosen league season
+        :rtype: List[str]
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
@@ -201,20 +182,14 @@ class FBref():
     def scrape_league_table(self, year: str, league: str) -> Sequence[pd.DataFrame]:
         """ Scrapes the league table of the chosen league season
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`fbref_year` `year` parameter docs for details.
-        league : str
-            The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBref
-            module file and look at the keys.
-        Returns
-        -------
-        : list of DataFrame
-            Returns a list of all position tables from the league's homepage on
+        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        
+        :returns: Returns a list of all position tables from the league's homepage on
             FBref. The first table will be the league table, all tables after that
             vary by competition.
+        :rtype: List[pandas.DataFrame]
         """
         season_link = self.get_season_link(year, league)
         tables = list()
@@ -231,16 +206,13 @@ class FBref():
     def scrape_match(self, link: str) -> pd.DataFrame:
         """ Scrapes an FBref match page.
 
-        Parameters
-        ----------
-        link : str
-            URL to the FBref match page
-        Returns
-        -------
-        : DataFrame
-            DataFrame containing most parts of the match page if they're available (e.g. formations,
-            lineups, scores, player stats, etc.). The fields that are available vary by competition
-            and year.
+        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :returns: DataFrame containing most parts of the match page if they're available (e.g. 
+            formations, lineups, scores, player stats, etc.). The fields that are available vary 
+            by competition and year.
+        :rtype: pandas.DataFrame
         """
         if not isinstance(link, str):
             raise TypeError('`link` must be a string.')
@@ -350,18 +322,11 @@ class FBref():
         Works by gathering all of the match URL's from the homepage of the chosen league season on
         FBref and then calling scrape_match() on each one.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`fbref_year` `year` parameter docs for details.
-        league : str
-            The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBref
-            module file and look at the keys.
-        Returns
-        -------
-        : DataFrame
-            Each row is the data from a single match.
+        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :returns: Each row is the data from a single match.
+        :rtype: pandas.DataFrame
         """
         matches_df = pd.DataFrame()
         match_links = self.get_match_links(year, league)
@@ -383,21 +348,13 @@ class FBref():
 
         Adds team and player ID columns to the stats tables
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`fbref_year` `year` parameter docs for details.
-        league : str
-            The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBref
-            module file and look at the keys.
-        stat_category : str
-            The stat category to scrape.
-        Returns
-        -------
-        : tuple of DataFrames or tuple of None
-            (squad_stats, opponent_stats, player_stats). Tuple elements will be None if the squad
-            stats category does not contain data for the given `year` and `league`.
+        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+        :param str stat_category: The stat category to scrape.
+
+        :returns: (squad_stats, opponent_stats, player_stats). Tuple elements will be None if the 
+            squad stats category does not contain data for the given `year` and `league`.
+        :rtype: Tuple[pandas.DataFrame | None]
         """
 
         # Verify valid stat category
@@ -538,20 +495,12 @@ class FBref():
         Runs scrape_stats() for each stats category on dumps the returned tuple
         of dataframes into a dict.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`fbref_year` `year` parameter docs for details.
-        league : str
-            The league to retrieve valid seasons for. Examples include "EPL" and
-            "La Liga". To see all possible options import `comps` from the FBref
-            module file and look at the keys.
+        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        : dict
-            {stat category: tuple of DataFrame, ...}, Tuple is (squad_stats, opponent_stats,
+        :returns: {stat category: tuple of DataFrame, ...}, Tuple is (squad_stats, opponent_stats,
             player_stats)
+        :rtype: dict
         """
         return_package = dict()
         for stat_category in tqdm(stats_categories, desc=f'{year} {league} stats'):

@@ -22,17 +22,11 @@ class Understat:
     def get_season_link(self, year: str, league: str) -> str:
         """ Gets Understat URL of the chosen league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
+        :param str year: .. include:: ./arg_docstrings/year_understat.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        : str
-            URL to the Understat page of the chosen league season.
+        :returns: URL to the Understat page of the chosen league season.
+        :rtype: str
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
@@ -50,15 +44,10 @@ class Understat:
     def get_valid_seasons(self, league: str) -> Sequence[str]:
         """ Returns valid season strings for the chosen league.
 
-        Parameters
-        ----------
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        ------
-        : list of str
-            Valid seasons for the chosen league
+        :returns: List of valid year strings for this league
+        :rtype: List[str]
         """
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Understat', list(comps.keys()))
@@ -72,17 +61,11 @@ class Understat:
     def get_match_links(self, year: str, league: str) -> Sequence[str]:
         """ Gets all of the match links for the chosen league season
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
+        :param str year: .. include:: ./arg_docstrings/year_understat.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        : list of str
-            List of match links of the chosen league season
+        :returns: List of match links of the chosen league season
+        :rtype: List[str]
         """
         matches_data, _, _ = self.scrape_season_data(year, league)
         return [f'https://understat.com/match/{x["id"]}' for x in matches_data if x['isResult']]
@@ -91,17 +74,11 @@ class Understat:
     def get_team_links(self, year: str, league: str) -> Sequence[str]:
         """ Gets all of the team links for the chosen league season
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
+        :param str year: .. include:: ./arg_docstrings/year_understat.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        : list of str
-            List of team URL's from the chosen season.
+        :returns: List of team links of the chosen league season
+        :rtype: List[str]
         """
         _, teams_data, _ = self.scrape_season_data(year, league)
         return [
@@ -113,17 +90,11 @@ class Understat:
     def scrape_season_data(self, year: str, league: str) -> Sequence[dict]:
         """ Scrapes data for chosen Understat league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
+        :param str year: .. include:: ./arg_docstrings/year_understat.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        : tuple of dicts
-            matches_data, teams_data, players_data
+        :returns: Tuple of (matches_data, teams_data, players_data)
+        :rtype: Tuple[dict, dict, dict]
         """
         season_link = self.get_season_link(year, league)
         soup = BeautifulSoup(requests.get(season_link).content, 'html.parser')
@@ -143,17 +114,11 @@ class Understat:
     def scrape_league_tables(self, year: str, league: str) -> Sequence[pd.DataFrame]:
         """ Scrapes the league table for the chosen league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
+        :param str year: .. include:: ./arg_docstrings/year_understat.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        : tuple of DataFrames
-            League table, home table, away table
+        :returns: Tuple of league table, home table, and away table DataFrames
+        :rtype: Tuple[pandas.DataFrame]
         """
         _, teams_data, _ = self.scrape_season_data(year, league)
 
@@ -222,17 +187,12 @@ class Understat:
     def scrape_match(self, link: str, as_df: bool = False) -> Sequence[Union[dict, pd.DataFrame]]:
         """ Scrapes a single match from Understat.
 
-        Parameters
-        ----------
-        link : str
-            URL to the match
-        as_df : bool, optional, default False
-            If True, will return the data as DataFrames. If False, data will be returned as dicts.
+        :param str link: URL to the match
+        :param bool as_df: If True, will return the data as DataFrames. If False, data will be
+            returned as dicts. Defaults to False.
 
-        Returns
-        -------
-        : tuple of dicts or DataFrames
-            shots_data, match_info (match stats), rosters_data (player data)
+        :returns: Tuple of (shots_data, match_info, rosters_data)
+        :rtype: tuple of dict or pandas.DataFrame
         """
         if not isinstance(link, str):
             raise TypeError('`link` must be a string.')
@@ -277,20 +237,14 @@ class Understat:
         Gathers all match links from the chosen league season and then calls scrape_match() on each
         one.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
-        as_df : bool, optional, default False
-            If True, the data for each match will be returned as DataFrames. If False, invdividual
-            match data will be dicts.
+        :param str year: .. include:: ./arg_docstrings/year_understat.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+        :param bool as_df: If True, the data for each match will be returned as DataFrames. If False,
+            individual match data will be returned as dicts. Defaults to False.
 
-        Returns
-        -------
-        : dict
-            {link: {'shots_data': shots, 'match_info': info, 'rosters_data': rosters}, ...}
+        :returns: Dictionary of match data, where each key is a match link and the value is a dict
+            of match data.
+        :rtype: dict
         """
         links = self.get_match_links(year, league)
 
@@ -307,17 +261,12 @@ class Understat:
 
         Note that for Understat, team links are season-specific.
 
-        Parameters
-        ----------
-        team_link : str
+        :param str team_link: URL to the team's Understat page
+        :param bool as_df: If True, data will be returned as dataframes. If False, dicts. Defaults 
+            to False.
 
-        as_df : bool, optional, default False
-            If True, data will be returned as DataFrames. If False, dicts.
-
-        Returns
-        -------
-        : tuple
-            matches, team_data, player_data
+        :returns: Tuple of (matches_data, team_data, player_data)
+        :rtype: Tuple[pandas.DataFrame, pandas.DataFrame, pandas.DataFrame]
         """
         if not isinstance(team_link, str):
             raise TypeError('`team_link` must be a string.')
@@ -369,20 +318,14 @@ class Understat:
     def scrape_all_teams_data(self, year: str, league: str, as_df: bool = False) -> dict:
         """ Scrapes data for all teams in the given league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`understat_year` `year` parameter docs for details.
-        league : str
-            League. Look in ScraperFC.Understat comps variable for available leagues.
-        as_df : bool, optional, default False
-            If True, each team's data will be returned as DataFrames. If False, dicts.
+        :param str year: .. include:: ./arg_docstrings/year_understat.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+        :param bool as_df: If True, each team's data will be returned as dataframes. If False, 
+            return dicts. Defaults to False.
 
-        Returns
-        -------
-        : dict
-            {team_link: {'matches': match data, 'team_data': team stats, 'players_data':
-            player stats}, ...}
+        :returns: Dictionary of team data, where each key is a team link and the value is a dict of 
+            team data.
+        :rtype: dict
         """
         team_links = self.get_team_links(year, league)
         return_package = dict()

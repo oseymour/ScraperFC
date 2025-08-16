@@ -1,0 +1,1 @@
+See the :ref:`sofascore_year` `year` parameter docs for details.

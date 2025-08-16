@@ -1,0 +1,1 @@
+See the `src/ScraperFC/comps.yaml` file for all available competitions.

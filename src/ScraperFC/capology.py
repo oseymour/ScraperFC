@@ -44,15 +44,10 @@ class Capology():
     def get_league_url(self, league: str) -> str:
         """ Returns the URL for the requested league
 
-        Parameters
-        ----------
-        league : str
-            League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
-            valid leagues for this module.
-        Returns
-        -------
-        : str
-            League URL
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :returns: League URL
+        :rtype: str
         """
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
@@ -65,15 +60,10 @@ class Capology():
     def get_valid_seasons(self, league: str) -> Sequence[str]:
         """ Returns valid season strings for the chosen league
 
-        Parameters
-        ----------
-        league : str
-            League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
-            valid leagues for this module.
-        Returns
-        -------
-        : list of str
-            List of valid year strings for this league
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :returns: List of valid year strings for this league
+        :rtype: List[str]
         """
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
@@ -91,17 +81,11 @@ class Capology():
     def get_season_url(self, year: str, league: str) -> str:
         """ Gets URL to chosen year of league
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`capology_year` `year` parameter docs for details.
-        league : str
-            League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
-            valid leagues for this module.
-        Returns
-        -------
-        : str
-            Season URL
+        :param str year: .. include:: ./arg_docstrings/year_capology.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :returns: Season URL
+        :rtype: str
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
@@ -120,20 +104,13 @@ class Capology():
     def scrape_salaries(self, year: str, league: str, currency: str) -> pd.DataFrame:
         """ Scrapes player salaries for the given league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`capology_year` `year` parameter docs for details.
-        league : str
-            League to be scraped (e.g., "EPL"). See the comps variable in ScraperFC.Capology for
-            valid leagues for this module.
-        currency : str
-            The currency for the returned salaries. Options are "eur" for Euro, "gbp" for British
-            Pound, and "USD" for US Dollar
-        Returns
-        -------
-        : DataFrame
-            The salaries of all players in the given league season
+        :param str year: .. include:: ./arg_docstrings/year_capology.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+        :param str currency: The currency for the returned salaries. Options are "eur" for Euro, 
+            "gbp" for British Pound, and "USD" for US Dollar
+        
+        :returns: The salaries of all players in the given league season
+        :rtype: pandas.DataFrame
         """
         if not isinstance(currency, str):
             raise TypeError('`currency` must be a string.')

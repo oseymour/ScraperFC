@@ -49,14 +49,9 @@ class Sofascore:
     def _check_and_convert_match_id(self, match: Union[str, int]) -> int:
         """ Helper function that will take a Sofascore match URL or match ID and return a match ID
 
-        Parameters
-        ----------
-        match : str or int
-            Strings will be interprated as URLs and ints will be interpreted as match IDs.
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        match_id : int
+        :rtype: int
         """
         if not isinstance(match, int) and not isinstance(match, str):
             raise TypeError('`match` must a string or int')
@@ -67,15 +62,10 @@ class Sofascore:
     def get_valid_seasons(self, league: str) -> dict:
         """ Returns the valid seasons and their IDs for the given league
 
-        Parameters
-        ----------
-        league : str
-            League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        seasons : dict
-            Available seasons for the league. {season string: season ID, ...}
+        :returns: Available seasons for the league. Season name is key, season ID is value.
+        :rtype: dict
         """
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
@@ -91,17 +81,11 @@ class Sofascore:
     def get_match_dicts(self, year: str, league:str) -> Sequence[dict]:
         """ Returns the matches from the Sofascore API for a given league season.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`sofascore_year` `year` parameter docs for details.
-        league : str
-            League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
+        :param str year: .. include:: ./arg_docstrings/year_sofascore.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
 
-        Returns
-        -------
-        matches : list of dict
-            Each element being a single game of the competition
+        :returns: Each element being a single game of the competition
+        :rtype: List[dict]
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
@@ -129,15 +113,10 @@ class Sofascore:
 
         This can also be found in the 'id' key of the dict returned from get_match_dict().
 
-        Parameters
-        ----------
-        match_url : str
-            Full link to a SofaScore match
+        :param str match_url: Full link to a SofaScore match
 
-        Returns
-        -------
-        : int
-            Match id for a SofaScore match
+        :returns: Match ID for a SofaScore match
+        :rtype: int
         """
         if not isinstance(match_url, str):
             raise TypeError('`match_url` must be a string.')
@@ -148,15 +127,10 @@ class Sofascore:
     def get_match_url_from_id(self, match_id: Union[str, int]) -> str:
         """ Get the Sofascore match URL for a given match ID
 
-        Parameters
-        ----------
-        match_id : str or int
-            Sofascore match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : str
-            URL to the Sofascore match
+        :returns: URL to the Sofascore match of the given ID
+        :rtype: str
         """
         match_dict = self.get_match_dict(match_id)
         return f"https://www.sofascore.com/{match_dict['homeTeam']['slug']}-" +\
@@ -166,15 +140,9 @@ class Sofascore:
     def get_match_dict(self, match: Union[str, int]) -> dict:
         """ Get match data dict for a single match
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : dict
-            Generic data about a match
+        :rtype: dict
         """
         match_id = self._check_and_convert_match_id(match)
         response = botasaurus_browser_get_json(f'{API_PREFIX}/event/{match_id}')
@@ -185,15 +153,10 @@ class Sofascore:
     def get_team_names(self, match: Union[str, int]) -> tuple[str, str]:
         """ Get the team names for the home and away teams
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : tuple of str
-            Name of home and away team.
+        :returns: Names of home and away team.
+        :rtype: Tuple[str, str]
         """
         data = self.get_match_dict(match)
         home_team = data['homeTeam']['name']
@@ -204,15 +167,11 @@ class Sofascore:
     def get_positions(self, selected_positions: Sequence[str]) -> str:
         """ Returns a string for the parameter filters of the scrape_league_stats() request.
 
-        Parameters
-        ----------
-        selected_positions : list of str
-            List of the positions available to filter on the SofaScore UI
+        :param List[str] selected_positions: List of the positions available to filter on the 
+            SofaScore UI
 
-        Returns
-        -------
-        : str
-            Joined abbreviations for the chosen positions
+        :returns: Joined abbreviations for the chosen positions
+        :rtype: str
         """
         positions = {'Goalkeepers': 'G', 'Defenders': 'D', 'Midfielders': 'M', 'Forwards': 'F'}
         if not isinstance(selected_positions, list):
@@ -229,15 +188,10 @@ class Sofascore:
     def get_player_ids(self, match: Union[str, int]) -> dict:
         """ Get the player IDs for a match
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : dict
-            Name and ID of every player in the match, {name: id, ...}
+        :returns: All players who played in the match. Names are keys, IDs are values.
+        :rtype: dict
         """
         match_id = self._check_and_convert_match_id(match)
         url = f"{API_PREFIX}/event/{match_id}/lineups"
@@ -269,22 +223,14 @@ class Sofascore:
         ) -> pd.DataFrame:
         """ Get every player statistic that can be asked in league pages on Sofascore.
 
-        Parameters
-        ----------
-        year : str
-            See the :ref:`sofascore_year` `year` parameter docs for details.
-        league : str
-            League to get valid seasons for. See comps ScraperFC.Sofascore for valid leagues.
-        accumulation : str, optional
-            Value of the filter accumulation. Can be "per90", "perMatch", or "total". Defaults to
-            "total".
-        selected_positions : list of str, optional
-            Value of the filter positions. Defaults to ["Goalkeepers", "Defenders", "Midfielders",
-            "Forwards"].
+        :param str year: .. include:: ./arg_docstrings/year_sofascore.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+        :param str accumulation: Value of the filter accumulation. Can be "per90", "perMatch", or 
+            "total". Defaults to "total".
+        :param list[str] selected_positions: Value of the filter positions. Defaults to 
+            ["Goalkeepers", "Defenders", "Midfielders", "Forwards"].
 
-        Returns
-        -------
-        : DataFrame
+        :rtype: pandas.DataFrame
         """
         if not isinstance(year, str):
             raise TypeError('`year` must be a string.')
@@ -335,16 +281,11 @@ class Sofascore:
     def scrape_match_momentum(self, match: Union[str, int]) -> pd.DataFrame:
         """Get the match momentum values
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        --------
-        : DataFrame
-            Dataframe of match momentum values. Will be empty if the match does not have
+        :returns: Dataframe of match momentum values. Will be empty if the match does not have
             match momentum data.
+        :rtype: pandas.DataFrame
         """
         match_id = self._check_and_convert_match_id(match)
         url = f'{API_PREFIX}/event/{match_id}/graph'
@@ -365,14 +306,9 @@ class Sofascore:
     def scrape_team_match_stats(self, match: Union[str, int]) -> pd.DataFrame:
         """ Scrape team stats for a match
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : DataFrame
+        :rtype: pandas.DataFrame
         """
         match_id = self._check_and_convert_match_id(match)
         url = f'{API_PREFIX}/event/{match_id}/statistics'
@@ -401,14 +337,9 @@ class Sofascore:
     def scrape_player_match_stats(self, match: Union[str, int]) -> pd.DataFrame:
         """ Scrape player stats for a match
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : DataFrame
+        :rtype: pandas.DataFrame
         """
         match_id = self._check_and_convert_match_id(match)
         match_dict = self.get_match_dict(match_id)  # used to get home and away team names and IDs
@@ -449,16 +380,11 @@ class Sofascore:
     def scrape_player_average_positions(self, match: Union[str, int]) -> pd.DataFrame:
         """ Return player averages positions for each team
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : DataFrame
-            Each row is a player and columns averageX and averageY denote their average position on
-            the match.
+        :returns: Each row is a player and columns averageX and averageY denote their average 
+            position in the match.
+        :rtype: pandas.DataFrame
         """
         match_id = self._check_and_convert_match_id(match)
         home_name, away_name = self.get_team_names(match)
@@ -490,16 +416,11 @@ class Sofascore:
 
         Players who didn't play will have an empty list of coordinates.
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : dict
-            Dict of players, their IDs and their heatmap coordinates, {player name: {'id':
+        :returns: Dict of players, their IDs and their heatmap coordinates, {player name: {'id':
             player_id, 'heatmap': heatmap}, ...}
+        :rtype: dict
         """
         match_id = self._check_and_convert_match_id(match)
         players = self.get_player_ids(match)
@@ -524,14 +445,9 @@ class Sofascore:
     def scrape_match_shots(self, match: Union[str, int]) -> pd.DataFrame:
         """ Scrape shots for a match
 
-        Parameters
-        ----------
-        match : str or int
-            Sofascore match URL or match ID
+        :param str or int match: Sofascore match URL or match ID
 
-        Returns
-        -------
-        : DataFrame
+        :rtype: pandas.DataFrame
         """
         match_id = self._check_and_convert_match_id(match)
         url = f"{API_PREFIX}/event/{match_id}/shotmap"

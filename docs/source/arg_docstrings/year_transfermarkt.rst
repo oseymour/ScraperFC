@@ -1,0 +1,1 @@
+See the :ref:`transfermarkt_year` `year` parameter docs for details.

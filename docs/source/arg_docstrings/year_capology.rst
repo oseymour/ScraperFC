@@ -1,0 +1,1 @@
+See the :ref:`capology_year` `year` parameter docs for details.

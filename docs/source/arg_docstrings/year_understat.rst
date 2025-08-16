@@ -1,0 +1,1 @@
+See the :ref:`understat_year` `year` parameter docs for details.
