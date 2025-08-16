@@ -82,7 +82,8 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 # -- Testing ---------------------------------------------------------------------------------------
-[tool.pytest]
+[tool.pytest.ini_options]
+addopts = "-s -v --cov ScraperFC"
 norecursedirs = ["docs", "*.egg-info", ".git", ".tox"]
 
 [tool.coverage.run]
@@ -108,74 +109,3 @@ ignore = [
 [tool.mypy]
 ignore_missing_imports = true
 disallow_untyped_defs = true
-
-# -- Tox  ------------------------------------------------------------------------------------------
-[tool.tox]
-# DO NOT put `--active` in `uv run` commands. GitHub Actions fail with this option.
-legacy_tox_ini = """
-    [tox]
-    isolated_build = true
-    envlist = py39, py310, py311, py312, py313
-
-    [testenv]
-    usedevelop = true
-    extras = test
-    allowlist_externals = uv, sphinx-build
-    install_command = uv pip install
-
-    [testenv:test-all]
-    commands = 
-        python -m pip list
-        uv run pytest ./test/ --cov ScraperFC
-
-    [testenv:test-capology]
-    commands = 
-        pip list
-        uv run pytest ./test/test_capology.py --cov ScraperFC -s
-
-    [testenv:test-clubelo]
-    commands = 
-        pip list
-        uv run pytest ./test/test_clubelo.py --cov ScraperFC -s
-
-    [testenv:test-fbref]
-    commands = 
-        pip list
-        uv run pytest ./test/test_fbref.py --cov ScraperFC -s
-
-    [testenv:test-sofascore]
-    commands = 
-        pip list
-        uv run pytest ./test/test_sofascore.py --cov ScraperFC -s
-
-    [testenv:test-transfermarkt]
-    commands = 
-        pip list
-        uv run pytest ./test/test_transfermarkt.py --cov ScraperFC -s
-
-    [testenv:test-understat]
-    commands = 
-        pip list
-        uv run pytest ./test/test_understat.py --cov ScraperFC -s
-
-    [testenv:docs]
-    extras = docs
-    commands = uv run sphinx-build -nWEa --keep-going -b html ./docs/source/ ./docs/build/
-
-    [testenv:build]
-    skip_install = true
-    extras = build
-    commands = uv build
-
-    [testenv:lint]
-    extras = lint
-    commands = 
-        uv run ruff check --select W291 --fix  # fix trailing whitespace
-        uv run ruff check --select W292 --fix  # fix missing new line at end of file
-        uv run ruff check --select W293 --fix --unsafe-fixes  # fix blank line with whitespace
-        uv run ruff check
-
-    [testenv:typecheck]
-    extras = typecheck
-    commands = uv run mypy ./src
-"""

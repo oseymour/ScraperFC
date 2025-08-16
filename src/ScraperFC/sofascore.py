@@ -516,7 +516,7 @@ class Sofascore:
 
         # Reorder columns so that team name and ID are first
         df = pd.concat(
-            [df["teamName"], df["teamId"], df.drop(columns=["teamName", "teamId"])], 
+            [df["teamName"], df["teamId"], df.drop(columns=["teamName", "teamId"])],
             axis=1
         )
 

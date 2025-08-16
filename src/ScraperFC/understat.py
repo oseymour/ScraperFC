@@ -323,7 +323,7 @@ class Understat:
         :param bool as_df: If True, each team's data will be returned as dataframes. If False, 
             return dicts. Defaults to False.
 
-        :returns: Dictionary of team data, where each key is a team link and the value is a dict of 
+        :returns: Dictionary of team data, where each key is a team link and the value is a dict of
             team data.
         :rtype: dict
         """
