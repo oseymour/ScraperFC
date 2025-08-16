@@ -21,6 +21,8 @@ Brazil Serie A:
     history url: https://fbref.com/en/comps/24/history/Serie-A-Seasons
     finders: [Serie-A]
   TRANSFERMARKT: https://www.transfermarkt.us/campeonato-brasileiro-serie-a/startseite/wettbewerb/BRA1
+Bulgaria Parva Liga:
+  SOFASCORE: 247
 CONCACAF Gold Cup:
   SOFASCORE: 140
 CONMEBOL Copa America:
@@ -212,6 +214,8 @@ UEFA Womens Champions League:
   FBREF:
     history url: https://fbref.com/en/comps/181/history/Champions-League-Seasons
     finders: ['Champions-League']
+Ukraine Premier League:
+  SOFASCORE: 218
 USA MLS:
   FBREF:
     history url: https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons
