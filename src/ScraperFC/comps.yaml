@@ -1,0 +1,242 @@
+Argentina Liga Profesional:
+  FBREF:
+    history url: https://fbref.com/en/comps/21/history/Primera-Division-Seasons
+    finders: [Primera-Division]
+  SOFASCORE: 155
+  TRANSFERMARKT: https://www.transfermarkt.us/superliga/startseite/wettbewerb/AR1N
+Argentina Copa de la Liga Profesional:
+  SOFASCORE: 13475
+Australia A-League Women:
+  FBREF:
+    history url: https://fbref.com/en/comps/196/history/A-League-Women-Seasons
+    finders: ['A-League-Women', 'W-League']
+Belgium Pro League:
+  CAPOLOGY: be/first-division-a
+  FBREF:
+    history url: https://fbref.com/en/comps/37/history/Belgian-Pro-League-Seasons
+    finders: [Belgian-Pro-League, Belgian-First-Division]
+  TRANSFERMARKT: https://www.transfermarkt.us/jupiler-pro-league/startseite/wettbewerb/BE1
+Brazil Serie A:
+  FBREF:
+    history url: https://fbref.com/en/comps/24/history/Serie-A-Seasons
+    finders: [Serie-A]
+  TRANSFERMARKT: https://www.transfermarkt.us/campeonato-brasileiro-serie-a/startseite/wettbewerb/BRA1
+Bulgaria Parva Liga:
+  SOFASCORE: 247
+CONCACAF Gold Cup:
+  SOFASCORE: 140
+CONMEBOL Copa America:
+  FBREF:
+    history url: https://fbref.com/en/comps/685/history/Copa-America-Seasons
+    finders: [Copa-America]
+CONMEBOL Copa Libertadores:
+  FBREF:
+    history url: https://fbref.com/en/comps/14/history/Copa-Libertadores-Seasons
+    finders: [Copa-Libertadores]
+  SOFASCORE: 384
+England Premier League:
+  CAPOLOGY: uk/premier-league
+  FBREF:
+    history url: https://fbref.com/en/comps/9/history/Premier-League-Seasons
+    finders: [Premier-League, First-Division]
+  SOFASCORE: 17
+  TRANSFERMARKT: https://www.transfermarkt.us/premier-league/startseite/wettbewerb/GB1
+  UNDERSTAT: https://understat.com/league/EPL
+England EFL Championship:
+  CAPOLOGY: uk/championship
+  FBREF:
+    history url: https://fbref.com/en/comps/10/history/Championship-Seasons
+    finders: [First-Division, Championship]
+  TRANSFERMARKT: https://www.transfermarkt.us/championship/startseite/wettbewerb/GB2
+England EFL League 1:
+  TRANSFERMARKT: https://www.transfermarkt.us/league-one/startseite/wettbewerb/GB3
+England EFL League 2:
+  TRANSFERMARKT: https://www.transfermarkt.us/league-two/startseite/wettbewerb/GB4
+England WSL:
+  FBREF:
+    history url: https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons
+    finders: ['Womens-Super-League']
+FBref Big 5 Combined:
+  FBREF:
+    history url: https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons
+    finders: [Big-5-European-Leagues]
+FIFA World Cup:
+  FBREF:
+    history url: https://fbref.com/en/comps/1/history/World-Cup-Seasons
+    finders: [World-Cup]
+  SOFASCORE: 16
+FIFA Womens World Cup:
+  FBREF:
+    history url: https://fbref.com/en/comps/106/history/Womens-World-Cup-Seasons
+    finders: ['Womens-World-Cup']
+  SOFASCORE: 290
+France Ligue 1:
+  CAPOLOGY: fr/ligue-1
+  FBREF:
+    history url: https://fbref.com/en/comps/13/history/Ligue-1-Seasons
+    finders: [Ligue-1, Division-1]
+  SOFASCORE: 34
+  TRANSFERMARKT: https://www.transfermarkt.us/ligue-1/startseite/wettbewerb/FR1
+  UNDERSTAT: https://understat.com/league/Ligue_1
+France Ligue 2:
+  CAPOLOGY: fr/ligue-2
+  FBREF:
+    history url: https://fbref.com/en/comps/60/history/Ligue-2-Seasons
+    finders: ['Ligue-2']
+  TRANSFERMARKT: https://www.transfermarkt.us/ligue-2/startseite/wettbewerb/FR2
+France Premiere Ligue:
+  FBREF:
+    history url: https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons
+    finders: ['Division-1-Feminine', 'Premiere-Ligue']
+Germany Bundesliga:
+  CAPOLOGY: de/1-bundesliga
+  FBREF:
+    history url: https://fbref.com/en/comps/20/history/Bundesliga-Seasons
+    finders: [Bundesliga]
+  SOFASCORE: 35
+  TRANSFERMARKT: https://www.transfermarkt.us/bundesliga/startseite/wettbewerb/L1
+  UNDERSTAT: https://understat.com/league/Bundesliga
+Germany 2.Bundesliga:
+  CAPOLOGY: de/2-bundesliga
+  FBREF:
+    history url: https://fbref.com/en/comps/33/history/2-Bundesliga-Seasons
+    finders: ['2-Bundesliga']
+  TRANSFERMARKT: https://www.transfermarkt.us/2-bundesliga/startseite/wettbewerb/L2
+Germany Womens Bundesliga:
+  FBREF:
+    history url: https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons
+    finders: ['Frauen-Bundesliga']
+Italy Serie A:
+  CAPOLOGY: it/serie-a
+  FBREF:
+    history url: https://fbref.com/en/comps/11/history/Serie-A-Seasons
+    finders: [Serie-A]
+  SOFASCORE: 23
+  TRANSFERMARKT: https://www.transfermarkt.us/serie-a/startseite/wettbewerb/IT1
+  UNDERSTAT: https://understat.com/league/Serie_A
+Italy Serie B:
+  CAPOLOGY: it/serie-b
+  FBREF:
+    history url: https://fbref.com/en/comps/18/history/Serie-B-Seasons
+    finders: ['Serie-B']
+  TRANSFERMARKT: https://www.transfermarkt.us/serie-b/startseite/wettbewerb/IT2
+Italy Primavera 1:
+  TRANSFERMARKT: https://www.transfermarkt.us/primavera-1/startseite/wettbewerb/IJ1
+Italy Primavera 2 - A:
+  TRANSFERMARKT: https://www.transfermarkt.us/primavera-2a/startseite/wettbewerb/IJ2A
+Italy Primavera 2 - B:
+  TRANSFERMARKT: https://www.transfermarkt.us/primavera-2b/startseite/wettbewerb/IJ2B
+Italy Campionato U18:
+  TRANSFERMARKT: https://www.transfermarkt.us/campionato-nazionale-under-18/startseite/wettbewerb/ITJ7
+Italy Womens Serie A:
+  FBREF:
+    history url: https://fbref.com/en/comps/208/history/Serie-A-Seasons
+    finders: ['Serie-A']
+Mexico Liga MX:
+  FBREF:
+    history url: https://fbref.com/en/comps/31/history/Liga-MX-Seasons
+    finders: [Primera-Division, Liga-MX]
+Netherlands Eredivisie:
+  CAPOLOGY: ne/eredivisie
+  FBREF:
+    history url: https://fbref.com/en/comps/23/history/Eredivisie-Seasons
+    finders: [Eredivisie]
+  TRANSFERMARKT: https://www.transfermarkt.us/eredivisie/startseite/wettbewerb/NL1
+Peru Liga 1:
+  SOFASCORE: 406
+Portugal Primeira Liga:
+  CAPOLOGY: pt/primeira-liga
+  FBREF:
+    history url: https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons
+    finders: [Primeira-Liga]
+  TRANSFERMARKT: https://www.transfermarkt.us/liga-nos/startseite/wettbewerb/PO1
+Russia Premier League:
+  TRANSFERMARKT: https://www.transfermarkt.us/premier-liga/startseite/wettbewerb/RU1
+  UNDERSTAT: https://understat.com/league/RFPL
+Saudi Arabia Pro League:
+  FBREF:
+    history url: https://fbref.com/en/comps/70/history/Saudi-Professional-League-Seasons
+    finders: [Saudi-Professional-League]
+  SOFASCORE: 955
+Scotland Premier League:
+  CAPOLOGY: uk/scottish-premiership
+  TRANSFERMARKT: https://www.transfermarkt.us/scottish-premiership/startseite/wettbewerb/SC1
+Spain La Liga:
+  CAPOLOGY: es/la-liga
+  FBREF:
+    history url: https://fbref.com/en/comps/12/history/La-Liga-Seasons
+    finders: [La-Liga]
+  SOFASCORE: 8
+  TRANSFERMARKT: https://www.transfermarkt.us/laliga/startseite/wettbewerb/ES1
+  UNDERSTAT: https://understat.com/league/La_liga
+Spain La Liga 2:
+  CAPOLOGY: es/la-liga-2
+  FBREF:
+    history url: https://fbref.com/en/comps/17/history/Segunda-Division-Seasons
+    finders: ['Segunda-Division']
+  TRANSFERMARKT: https://www.transfermarkt.us/laliga2/startseite/wettbewerb/ES2
+Spain Liga F:
+  FBREF:
+    history url: https://fbref.com/en/comps/230/history/Liga-F-Seasons
+    finders: ['Liga-F']
+Turkiye Super Lig:
+  CAPOLOGY: tr/super-lig
+  FBREF:
+    history url: https://fbref.com/en/comps/26/history/Super-Lig-Seasons
+    finders: [Super-Lig]
+  SOFASCORE: 52
+  TRANSFERMARKT: https://www.transfermarkt.us/super-lig/startseite/wettbewerb/TR1
+UEFA Champions League:
+  FBREF:
+    history url: https://fbref.com/en/comps/8/history/Champions-League-Seasons
+    finders: [European-Cup, Champions-League]
+  SOFASCORE: 7
+UEFA Europa League:
+  FBREF:
+    history url: https://fbref.com/en/comps/19/history/Europa-League-Seasons
+    finders: [UEFA-Cup, Europa-League]
+  SOFASCORE: 679
+UEFA Europa Conference League:
+  FBREF:
+    history url: https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons
+    finders: [Europa-Conference-League]
+  SOFASCORE: 17015
+UEFA European Championship:
+  FBREF:
+    history url: https://fbref.com/en/comps/676/history/European-Championship-Seasons
+    finders: [UEFA-Euro, European-Championship]
+  SOFASCORE: 1
+UEFA Womens European Championship:
+  FBREF:
+    history url: https://fbref.com/en/comps/162/history/UEFA-Womens-Euro-Seasons
+    finders: ['UEFA-Womens-Euro']
+UEFA Womens Champions League:
+  FBREF:
+    history url: https://fbref.com/en/comps/181/history/Champions-League-Seasons
+    finders: ['Champions-League']
+Ukraine Premier League:
+  SOFASCORE: 218
+USA MLS:
+  FBREF:
+    history url: https://fbref.com/en/comps/22/history/Major-League-Soccer-Seasons
+    finders: [Major-League-Soccer]
+  SOFASCORE: 242
+  TRANSFERMARKT: https://www.transfermarkt.us/major-league-soccer/startseite/wettbewerb/MLS1
+USA USL championship:
+  SOFASCORE: 13363
+USA USL League 1:
+  SOFASCORE: 13362
+USA USL Leauge 2:
+  SOFASCORE: 13546
+USA NWSL:
+  FBREF:
+    history url: https://fbref.com/en/comps/182/history/NWSL-Seasons
+    finders: [NWSL]
+USA NWSL Challenge Cup:
+  FBREF:
+    history url: https://fbref.com/en/comps/881/history/NWSL-Challenge-Cup-Seasons
+    finders: ['NWSL-Challenge-Cup']
+USA NWSL Fall Series:
+  FBREF:
+    history url: https://fbref.com/en/comps/884/history/NWSL-Fall-Series-Seasons
+    finders: ['NWSL-Fall-Series']

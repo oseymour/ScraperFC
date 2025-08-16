@@ -9,5 +9,5 @@ repos:
   hooks:
     - id: mypy
       args: ["./src", --ignore-missing-imports, --disallow-untyped-defs]
-      additional_dependencies: [types-requests]
+      additional_dependencies: [types-requests, types-pyyaml]
       pass_filenames: false

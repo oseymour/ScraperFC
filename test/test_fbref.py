@@ -1,14 +1,15 @@
 import sys
-sys.path.append('./src/')
-from ScraperFC import FBref
-from ScraperFC.fbref import comps, stats_categories
-from ScraperFC.scraperfc_exceptions import NoMatchLinksException, InvalidLeagueException,\
-    InvalidYearException
-
 import random
 import numpy as np
 import pandas as pd
 import pytest
+
+sys.path.append('./src/')
+from ScraperFC import FBref
+from ScraperFC.fbref import stats_categories
+from ScraperFC.scraperfc_exceptions import NoMatchLinksException, InvalidLeagueException,\
+    InvalidYearException
+from ScraperFC.utils import get_module_comps
 
 # These leagues and years do not have match links on FBref
 comps_wo_matches = [
@@ -31,14 +32,16 @@ comps_wo_matches = [
     ("2012-2013", "2. Bundesliga"), ("2013-2014", "2. Bundesliga"),
 ]
 
+comps = get_module_comps("FBREF")
+
 
 class TestFBref:
 
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [(2021, 'Serie B', pytest.raises(TypeError)),
-         ('1642-1643', 'EPL', pytest.raises(InvalidYearException))]
+        [(2021, 'Italy Serie B', pytest.raises(TypeError)),
+         ('1642-1643', 'England Premier League', pytest.raises(InvalidYearException))]
     )
     def test_invalid_year(self, year, league, expected):
         fbref = FBref()
@@ -59,7 +62,7 @@ class TestFBref:
     @pytest.mark.parametrize(
         'year, league, expected',
         [('2018', (1, 2, 3), pytest.raises(TypeError)),
-         ('2018', 'fake comp', pytest.raises(InvalidLeagueException))]
+         ('2018', 'fake league', pytest.raises(InvalidLeagueException))]
     )
     def test_invalid_league(self, year, league, expected):
         fbref = FBref()
@@ -81,9 +84,9 @@ class TestFBref:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('2013-2014', 'Ligue 2', pytest.raises(NoMatchLinksException)),
-         ('2013-2014', 'La Liga 2', pytest.raises(NoMatchLinksException)),
-         ('2013-2014', 'Belgian Pro League', pytest.raises(NoMatchLinksException)),]
+        [('2013-2014', 'France Ligue 2', pytest.raises(NoMatchLinksException)),
+         ('2013-2014', 'Spain La Liga 2', pytest.raises(NoMatchLinksException)),
+         ('2013-2014', 'Belgium Pro League', pytest.raises(NoMatchLinksException)),]
     )
     def test_NoMatchLinksException(self, year, league, expected):
         fbref = FBref()
@@ -95,7 +98,7 @@ class TestFBref:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected_len',
-        [('2020-2021', 'EPL', 380)]
+        [('2020-2021', 'England Premier League', 380)]
     )
     def test_valid_get_match_links(self, year, league, expected_len):
         fbref = FBref()
@@ -150,7 +153,7 @@ class TestFBref:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, stat_category, expected',
-        [('2023-2024', 'Big 5 combined', 'fake category', pytest.raises(ValueError))]
+        [('2023-2024', 'FBref Big 5 Combined', 'fake category', pytest.raises(ValueError))]
     )
     def test_fake_stat_category(self, year, league, stat_category, expected):
         fbref = FBref()
@@ -170,9 +173,6 @@ class TestFBref:
             assert type(stats) is tuple
             assert not stats[0]
 
-
-
-
         assert type(stats) is dict
         for key, value in stats.items():
             assert key in stats_categories.keys()
@@ -186,9 +186,9 @@ class TestFBref:
     @pytest.mark.parametrize(
         "year, league",
         [
-            ("1954-1955", "EPL"),  # doesn't have any stat categories data
-            ("2024-2025", "Champions League"),  # should be "normal"
-            ("2024-2025", "Big 5 combined"),  # cuz it's different
+            ("1954-1955", "England Premier League"),  # doesn't have any stat categories data
+            ("2024-2025", "UEFA Champions League"),  # should be "normal"
+            ("2024-2025", "FBref Big 5 Combined"),  # cuz it's different
         ]
     )
     def test_scrape_specific_all_stats(self, year, league):

@@ -6,16 +6,9 @@ import requests
 from bs4 import BeautifulSoup
 import warnings
 from typing import Sequence, Union
+from ScraperFC.utils import get_module_comps
 
-comps = {
-    'EPL': 'https://understat.com/league/EPL',
-    'La Liga': 'https://understat.com/league/La_liga',
-    'Bundesliga': 'https://understat.com/league/Bundesliga',
-    'Serie A': 'https://understat.com/league/Serie_A',
-    'Ligue 1': 'https://understat.com/league/Ligue_1',
-    'RFPL': 'https://understat.com/league/RFPL'
-}
-
+comps = get_module_comps("UNDERSTAT")
 
 def _json_from_script(text: str) -> dict:
     data_str = text.split('JSON.parse(\'')[1].split('\')')[0].encode('utf-8').decode('unicode_escape')
@@ -51,7 +44,7 @@ class Understat:
         if year not in valid_seasons:
             raise InvalidYearException(year, league, valid_seasons)
 
-        return f'{comps[league]}/{year.split("/")[0]}'
+        return f'{comps[league]["UNDERSTAT"]}/{year.split("/")[0]}'
 
     # ==============================================================================================
     def get_valid_seasons(self, league: str) -> Sequence[str]:
@@ -70,7 +63,7 @@ class Understat:
         if league not in comps.keys():
             raise InvalidLeagueException(league, 'Understat', list(comps.keys()))
 
-        soup = BeautifulSoup(requests.get(comps[league]).content, 'html.parser')
+        soup = BeautifulSoup(requests.get(comps[league]["UNDERSTAT"]).content, 'html.parser')
         valid_season_tags = soup.find('select', {'name': 'season'}).find_all('option')  # type: ignore
         valid_seasons = [x.text for x in valid_season_tags]
         return valid_seasons

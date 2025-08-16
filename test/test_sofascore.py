@@ -1,14 +1,16 @@
-import sys
-sys.path.append('./src/')
-from ScraperFC import Sofascore
-from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from ScraperFC.sofascore import comps
-
 import pytest
 from contextlib import nullcontext as does_not_raise
 import random
 import numpy as np
 import pandas as pd
+import sys
+
+sys.path.append('./src/')
+from ScraperFC import Sofascore
+from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
+from ScraperFC.utils import get_module_comps
+
+comps = get_module_comps("SOFASCORE")
 
 match_url = 'https://www.sofascore.com/fc-bayern-munchen-manchester-united/Ksxdb#id:11605966'
 match_id = 11605966
@@ -48,7 +50,7 @@ class TestSofascore:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('19/20', 'Ligue 1', does_not_raise()),
+        [('19/20', 'France Ligue 1', does_not_raise()),
          ('23/24', 'fake league', pytest.raises(InvalidLeagueException)),
          ('17/18', 2000, pytest.raises(TypeError))]
     )
@@ -66,9 +68,9 @@ class TestSofascore:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('17/18', 'La Liga', does_not_raise()),
-         ('fake year', 'EPL', pytest.raises(InvalidYearException)),
-         (2024, 'EPL', pytest.raises(TypeError))]
+        [('17/18', 'Spain La Liga', does_not_raise()),
+         ('fake year', 'England Premier League', pytest.raises(InvalidYearException)),
+         (2024, 'England Premier League', pytest.raises(TypeError))]
     )
     def test_invalid_years(self, year, league, expected):
         """ Test checks on year input
