@@ -64,6 +64,8 @@ class TestSofascore:
             ss.get_match_dicts(year, league)
         with expected:
             ss.scrape_player_league_stats(year, league)
+        with expected:
+            ss.scrape_team_league_stats(year, league)
 
     # ==============================================================================================
     @pytest.mark.parametrize(
@@ -80,6 +82,8 @@ class TestSofascore:
             ss.get_match_dicts(year, league)
         with expected:
             ss.scrape_player_league_stats(year, league)
+        with expected:
+            ss.scrape_team_league_stats(year, league)
 
     # ==============================================================================================
     def test_get_match_dicts(self):
@@ -214,3 +218,14 @@ class TestSofascore:
         assert isinstance(shots, pd.DataFrame)
         assert shots.shape[0] >= 0
         assert shots.shape[1] >= 0
+
+    # ==============================================================================================
+    def test_scrape_team_league_stats(self):
+        """ Test the outputs of the scrape_team_league_stats() function """
+        ss = Sofascore()
+        league = random.sample(list(comps.keys()), 1)[0]
+        year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
+
+        team_stats = ss.scrape_team_league_stats(year, league)
+        assert isinstance(team_stats, pd.DataFrame)
+        assert ((team_stats.shape[0] > 0) and (team_stats.shape[1] > 0)) or (team_stats.shape == (0,0))

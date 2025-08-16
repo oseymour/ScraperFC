@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from typing import Union, Sequence
 import warnings
+from tqdm import tqdm
 
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from .utils import botasaurus_browser_get_json, get_module_comps
@@ -460,5 +461,63 @@ class Sofascore:
                 f" {url}. Returning empty dataframe."
             )
             df = pd.DataFrame()
+
+        return df
+    
+    # ==============================================================================================
+    def scrape_team_league_stats(self, year: str, league: str) -> pd.DataFrame:
+        """ Get "general" league stats for all teams in the given league year.
+
+        :param str year: .. include:: ./arg_docstrings/year_sofascore.rst
+        :param str league: .. include:: ./arg_docstrings/league.rst
+
+        :rtype: pandas.DataFrame
+        """
+        if not isinstance(year, str):
+            raise TypeError('`year` must be a string.')
+
+        # Verify year is valid
+        valid_seasons = self.get_valid_seasons(league)
+        if year not in valid_seasons:
+            raise InvalidYearException(year, league, list(valid_seasons.keys()))
+        
+        league_id = comps[league]["SOFASCORE"]
+        year_id = valid_seasons[year]
+
+        # Find all teams in the league that season
+        teams_list = botasaurus_browser_get_json(
+            f"{API_PREFIX}/unique-tournament/{league_id}/season/{year_id}/teams"
+        )["teams"]
+
+        # Iterate over teams and build dataframe of stats
+        df = pd.DataFrame()
+        for team in tqdm(teams_list, ascii=True, desc=f"{year} {league} team stats", ncols=100):
+            team_id = team["id"]
+            result = botasaurus_browser_get_json(
+                f"{API_PREFIX}/team/{team_id}/unique-tournament/{league_id}/season/{year_id}/"
+                "statistics/overall"
+            )
+
+            if "statistics" in result:
+                # Team has league stats, build series with them
+                team_stats_dict = result["statistics"]
+                team_row = pd.Series(team_stats_dict)
+            else:
+                # This team has no stats, build an empty series for their row
+                team_row = pd.Series()
+            
+            # Insert team name and ID into series and convert to DataFrame row
+            team_row["teamId"] = team_id
+            team_row["teamName"] = team["name"]
+            team_row = team_row.to_frame().T
+
+            # Append the team row to the main DataFrame
+            df = pd.concat([df, team_row], axis=0, ignore_index=True)
+
+        # Reorder columns so that team name and ID are first
+        df = pd.concat(
+            [df["teamName"], df["teamId"], df.drop(columns=["teamName", "teamId"])], 
+            axis=1
+        )
 
         return df

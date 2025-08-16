@@ -8,8 +8,6 @@ app = marimo.App(width="medium")
 def _():
     import sys
     from rootutils import find_root
-    from cloudscraper import CloudScraper
-    from bs4 import BeautifulSoup
 
     sys.path.append(str(find_root() / "src"))
     import ScraperFC as sfc
@@ -18,7 +16,9 @@ def _():
 
 @app.cell
 def _(sfc):
-    sfc.utils.get_module_comps("FBref")
+    ss = sfc.Sofascore()
+
+    ss.scrape_team_league_stats("2023", "CONCACAF Gold Cup")
     return
 
 
