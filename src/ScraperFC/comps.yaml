@@ -196,10 +196,10 @@ UEFA Europa League:
     history url: https://fbref.com/en/comps/19/history/Europa-League-Seasons
     finders: [UEFA-Cup, Europa-League]
   SOFASCORE: 679
-UEFA Europa Conference League:
+UEFA Conference League:
   FBREF:
     history url: https://fbref.com/en/comps/882/history/Europa-Conference-League-Seasons
-    finders: [Europa-Conference-League]
+    finders: [Europa-Conference-League, Conference-League]
   SOFASCORE: 17015
 UEFA European Championship:
   FBREF:
