@@ -192,14 +192,23 @@ class FBref():
         :rtype: List[pandas.DataFrame]
         """
         season_link = self.get_season_link(year, league)
-        tables = list()
-        for df in pd.read_html(season_link):
-            if 'Rk' in df.columns:
-                # Remove all-NaN rows
-                df = df.dropna(axis=0, how='all').reset_index(drop=True)
 
-                # Add the df to tables
-                tables.append(df)
+        # Fetch HTML via CloudScraper to avoid FBref 403s that occur when pandas fetches the URL directly
+        response = self._get(season_link)
+
+        tables: Sequence[pd.DataFrame] = list()
+        try:
+            html = response.text
+            for df in pd.read_html(html):
+                if 'Rk' in df.columns:
+                    # Remove all-NaN rows
+                    df = df.dropna(axis=0, how='all').reset_index(drop=True)
+                    # Add the df to tables
+                    tables.append(df)
+        except ValueError:
+            # No tables found in the rendered HTML
+            pass
+
         return tables
 
     # ==============================================================================================
