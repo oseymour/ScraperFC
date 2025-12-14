@@ -1,0 +1,9 @@
+line-length = 100
+
+[lint]
+# select = ["ALL"]
+exclude = ["**/{test}/*"]
+ignore = [
+    "D100", "D200", "D210", "D400", "D401", "D403", "D413", "D415", "EM101", "EM102", "I001",
+    "TRY003"
+]

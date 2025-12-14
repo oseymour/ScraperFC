@@ -81,19 +81,6 @@ documentation = "https://scraperfc.readthedocs.io/en/latest/"
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-
-# -- Linting ---------------------------------------------------------------------------------------
-[tool.ruff]
-line-length = 100
-
-[tool.ruff.lint]
-select = ["ALL"]
-exclude = ["**/{test}/*"]
-ignore = [
-    "D100", "D200", "D210", "D400", "D401", "D403", "D413", "D415", "EM101", "EM102", "I001", 
-    "TRY003"
-]
-
 # -- Typechecking ----------------------------------------------------------------------------------
 [tool.mypy]
 ignore_missing_imports = true
