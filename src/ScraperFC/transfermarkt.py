@@ -6,7 +6,7 @@ import cloudscraper
 from typing import Sequence
 import warnings
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from ScraperFC.utils import get_module_comps
+from ScraperFC.utils import get_module_comps, botasaurus_request_get_soup
 
 TRANSFERMARKT_ROOT = "https://www.transfermarkt.us"
 
@@ -29,15 +29,13 @@ class Transfermarkt():
         if league not in comps.keys():
             raise InvalidLeagueException(league, "Transfermarkt", list(comps.keys()))
 
-        scraper = cloudscraper.CloudScraper()
-        try:
-            response = scraper.get(comps[league]["TRANSFERMARKT"])
-            soup = BeautifulSoup(response.content, "html.parser")
-            season_tags = soup.find("select", {"name": "saison_id"}).find_all("option")  # type: ignore
-            valid_seasons = dict([(x.text, x["value"]) for x in season_tags])
-            return valid_seasons
-        finally:
-            scraper.close()
+        season_select_tag = None
+        while not season_select_tag:
+            soup = botasaurus_request_get_soup(comps[league]["TRANSFERMARKT"])
+            season_select_tag = soup.find("select", {"name": "saison_id"})
+        season_tags = season_select_tag.find_all("option")  # type: ignore
+        valid_seasons = dict([(x.text, x["value"]) for x in season_tags])
+        return valid_seasons
 
     # ==============================================================================================
     def get_club_links(self, year: str, league: str) -> Sequence[str]:
