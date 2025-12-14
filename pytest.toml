@@ -1,0 +1,3 @@
+[pytest]
+addopts = ["-s", "-v", "--cov=ScraperFC"]
+norecursedirs = ["docs", "*.egg-info", ".git", ".tox"]

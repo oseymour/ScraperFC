@@ -57,7 +57,7 @@ build = [
 ]
 publish = ["publish>=0.3.6",]
 dev = [
-    "marimo>=0.14.16",
+    "marimo>=0.18.4",
     "tox>=4.24.1",
 ]
 typecheck = [
@@ -81,17 +81,6 @@ documentation = "https://scraperfc.readthedocs.io/en/latest/"
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# -- Testing ---------------------------------------------------------------------------------------
-[tool.pytest.ini_options]
-addopts = "-s -v --cov ScraperFC"
-norecursedirs = ["docs", "*.egg-info", ".git", ".tox"]
-
-[tool.coverage.run]
-branch = true
-omit = ["*oddsportal.py"]
-
-[tool.coverage.report]
-show_missing = true
 
 # -- Linting ---------------------------------------------------------------------------------------
 [tool.ruff]
