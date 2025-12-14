@@ -4,14 +4,17 @@ import json
 from bs4 import BeautifulSoup
 import time
 
+
 # ==================================================================================================
 def botasaurus_request_get_json(url: str, delay: int = 0) -> dict:
     """Use Botasaurus REQUESTS module to get JSON from page.
 
-    :param url str: The URL to request
-    :param delay int: Seconds to wait after the request (default: 0)
+    :param url: The URL to request
+    :type url: str
+    :param delay: Seconds to wait after the request (default: 0)
+    :type delay: int
 
-    :rtype dict:
+    :rtype: dict
     """
     if not isinstance(url, str):
         raise TypeError("`url` must be a string.")
@@ -36,13 +39,18 @@ def botasaurus_browser_get_json(
 ) -> dict:
     """Use Botasaurus BROWSER module to get JSON from page
 
-    :param url str: The URL to scrape
-    :param headless bool: Whether to run the browser in headless mode
-    :param block_images_and_css bool: Whether to block images and CSS
-    :param wait_for_complete_page_load bool: Whether to wait for the page to load completely
-    :param delay int: Seconds to wait after the request (default: 0)
+    :param url: The URL to scrape
+    :type url: str
+    :param headless: Whether to run the browser in headless mode
+    :type headless: bool
+    :param block_images_and_css: Whether to block images and CSS
+    :type block_images_and_css: bool
+    :param wait_for_complete_page_load: Whether to wait for the page to load completely
+    :type wait_for_complete_page_load: bool
+    :param delay: Seconds to wait after the request (default: 0)
+    :type delay: int
 
-    :rtype dict:
+    :rtype: dict
     """
     if not isinstance(url, str):
         raise TypeError("`url` must be a string.")
@@ -74,10 +82,12 @@ def botasaurus_browser_get_json(
 def botasaurus_request_get_soup(url: str, delay: int = 0) -> BeautifulSoup:
     """Use Botasaurus REQUESTS module to get Soup from page.
 
-    :param url str: The URL to request
-    :param delay int: Seconds to wait after the request (default: 0)
+    :param url: The URL to request
+    :type url: str
+    :param delay: Seconds to wait after the request (default: 0)
+    :type delay: int
 
-    :rtype bs4.BeautifulSoup:
+    :rtype: bs4.BeautifulSoup
     """
     if not isinstance(url, str):
         raise TypeError("`url` must be a string.")
@@ -103,13 +113,18 @@ def botasaurus_browser_get_soup(
 ) -> BeautifulSoup:
     """ Use Botasaurus BROWSER module to get Soup from page.
 
-    :param url str: The URL to scrape
-    :param headless bool: Whether to run the browser in headless mode
-    :param block_images_and_css bool: Whether to block images and CSS
-    :param wait_for_complete_page_load bool: Whether to wait for the page to load completely
-    :param delay int: Seconds to wait after the request (default: 0)
+    :param url: The URL to scrape
+    :type url: str
+    :param headless: Whether to run the browser in headless mode
+    :type headless: bool
+    :param block_images_and_css: Whether to block images and CSS
+    :type block_images_and_css: bool
+    :param wait_for_complete_page_load: Whether to wait for the page to load completely
+    :type wait_for_complete_page_load: bool
+    :param delay: Seconds to wait after the request (default: 0)
+    :type delay: int
 
-    :rtype bs4.BeautifulSoup:
+    :rtype: bs4.BeautifulSoup
     """
     if not isinstance(url, str):
         raise TypeError("`url` must be a string.")

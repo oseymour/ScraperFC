@@ -1,7 +1,7 @@
 import re
 import time
 from io import StringIO
-from typing import Sequence, Union
+from typing import Sequence
 import pandas as pd
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -158,13 +158,13 @@ class FBref:
     def scrape_match(self, link: str) -> FBrefMatch:
         """Scrapes an FBref match page.
 
-        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
+        :param year: .. include:: ./arg_docstrings/year_fbref.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
 
-        :returns: DataFrame containing most parts of the match page if they're available (e.g.
-            formations, lineups, scores, player stats, etc.). The fields that are available vary
-            by competition and year.
-        :rtype: pandas.DataFrame
+        :returns: Match data
+        :rtype: FBrefMatch
         """
         if not isinstance(link, str):
             raise TypeError("`link` must be a string.")
@@ -202,11 +202,13 @@ class FBref:
         Works by gathering all of the match URL's from the homepage of the chosen league season on
         FBref and then calling scrape_match() on each one.
 
-        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
+        :param year: .. include:: ./arg_docstrings/year_fbref.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
 
-        :returns: Each row is the data from a single match.
-        :rtype: pandas.DataFrame
+        :returns: List of match datas
+        :rtype: list[FBrefMatch]
         """
         matches = list()
         match_links = self.get_match_links(year, league)
@@ -223,7 +225,7 @@ class FBref:
     # ==============================================================================================
     def scrape_stats(
         self, year: str, league: str, stat_category: str
-    ) -> Sequence[Union[pd.DataFrame, None]]:
+    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None, pd.DataFrame | None]:
         """Scrapes a single stats category
 
         Adds team and player ID columns to the stats tables
@@ -234,7 +236,7 @@ class FBref:
 
         :returns: (squad_stats, opponent_stats, player_stats). Tuple elements will be None if the
             squad stats category does not contain data for the given `year` and `league`.
-        :rtype: Tuple[pandas.DataFrame | None]
+        :rtype: tuple[pd.DataFrame | None]
         """
         valid_seasons = self.get_valid_seasons(league)
         if not isinstance(year, str):

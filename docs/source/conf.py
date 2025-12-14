@@ -12,7 +12,8 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath("../../src/"))
+from rootutils import find_root
+sys.path.insert(0, str(find_root() / "src"))
 
 
 # -- Project information ---------------------------------------------------------------------------
@@ -37,19 +38,24 @@ exclude_patterns = ["*.ipynb_checkpoints"]
 
 # Ignore warnings for some types not being found
 nitpick_ignore = [
-    ("py:class", "pandas.DataFrame"), ("py:class", "optional"),
-    ("py:class", "default True"), ("py:class", "default False"), ("py:class", "bs4.element.Tag"),
-    ("py:class", "bs4.element.NavigableString"), ("py:class", "dicts"),
+    ("py:class", "pandas.DataFrame"),
     ("py:class", "pandas.core.frame.DataFrame"),
+    ("py:class", "pd.DataFrame"),
+    ("py:class", "optional"),
+    ("py:class", "default True"),
+    ("py:class", "default False"),
+    ("py:class", "dicts"),
+    ("py:class", "bs4.BeautifulSoup"),
+    ("py:class", "bs4.element.Tag"),
+    ("py:class", "bs4.element.NavigableString"),
     ("py:class", "botasaurus_requests.request_class.Request"),
     ("py:class", "botasaurus_requests.response.Response"),
     ("py:class", "botasaurus.request.Request"),
     ("py:class", "botasaurus.browser.Driver"),
     ("py:class", "botasaurus_driver.driver.Driver"),
+    ("py:class", "FBrefMatch"),
+    ("py:class", "ScraperFC.fbref_match.FBrefMatch"),
 ]
-
-# Validate numpy docstring formatting
-numpydoc_validation_checks = {"all"}
 
 # HTML theme
 html_theme = "furo"
