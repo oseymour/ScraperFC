@@ -7,30 +7,26 @@ import pytest
 sys.path.append('./src/')
 from ScraperFC import FBref
 from ScraperFC.fbref import stats_categories
+from ScraperFC.fbref_match import FBrefMatch
 from ScraperFC.scraperfc_exceptions import NoMatchLinksException, InvalidLeagueException,\
     InvalidYearException
 from ScraperFC.utils import get_module_comps
 
-# These leagues and years do not have match links on FBref
-comps_wo_matches = [
-    ('2009-2010', 'Ligue 2'), ('2010-2011', 'Ligue 2'), ('2011-2012', 'Ligue 2'),
-    ('2012-2013', 'Ligue 2'), ('2013-2014', 'Ligue 2'),
-    ('2013-2014', 'La Liga 2'), ('2012-2013', 'La Liga 2'), ('2011-2012', 'La Liga 2'),
-    ('2010-2011', 'La Liga 2'), ('2009-2010', 'La Liga 2'), ('2008-2009', 'La Liga 2'),
-    ('2007-2008', 'La Liga 2'), ('2006-2007', 'La Liga 2'), ('2005-2006', 'La Liga 2'),
-    ('2004-2005', 'La Liga 2'), ('2003-2004', 'La Liga 2'), ('2002-2003', 'La Liga 2'),
-    ('2001-2002', 'La Liga 2'),
-    ('2003-2004', 'Belgian Pro League'), ('2004-2005', 'Belgian Pro League'),
-    ('2005-2006', 'Belgian Pro League'), ('2006-2007', 'Belgian Pro League'),
-    ('2007-2008', 'Belgian Pro League'), ('2008-2009', 'Belgian Pro League'),
-    ('2009-2010', 'Belgian Pro League'), ('2010-2011', 'Belgian Pro League'),
-    ('2011-2012', 'Belgian Pro League'), ('2012-2013', 'Belgian Pro League'),
-    ('2013-2014', 'Belgian Pro League'),
-    ("2003-2004", "2. Bundesliga"), ("2004-2005", "2. Bundesliga"), ("2005-2006", "2. Bundesliga"),
-    ("2006-2007", "2. Bundesliga"), ("2007-2008", "2. Bundesliga"), ("2008-2009", "2. Bundesliga"),
-    ("2009-2010", "2. Bundesliga"), ("2010-2011", "2. Bundesliga"), ("2011-2012", "2. Bundesliga"),
-    ("2012-2013", "2. Bundesliga"), ("2013-2014", "2. Bundesliga"),
-]
+no_matches = {
+    "Belgium Pro League": [
+        "2003-2004", "2004-2005", "2005-2006", "2006-2007", "2007-2008", "2008-2009", "2009-2010",
+        "2010-2011", "2011-2012", "2012-2013", "2013-2014",
+    ],
+    "France Ligue 2": ["2009-2010", "2010-2011", "2011-2012", "2012-2013", "2013-2014"],
+    "Germany 2. Bundesliga": [
+        "2003-2004", "2004-2005", "2005-2006", "2006-2007", "2007-2008", "2008-2009", "2009-2010",
+        "2010-2011", "2011-2012", "2012-2013", "2013-2014"
+    ],
+    "Spain La Liga 2": [
+        "2001-2002", "2002-2003", "2003-2004", "2004-2005", "2005-2006", "2006-2007", "2007-2008",
+        "2008-2009", "2009-2010", "2010-2011", "2011-2012", "2012-2013", "2013-2014",
+    ],
+}
 
 comps = get_module_comps("FBREF")
 
@@ -40,13 +36,13 @@ class TestFBref:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [(2021, 'Italy Serie B', pytest.raises(TypeError)),
-         ('1642-1643', 'England Premier League', pytest.raises(InvalidYearException))]
+        [
+            (2021, 'Italy Serie B', pytest.raises(TypeError)),
+            ('1642-1643', 'England Premier League', pytest.raises(InvalidYearException))
+        ]
     )
     def test_invalid_year(self, year, league, expected):
         fbref = FBref()
-        with expected:
-            fbref.get_season_link(year, league)
         with expected:
             fbref.get_match_links(year, league)
         with expected:
@@ -61,16 +57,16 @@ class TestFBref:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('2018', (1, 2, 3), pytest.raises(TypeError)),
-         ('2018', 'fake league', pytest.raises(InvalidLeagueException))]
+        [
+            ('2018', (1, 2, 3), pytest.raises(TypeError)),
+            ('2018', 'fake league', pytest.raises(InvalidLeagueException))
+        ]
     )
     def test_invalid_league(self, year, league, expected):
         fbref = FBref()
         with expected:
             fbref.get_valid_seasons(league)
         with expected:
-            fbref.get_season_link(year, league)
-        with expected:
             fbref.get_match_links(year, league)
         with expected:
             fbref.scrape_league_table(year, league)
@@ -84,9 +80,11 @@ class TestFBref:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected',
-        [('2013-2014', 'France Ligue 2', pytest.raises(NoMatchLinksException)),
-         ('2013-2014', 'Spain La Liga 2', pytest.raises(NoMatchLinksException)),
-         ('2013-2014', 'Belgium Pro League', pytest.raises(NoMatchLinksException)),]
+        [
+            ('2013-2014', 'France Ligue 2', pytest.raises(NoMatchLinksException)),
+            ('2013-2014', 'Spain La Liga 2', pytest.raises(NoMatchLinksException)),
+            ('2013-2014', 'Belgium Pro League', pytest.raises(NoMatchLinksException)),
+        ]
     )
     def test_NoMatchLinksException(self, year, league, expected):
         fbref = FBref()
@@ -98,13 +96,13 @@ class TestFBref:
     # ==============================================================================================
     @pytest.mark.parametrize(
         'year, league, expected_len',
-        [('2020-2021', 'England Premier League', 380)]
+        [
+            ('2020-2021', 'England Premier League', 380),
+            ("2021", "UEFA European Championship", 51),
+        ]
     )
     def test_valid_get_match_links(self, year, league, expected_len):
         fbref = FBref()
-        # league = random.sample(list(comps.keys()), 1)[0]
-        # year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
-
         match_links = fbref.get_match_links(year, league)
         assert type(match_links) is list, 'match links must be a list'
         assert np.all([type(x) is str for x in match_links])
@@ -113,8 +111,8 @@ class TestFBref:
     # ==============================================================================================
     def test_scrape_league_table(self):
         fbref = FBref()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
+        league = random.sample(sorted(comps), 1)[0]
+        year = random.sample(sorted(fbref.get_valid_seasons(league)), 1)[0]
 
         lg_table = fbref.scrape_league_table(year, league)
         assert type(lg_table) is list, 'league tables should be a list'
@@ -129,6 +127,7 @@ class TestFBref:
             "https://fbref.com/en/matches/40e49e72/North-West-Derby-Liverpool-Manchester-United-May-5-2024-Womens-Super-League",  # No scorebox_meta tag
             "https://fbref.com/en/matches/bdbe67a7/Lanus-Chapecoense-May-17-2017-Copa-Libertadores",  # was awarded to one team
             "https://fbref.com/en/matches/ec86d292/Standard-Liege-Anderlecht-April-12-2019-Belgian-First-Division-A",  # was awarded to one team
+            "https://fbref.com/en/matches/b787871d/Empoli-Hellas-Verona-August-19-2023-Serie-A",  # failed for someone on Discord, didn't find match date el
         ]
     )
     def test_scrape_specific_matches(self, link):
@@ -138,17 +137,16 @@ class TestFBref:
     # ==============================================================================================
     def test_scrape_matches(self):
         fbref = FBref()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
+        league = random.sample(sorted(comps), 1)[0]
+        year = random.sample(sorted(fbref.get_valid_seasons(league)), 1)[0]
 
         try:
             matches = fbref.scrape_matches(year, league)
-            assert type(matches) is pd.DataFrame, 'matches must be a dataframe'
-            assert matches.shape[0] > 0
-            assert matches.shape[1] > 0
+            assert type(matches) is list
+            assert np.all([type(m) is FBrefMatch for m in matches])
         except NoMatchLinksException:
-            # assert ((year, league) in comps_wo_matches) or (league == "Big 5 combined")
-            pass
+            assert league in no_matches
+            assert year in no_matches[league]
 
     # ==============================================================================================
     @pytest.mark.parametrize(
@@ -164,9 +162,8 @@ class TestFBref:
     # ==============================================================================================
     def test_scrape_all_stats(self):
         fbref = FBref()
-        league = random.sample(list(comps.keys()), 1)[0]
-        year = random.sample(list(fbref.get_valid_seasons(league).keys()), 1)[0]
-        print(f"Testing scrape_all_stats for {year}, {league}.")
+        league = random.sample(sorted(comps), 1)[0]
+        year = random.sample(sorted(fbref.get_valid_seasons(league)), 1)[0]
 
         with pytest.warns(UserWarning):
             stats = fbref.scrape_all_stats(year, league)
