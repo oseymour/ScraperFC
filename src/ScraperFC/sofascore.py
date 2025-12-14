@@ -168,7 +168,7 @@ class Sofascore:
     def get_positions(self, selected_positions: Sequence[str]) -> str:
         """ Returns a string for the parameter filters of the scrape_league_stats() request.
 
-        :param List[str] selected_positions: List of the positions available to filter on the 
+        :param List[str] selected_positions: List of the positions available to filter on the
             SofaScore UI
 
         :returns: Joined abbreviations for the chosen positions
@@ -226,9 +226,9 @@ class Sofascore:
 
         :param str year: .. include:: ./arg_docstrings/year_sofascore.rst
         :param str league: .. include:: ./arg_docstrings/league.rst
-        :param str accumulation: Value of the filter accumulation. Can be "per90", "perMatch", or 
+        :param str accumulation: Value of the filter accumulation. Can be "per90", "perMatch", or
             "total". Defaults to "total".
-        :param list[str] selected_positions: Value of the filter positions. Defaults to 
+        :param list[str] selected_positions: Value of the filter positions. Defaults to
             ["Goalkeepers", "Defenders", "Midfielders", "Forwards"].
 
         :rtype: pandas.DataFrame
@@ -383,7 +383,7 @@ class Sofascore:
 
         :param str or int match: Sofascore match URL or match ID
 
-        :returns: Each row is a player and columns averageX and averageY denote their average 
+        :returns: Each row is a player and columns averageX and averageY denote their average
             position in the match.
         :rtype: pandas.DataFrame
         """
@@ -463,7 +463,7 @@ class Sofascore:
             df = pd.DataFrame()
 
         return df
-    
+
     # ==============================================================================================
     def scrape_team_league_stats(self, year: str, league: str) -> pd.DataFrame:
         """ Get "general" league stats for all teams in the given league year.
@@ -480,7 +480,7 @@ class Sofascore:
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons:
             raise InvalidYearException(year, league, list(valid_seasons.keys()))
-        
+
         league_id = comps[league]["SOFASCORE"]
         year_id = valid_seasons[year]
 
@@ -491,7 +491,7 @@ class Sofascore:
 
         # Iterate over teams and build dataframe of stats
         df = pd.DataFrame()
-        for team in tqdm(teams_list, ascii=True, desc=f"{year} {league} team stats", ncols=100):
+        for team in tqdm(teams_list, desc=f"{year} {league} team stats", ncols=100):
             team_id = team["id"]
             result = botasaurus_browser_get_json(
                 f"{API_PREFIX}/team/{team_id}/unique-tournament/{league_id}/season/{year_id}/"
@@ -505,7 +505,7 @@ class Sofascore:
             else:
                 # This team has no stats, build an empty series for their row
                 team_row = pd.Series()
-            
+
             # Insert team name and ID into series and convert to DataFrame row
             team_row["teamId"] = team_id
             team_row["teamName"] = team["name"]

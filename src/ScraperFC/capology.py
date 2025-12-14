@@ -106,9 +106,9 @@ class Capology():
 
         :param str year: .. include:: ./arg_docstrings/year_capology.rst
         :param str league: .. include:: ./arg_docstrings/league.rst
-        :param str currency: The currency for the returned salaries. Options are "eur" for Euro, 
+        :param str currency: The currency for the returned salaries. Options are "eur" for Euro,
             "gbp" for British Pound, and "USD" for US Dollar
-        
+
         :returns: The salaries of all players in the given league season
         :rtype: pandas.DataFrame
         """

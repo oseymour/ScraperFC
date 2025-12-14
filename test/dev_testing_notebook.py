@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.14.16"
+__generated_with = "0.18.4"
 app = marimo.App(width="medium")
 
 
@@ -8,6 +8,13 @@ app = marimo.App(width="medium")
 def _():
     import sys
     from rootutils import find_root
+    from io import StringIO
+    import pandas as pd
+    import random
+    import re
+    from tqdm import tqdm
+    from botasaurus.browser import browser, ElementWithSelectorNotFoundException
+    from bs4 import BeautifulSoup
 
     sys.path.append(str(find_root() / "src"))
     import ScraperFC as sfc
@@ -16,9 +23,15 @@ def _():
 
 @app.cell
 def _(sfc):
-    ss = sfc.Sofascore()
+    fb = sfc.FBref()
 
-    ss.scrape_team_league_stats("2023", "CONCACAF Gold Cup")
+    matches = fb.scrape_matches(league="UEFA European Championship", year="2008")
+    return (matches,)
+
+
+@app.cell
+def _(matches):
+    matches
     return
 
 

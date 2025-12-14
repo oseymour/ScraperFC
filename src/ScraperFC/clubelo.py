@@ -11,7 +11,7 @@ class ClubElo:
     def scrape_team_on_date(self, team: str, date: str) -> float:
         """ Scrapes a team's ELO score on a given date.
 
-        :param str team: To get the appropriate team name, go to clubelo.com and find the team 
+        :param str team: To get the appropriate team name, go to clubelo.com and find the team
             you're looking for. Copy and past the team's name as it appears in the URL.
         :param str date: Must be formatted as YYYY-MM-DD
 

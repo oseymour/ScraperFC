@@ -262,7 +262,7 @@ class Understat:
         Note that for Understat, team links are season-specific.
 
         :param str team_link: URL to the team's Understat page
-        :param bool as_df: If True, data will be returned as dataframes. If False, dicts. Defaults 
+        :param bool as_df: If True, data will be returned as dataframes. If False, dicts. Defaults
             to False.
 
         :returns: Tuple of (matches_data, team_data, player_data)
@@ -320,7 +320,7 @@ class Understat:
 
         :param str year: .. include:: ./arg_docstrings/year_understat.rst
         :param str league: .. include:: ./arg_docstrings/league.rst
-        :param bool as_df: If True, each team's data will be returned as dataframes. If False, 
+        :param bool as_df: If True, each team's data will be returned as dataframes. If False,
             return dicts. Defaults to False.
 
         :returns: Dictionary of team data, where each key is a team link and the value is a dict of
