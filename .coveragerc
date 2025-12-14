@@ -1,0 +1,6 @@
+[run]
+branch = true
+omit = ["*oddsportal.py"]
+
+[report]
+show_missing = true
