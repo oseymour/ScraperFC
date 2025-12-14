@@ -5,9 +5,9 @@ version = "4.0.0"
 description = "Package for scraping soccer data from a variety of sources."
 readme = "README.md"
 license = {file = "LICENSE"}
-requires-python = ">= 3.9"
+requires-python = ">= 3.10"
 keywords = [
-    "webscraping", "scraping", "soccer", "football", "soccer data", "football data", 
+    "webscraping", "scraping", "soccer", "football", "soccer data", "football data",
     "English Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Champions League",
     "World Cup"
 ]
@@ -17,10 +17,10 @@ authors = [
 ]
 classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent"
 ]
 dependencies = [
