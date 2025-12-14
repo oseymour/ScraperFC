@@ -1,44 +1,138 @@
-from botasaurus.request import request, Request
-from botasaurus.browser import browser, Driver
+from botasaurus.request import request
+from botasaurus.browser import browser
 import json
+from bs4 import BeautifulSoup
+import time
 
-@request(output=None, create_error_logs=False)
-def botasaurus_request_get_json(request: Request, url: str) -> dict:
-    """ Use Botasaurus REQUESTS module to get JSON from page.
+# ==================================================================================================
+def botasaurus_request_get_json(url: str, delay: int = 0) -> dict:
+    """Use Botasaurus REQUESTS module to get JSON from page.
 
-    Parameters
-    ----------
-    request : botasaurus.request.Request
-        The request object provided by the botasaurus decorator
-    url : str
-        The URL to request
+    :param url str: The URL to request
+    :param delay int: Seconds to wait after the request (default: 0)
 
-    Returns
-    -------
-    dict
+    :rtype dict:
     """
     if not isinstance(url, str):
-        raise TypeError('`url` must be a string.')
-    response = request.get(url)
-    result = response.json()
-    return result
+        raise TypeError("`url` must be a string.")
+    if not isinstance(delay, int):
+        raise TypeError("`delay` must be an int.")
+    if delay < 0:
+        raise ValueError("`delay` must be non-negative.")
 
-@browser(headless=True, output=None, create_error_logs=False, block_images_and_css=True)
-def botasaurus_browser_get_json(driver: Driver, url: str) -> dict:
-    """ Use Botasaurus BROWSER model to get JSON from page
+    @request(output=None, create_error_logs=False)
+    def _get_json(request, url):  # type: ignore
+        response = request.get(url)
+        if delay > 0:
+            time.sleep(delay)
+        return response.json()
 
-    Parameters
-    ----------
-    driver : botasaurus.browser.Driver
-        Browser object. Provided by Botasaurus decorator
-    url : str
-        The URL to scrape
+    return _get_json(url)
 
-    Returns
-    -------
-    dict
+# ==================================================================================================
+def botasaurus_browser_get_json(
+        url: str, headless: bool = True, block_images_and_css: bool = True,
+        wait_for_complete_page_load: bool = True, delay: int = 0
+) -> dict:
+    """Use Botasaurus BROWSER module to get JSON from page
+
+    :param url str: The URL to scrape
+    :param headless bool: Whether to run the browser in headless mode
+    :param block_images_and_css bool: Whether to block images and CSS
+    :param wait_for_complete_page_load bool: Whether to wait for the page to load completely
+    :param delay int: Seconds to wait after the request (default: 0)
+
+    :rtype dict:
     """
-    driver.get(url)
-    page_source = driver.page_text
-    result = json.loads(page_source)
-    return result
+    if not isinstance(url, str):
+        raise TypeError("`url` must be a string.")
+    if not isinstance(headless, bool):
+        raise TypeError("`headless` must be a bool.")
+    if not isinstance(block_images_and_css, bool):
+        raise TypeError("`block_images_and_css` must be a bool.")
+    if not isinstance(wait_for_complete_page_load, bool):
+        raise TypeError("`wait_for_complete_page_load` must be a bool.")
+    if not isinstance(delay, int):
+        raise TypeError("`delay` must be an int.")
+    if delay < 0:
+        raise ValueError("`delay` must be non-negative.")
+
+    @browser(
+        headless=headless, block_images_and_css=block_images_and_css,
+        wait_for_complete_page_load=wait_for_complete_page_load,
+        output=None, create_error_logs=False
+    )
+    def _get_json(driver, url):  # type: ignore
+        driver.get(url)
+        if delay > 0:
+            time.sleep(delay)
+        return json.loads(driver.page_text)
+
+    return _get_json(url)
+
+# ==================================================================================================
+def botasaurus_request_get_soup(url: str, delay: int = 0) -> BeautifulSoup:
+    """Use Botasaurus REQUESTS module to get Soup from page.
+
+    :param url str: The URL to request
+    :param delay int: Seconds to wait after the request (default: 0)
+
+    :rtype bs4.BeautifulSoup:
+    """
+    if not isinstance(url, str):
+        raise TypeError("`url` must be a string.")
+    if not isinstance(delay, int):
+        raise TypeError("`delay` must be an int.")
+    if delay < 0:
+        raise ValueError("`delay` must be non-negative.")
+
+    @request(output=None, create_error_logs=False)
+    def _get_soup(request, url):  # type: ignore
+        response = request.get(url)
+        if delay > 0:
+            time.sleep(delay)
+        soup = BeautifulSoup(response.content, "html.parser")
+        return soup
+
+    return _get_soup(url)
+
+# ==================================================================================================
+def botasaurus_browser_get_soup(
+        url: str, headless: bool = False, block_images_and_css: bool = False,
+        wait_for_complete_page_load: bool = True, delay: int = 0
+) -> BeautifulSoup:
+    """ Use Botasaurus BROWSER module to get Soup from page.
+
+    :param url str: The URL to scrape
+    :param headless bool: Whether to run the browser in headless mode
+    :param block_images_and_css bool: Whether to block images and CSS
+    :param wait_for_complete_page_load bool: Whether to wait for the page to load completely
+    :param delay int: Seconds to wait after the request (default: 0)
+
+    :rtype bs4.BeautifulSoup:
+    """
+    if not isinstance(url, str):
+        raise TypeError("`url` must be a string.")
+    if not isinstance(headless, bool):
+        raise TypeError("`headless` must be a bool.")
+    if not isinstance(block_images_and_css, bool):
+        raise TypeError("`block_images_and_css` must be a bool.")
+    if not isinstance(wait_for_complete_page_load, bool):
+        raise TypeError("`wait_for_complete_page_load` must be a bool.")
+    if not isinstance(delay, int):
+        raise TypeError("`delay` must be an int.")
+    if delay < 0:
+        raise ValueError("`delay` must be non-negative.")
+
+    @browser(
+        headless=headless, block_images_and_css=block_images_and_css,
+        wait_for_complete_page_load=wait_for_complete_page_load,
+        output=None, create_error_logs=False
+    )
+    def _get_soup(driver, url):  # type: ignore
+        driver.get(url)
+        if delay > 0:
+            time.sleep(delay)
+        return BeautifulSoup(driver.page_html, "html.parser")
+
+    return _get_soup(url)
