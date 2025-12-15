@@ -165,19 +165,18 @@ class TestFBref:
         league = random.sample(sorted(comps), 1)[0]
         year = random.sample(sorted(fbref.get_valid_seasons(league)), 1)[0]
 
-        with pytest.warns(UserWarning):
-            stats = fbref.scrape_all_stats(year, league)
-            assert type(stats) is tuple
-            assert not stats[0]
+        stats = fbref.scrape_all_stats(year, league)
 
         assert type(stats) is dict
         for key, value in stats.items():
             assert key in stats_categories.keys()
-            assert type(value) is tuple
-            assert len(value) == 3
-            assert type(value[0]) is pd.DataFrame or value[0] is None
-            assert type(value[1]) is pd.DataFrame or value[1] is None
-            assert type(value[2]) is pd.DataFrame or value[2] is None
+            assert type(value) is dict
+            assert "squad" in value
+            assert "opponent" in value
+            assert "player" in value
+            assert type(value["squad"]) is pd.DataFrame
+            assert type(value["opponent"]) is pd.DataFrame
+            assert type(value["player"]) is pd.DataFrame
 
     # ==============================================================================================
     @pytest.mark.parametrize(
@@ -194,8 +193,10 @@ class TestFBref:
         assert type(stats) is dict
         for key, value in stats.items():
             assert key in stats_categories.keys()
-            assert type(value) is tuple
-            assert len(value) == 3
-            assert type(value[0]) is pd.DataFrame or value[0] is None
-            assert type(value[1]) is pd.DataFrame or value[1] is None
-            assert type(value[2]) is pd.DataFrame or value[2] is None
+            assert type(value) is dict
+            assert "squad" in value
+            assert "opponent" in value
+            assert "player" in value
+            assert type(value["squad"]) is pd.DataFrame
+            assert type(value["opponent"]) is pd.DataFrame
+            assert type(value["player"]) is pd.DataFrame

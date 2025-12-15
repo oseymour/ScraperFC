@@ -10,9 +10,10 @@ from botasaurus.browser import browser, ElementWithSelectorNotFoundException
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException,\
     NoMatchLinksException
 from .utils import get_module_comps
-from .fbref_helpers import _get_date, _get_stage, _get_team_names, _get_team_ids, _get_goals,\
-    _get_player_stats, _get_shots
+from .fbref_scrape_match_helpers import _get_date, _get_stage, _get_team_names, _get_team_ids,\
+    _get_goals, _get_player_stats, _get_shots
 from .fbref_match import FBrefMatch
+from .fbref_scrape_stats_helpers import _scrape_big5_stats, _scrape_not_big5_stats
 
 stats_categories = {
     "standard": {"url": "stats", "html": "standard"},
@@ -38,7 +39,8 @@ class FBref:
         self.wait_time = wait_time
 
     # ==============================================================================================
-    def _get_soup(self, url: str) -> BeautifulSoup:
+    @staticmethod
+    def _get_soup(url: str) -> BeautifulSoup:
         """ Private, gets soup using botasaurus. """
         @browser(
             headless=False, block_images_and_css=False,
@@ -179,20 +181,10 @@ class FBref:
         shots = _get_shots(soup)
 
         return FBrefMatch(
-            url=link,
-            date=date,
-            stage=stage,
-            home_team=home_name,
-            away_team=away_name,
-            home_id=home_id,
-            away_id=away_id,
-            home_goals=home_goals,
-            away_goals=away_goals,
-            home_player_stats=player_stats["home"],
-            away_player_stats=player_stats["away"],
-            all_shots=shots["all"],
-            home_shots=shots["home"],
-            away_shots=shots["away"],
+            url=link, date=date, stage=stage, home_team=home_name, away_team=away_name,
+            home_id=home_id, away_id=away_id, home_goals=home_goals, away_goals=away_goals,
+            home_player_stats=player_stats["home"], away_player_stats=player_stats["away"],
+            all_shots=shots["all"], home_shots=shots["home"], away_shots=shots["away"],
         )
 
     # ==============================================================================================
@@ -225,7 +217,7 @@ class FBref:
     # ==============================================================================================
     def scrape_stats(
         self, year: str, league: str, stat_category: str
-    ) -> tuple[pd.DataFrame | None, pd.DataFrame | None, pd.DataFrame | None]:
+    ) -> dict[str, pd.DataFrame]:
         """Scrapes a single stats category
 
         Adds team and player ID columns to the stats tables
@@ -254,113 +246,11 @@ class FBref:
         season_url = valid_seasons[year]
 
         if "big 5 combined" in league.lower():
-            squad_id_finder = "td"  # for squad and opponent squad IDs
-            squad_id_start_idx = 0  # to index the squad id elements list, to match shape of df
-            # Big 5 combined has separate pages for squad and player stats
-            # Make the URLs to these pages
-            first_half = "/".join(season_url.split("/")[:-1])
-            second_half = season_url.split("/")[-1]
-            stats_category_url_filler = stats_categories[stat_category]["url"]
-            players_stats_url = "/".join(
-                [first_half, stats_category_url_filler, "players", second_half]
-            )
-            squads_stats_url = "/".join(
-                [first_half, stats_category_url_filler, "squads", second_half]
-            )
+            stats = _scrape_big5_stats(self, season_url, stats_categories, stat_category)
+        else:
+            stats = _scrape_not_big5_stats(self, season_url, stats_categories, stat_category)
 
-            # Get the soups from the 2 pages
-            # players_soup = BeautifulSoup(self._get(players_stats_url).content, "html.parser")
-            # squads_soup = BeautifulSoup(self._get(squads_stats_url).content, "html.parser")
-            players_soup = self._get_soup(players_stats_url)
-            squads_soup = self._get_soup(squads_stats_url)
-
-            # Gather stats table tags
-            squad_stats_tag = squads_soup.find("table", {"id": re.compile("for")})
-            opponent_stats_tag = squads_soup.find("table", {"id": re.compile("against")})
-            player_stats_tag = players_soup.find(
-                "table", {"id": re.compile(f'stats_{stats_categories[stat_category]["html"]}')}
-            )
-
-        else:  # not big 5 leagues
-            squad_id_finder = "th"
-            squad_id_start_idx = 1
-            # Get URL to stat category
-            old_suffix = season_url.split("/")[-1]  # suffix is last element 202X-202X-divider-stats
-            new_suffix = f'{stats_categories[stat_category]["url"]}/{old_suffix}'
-            new_url = season_url.replace(old_suffix, new_suffix)
-
-            soup = self._get_soup(new_url)
-
-            # Gather stats table tags
-            squad_stats_tag = soup.find("table", {"id": re.compile("for")})
-            opponent_stats_tag = soup.find("table", {"id": re.compile("against")})
-            player_stats_tag = soup.find(
-                "table", {"id": re.compile(f'stats_{stats_categories[stat_category]["html"]}')}
-            )
-
-        # DO THESE THINGS WHETHER BIG 5 OR NOT
-        # Get stats dataframes
-        squad_stats = (
-            None if squad_stats_tag is None else pd.read_html(StringIO(str(squad_stats_tag)))[0]
-        )
-        opponent_stats = (
-            None
-            if opponent_stats_tag is None
-            else pd.read_html(StringIO(str(opponent_stats_tag)))[0]
-        )
-        player_stats = (
-            None if player_stats_tag is None else pd.read_html(StringIO(str(player_stats_tag)))[0]
-        )
-
-        # Drop rows that contain duplicated table headers, add team/player IDs
-        if squad_stats is not None:
-            squad_drop_mask = (
-                ~squad_stats.loc[:, (slice(None), "Squad")].isna()  # type: ignore
-                & (squad_stats.loc[:, (slice(None), "Squad")] != "Squad")  # type: ignore
-            )
-            squad_stats = squad_stats[squad_drop_mask.values].reset_index(drop=True)
-
-            # Squad IDs
-            squad_ids = [
-                tag.find("a")["href"].split("/")[3]
-                for tag in squad_stats_tag.find_all(squad_id_finder, {"data-stat": "team"})[  # type: ignore
-                    squad_id_start_idx:
-                ]
-                if tag and tag.find("a")
-            ]
-            squad_stats["Team ID"] = squad_ids
-
-        if opponent_stats is not None:
-            opponent_drop_mask = (
-                ~opponent_stats.loc[:, (slice(None), "Squad")].isna()  # type: ignore
-                & (opponent_stats.loc[:, (slice(None), "Squad")] != "Squad")  # type: ignore
-            )
-            opponent_stats = opponent_stats[opponent_drop_mask.values].reset_index(drop=True)
-
-            # Opponent squad IDs
-            opponent_ids = [
-                tag.find("a")["href"].split("/")[3]
-                for tag in opponent_stats_tag.find_all(squad_id_finder, {"data-stat": "team"})[  # type: ignore
-                    squad_id_start_idx:
-                ]
-                if tag and tag.find("a")
-            ]
-            opponent_stats["Team ID"] = opponent_ids
-
-        if player_stats is not None:
-            keep_players_mask = (player_stats.loc[:, (slice(None), "Rk")] != "Rk").values  # type: ignore
-            player_stats = player_stats.loc[keep_players_mask, :].reset_index(drop=True)
-
-            # Add player links and ID's
-            player_links = [
-                "https://fbref.com" + tag.find("a")["href"]
-                for tag in player_stats_tag.find_all("td", {"data-stat": "player"})  # type: ignore
-                if tag and tag.find("a")
-            ]
-            player_stats["Player Link"] = player_links
-            player_stats["Player ID"] = [x.split("/")[-2] for x in player_links]
-
-        return squad_stats, opponent_stats, player_stats
+        return stats
 
     # ==============================================================================================
     def scrape_all_stats(self, year: str, league: str) -> dict:

@@ -1,9 +1,12 @@
+""" Helper functions for fbref.scrape_match()
+"""
+
 from bs4 import BeautifulSoup
 from io import StringIO
 import re
 import pandas as pd
 
-
+# ==================================================================================================
 def _get_date(soup: BeautifulSoup) -> str:
     """ Gets match date
     """
@@ -14,12 +17,14 @@ def _get_date(soup: BeautifulSoup) -> str:
         date = soup.find("span", {"class": "venuetime"})["data-venue-date"]  # type: ignore
     return date
 
+# ==================================================================================================
 def _get_stage(soup: BeautifulSoup) -> str:
     """ Gets the stage description
     """
     stage = soup.find("div", {"role": "main"}).find("div").text  # type: ignore
     return stage
 
+# ==================================================================================================
 def _get_team_names(soup: BeautifulSoup) -> tuple[str, str]:
     """ Gets home and away team names
     """
@@ -29,6 +34,7 @@ def _get_team_names(soup: BeautifulSoup) -> tuple[str, str]:
     away_name = away_el.find("div").text.strip()
     return home_name, away_name
 
+# ==================================================================================================
 def _get_team_ids(soup: BeautifulSoup) -> tuple[str, str]:
     """ Gets home and away team IDs
     """
@@ -38,6 +44,7 @@ def _get_team_ids(soup: BeautifulSoup) -> tuple[str, str]:
     away_id = away_el.find("div").find("strong").find("a")["href"].split("/")[3]
     return home_id, away_id
 
+# ==================================================================================================
 def _get_goals(soup: BeautifulSoup) -> tuple[str, str]:
     """ Gets home and away team goals
 
@@ -49,6 +56,7 @@ def _get_goals(soup: BeautifulSoup) -> tuple[str, str]:
     away_goals = away_el.find("div", {"class": "score"}).text
     return home_goals, away_goals
 
+# ==================================================================================================
 def _get_player_stats(soup: BeautifulSoup) -> dict[str, dict[str, pd.DataFrame]]:
     """ Gets player stats for home and away teams
     """
@@ -70,6 +78,7 @@ def _get_player_stats(soup: BeautifulSoup) -> dict[str, dict[str, pd.DataFrame]]
 
     return {"home": home_player_stats, "away": away_player_stats}
 
+# ==================================================================================================
 def _get_shots(soup: BeautifulSoup) -> dict[str, pd.DataFrame]:
     """ Gets shot data
     """

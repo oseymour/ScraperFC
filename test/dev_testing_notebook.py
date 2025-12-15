@@ -18,20 +18,24 @@ def _():
 
     sys.path.append(str(find_root() / "src"))
     import ScraperFC as sfc
+    from ScraperFC.fbref import stats_categories
     return (sfc,)
 
 
 @app.cell
 def _(sfc):
-    fb = sfc.FBref()
+    self = sfc.FBref()
 
-    matches = fb.scrape_matches(league="UEFA European Championship", year="2008")
-    return (matches,)
+    league, year = "FBref Big 5 Combined", "2024-2025"
+    stat_category = "goalkeeping"
+
+    stats = self.scrape_stats(year, league, stat_category)
+    return (stats,)
 
 
 @app.cell
-def _(matches):
-    matches
+def _(stats):
+    stats["player"]
     return
 
 
