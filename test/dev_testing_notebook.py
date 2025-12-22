@@ -15,6 +15,8 @@ def _():
     from tqdm import tqdm
     from botasaurus.browser import browser, ElementWithSelectorNotFoundException
     from bs4 import BeautifulSoup
+    import requests
+    import time
 
     sys.path.append(str(find_root() / "src"))
     import ScraperFC as sfc
@@ -24,18 +26,9 @@ def _():
 
 @app.cell
 def _(sfc):
-    self = sfc.FBref()
+    ce = sfc.ClubElo()
 
-    league, year = "FBref Big 5 Combined", "2024-2025"
-    stat_category = "goalkeeping"
-
-    stats = self.scrape_stats(year, league, stat_category)
-    return (stats,)
-
-
-@app.cell
-def _(stats):
-    stats["player"]
+    ce.scrape_team("Arsenal")
     return
 
 

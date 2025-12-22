@@ -1,48 +1,105 @@
-from datetime import datetime
+from datetime import datetime as dt
 from io import StringIO
 import pandas as pd
 import requests
-from .scraperfc_exceptions import ClubEloInvalidTeamException
 
 
 class ClubElo:
 
     # ==============================================================================================
+    @staticmethod
+    def _clubelo_query(url: str) -> pd.DataFrame:
+        """ Query ClubElo API and return as DataFrame
+
+        :param url: ClubElo API URL to query
+        :type url: str
+
+        :rtype: pd.DataFrame
+        """
+        if not isinstance(url, str):
+            raise TypeError("`url` must be a string.")
+
+        r = requests.get(url)
+        return pd.read_csv(StringIO(r.text))
+
+    # ==============================================================================================
+    @staticmethod
+    def _is_valid_date(date: str) -> bool:
+        """ Check if date is valid
+
+        :param date: Date to check
+        :type date: str
+
+        :rtype: bool
+        """
+        try:
+            dt.strptime(date, "%Y-%m-%d")
+            return True
+        except Exception:
+            return False
+
+    # ==============================================================================================
+    def scrape_team(self, team: str) -> pd.DataFrame:
+        """ Scrape team data
+
+        :param team: Team name to scrape data for.
+        :type team: str
+
+        :rtype: pd.DataFrame
+        """
+        if not isinstance(team, str):
+            raise TypeError("`team` must be a string.")
+
+        df = self._clubelo_query(f"http://api.clubelo.com/{team}")
+        if df.shape[0] == 0:
+            raise Exception(f"No data for team `{team}` was found.")
+        return df
+
+    # ==============================================================================================
+    def scrape_date(self, date: str) -> pd.DataFrame:
+        """ Scrape ELO scores on specific date
+
+        :param date: Date to scrape data for. Date should be in YYYY-MM-DD format.
+        :type date: str
+
+        :rtype: pd.DataFrame
+        """
+        if not isinstance(date, str):
+            raise TypeError("`date` must be a string.")
+        if not self._is_valid_date(date):
+            raise ValueError(f"{date} is not a valid date. Format must be YYYY-MM-DD.")
+        return self._clubelo_query(f"http://api.clubelo.com/{date}")
+
+    # ==============================================================================================
+    def scrape_fixtures(self) -> pd.DataFrame:
+        """ Scrape upcoming fixtures
+
+        See http://clubelo.com/API for more info on what kind of data is returned.
+
+        :rtype: pd.DataFrame
+        """
+        return self._clubelo_query("https://api.clubelo.com/Fixtures")
+
+    # ==============================================================================================
     def scrape_team_on_date(self, team: str, date: str) -> float:
-        """ Scrapes a team's ELO score on a given date.
+        """ Scrape ELO score of a team on a specific date
 
-        :param str team: To get the appropriate team name, go to clubelo.com and find the team
-            you're looking for. Copy and past the team's name as it appears in the URL.
-        :param str date: Must be formatted as YYYY-MM-DD
+        :param team: Team name to scrape data for.
+        :type team: str
+        :param date: Date to scrape data for. Date should be in YYYY-MM-DD format.
+        :type date: str
 
-        :returns: ELO score of the given team on the given date. Will be -1 if the team has no score
-            on that date.
         :rtype: float
         """
-        # Check inputs
         if not isinstance(team, str):
-            raise TypeError('`team` must be a string.')
+            raise TypeError("`team` must be a string.")
         if not isinstance(date, str):
-            raise TypeError('`date` must be a string.')
+            raise TypeError("`date` must be a string.")
+        if not self._is_valid_date(date):
+            raise ValueError(f"{date} is not a valid date. Format must be YYYY-MM-DD.")
 
-        # Use ClubElo API to get team data as Pandas DataFrame
-        url = f'http://api.clubelo.com/{team}'
-        while 1:
-            try:
-                r = requests.get(url)
-                break
-            except requests.exceptions.ConnectionError:
-                pass
-        df = pd.read_csv(StringIO(r.text), sep=',')
-        if df.shape[0] == 0:
-            raise ClubEloInvalidTeamException(team)
-
-        # find row that given date falls in
-        df["From"] = pd.DatetimeIndex(df["From"])
-        df["To"] = pd.DatetimeIndex(df["To"])
-        date_datetime = datetime.strptime(date, '%Y-%m-%d')
-        df = df.loc[(date_datetime >= df["From"]) & (date_datetime <= df["To"])]
-
-        elo = -1 if df.shape[0] == 0 else df["Elo"].values[0]
-
-        return elo  # return -1 if ELO not found for given date
+        df = self.scrape_date(date)
+        team_row = df[df["Club"] == team]
+        if team_row.shape[0] == 0:
+            raise Exception(f"No rows for team `{team}` were found on {date}.")
+        return float(team_row["Elo"].array[0])
