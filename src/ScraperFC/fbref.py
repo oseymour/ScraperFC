@@ -11,7 +11,7 @@ from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException,\
     NoMatchLinksException
 from .utils import get_module_comps
 from .fbref_scrape_match_helpers import _get_date, _get_stage, _get_team_names, _get_team_ids,\
-    _get_goals, _get_player_stats, _get_shots
+    _get_goals, _get_player_stats, _get_shots, _get_officials
 from .fbref_match import FBrefMatch
 from .fbref_scrape_stats_helpers import _scrape_big5_stats, _scrape_not_big5_stats
 
@@ -179,12 +179,15 @@ class FBref:
         home_goals, away_goals = _get_goals(soup)
         player_stats = _get_player_stats(soup)
         shots = _get_shots(soup)
+        officials = _get_officials(soup)
 
         return FBrefMatch(
             url=link, date=date, stage=stage, home_team=home_name, away_team=away_name,
             home_id=home_id, away_id=away_id, home_goals=home_goals, away_goals=away_goals,
             home_player_stats=player_stats["home"], away_player_stats=player_stats["away"],
             all_shots=shots["all"], home_shots=shots["home"], away_shots=shots["away"],
+            referee=officials["Referee"], ar1=officials["AR1"], ar2=officials["AR2"],
+            fourth_official=officials["4th"], var=officials["VAR"]
         )
 
     # ==============================================================================================

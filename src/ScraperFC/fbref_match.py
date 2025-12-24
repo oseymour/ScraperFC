@@ -18,6 +18,11 @@ class FBrefMatch():
     all_shots: pd.DataFrame
     home_shots: pd.DataFrame
     away_shots: pd.DataFrame
+    referee: str | None
+    ar1: str | None
+    ar2: str | None
+    fourth_official: str | None
+    var: str | None
 
     def __repr__(self) -> str:
         return f"FBrefMatch({self.date}, `{self.url}`)"

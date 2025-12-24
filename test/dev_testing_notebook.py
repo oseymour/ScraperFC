@@ -26,9 +26,17 @@ def _():
 
 @app.cell
 def _(sfc):
-    ce = sfc.ClubElo()
+    fb = sfc.FBref()
 
-    ce.scrape_team("Arsenal")
+    match_link = "https://fbref.com/en/matches/ba5dd68e/Alaves-Barcelona-October-6-2024-La-Liga"
+
+    match = fb.scrape_match(match_link)
+    return (match,)
+
+
+@app.cell
+def _(match):
+    match.__dict__
     return
 
 

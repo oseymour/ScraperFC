@@ -1,6 +1,5 @@
 """ Helper functions for fbref.scrape_match()
 """
-
 from bs4 import BeautifulSoup
 from io import StringIO
 import re
@@ -93,3 +92,49 @@ def _get_shots(soup: BeautifulSoup) -> dict[str, pd.DataFrame]:
     away_shots = pd.read_html(StringIO(str(away_el)))[0] if away_el else pd.DataFrame()
 
     return {"all": all_shots, "home": home_shots, "away": away_shots}
+
+# ==================================================================================================
+def _get_officials(soup: BeautifulSoup) -> dict[str, str]:
+    """ Gets officials' names
+    """
+    return_dict = {"Referee": "", "AR1": "", "AR2": "", "4th": "", "VAR": ""}
+
+    strong_officials_tag = soup.find("strong", string="Officials")
+    if not strong_officials_tag:
+        return return_dict
+
+    officials_tag = strong_officials_tag.parent
+    if not officials_tag:
+        return return_dict
+
+    referee_tag = officials_tag.find(string=re.compile("Referee"))
+    if referee_tag:
+        referee = referee_tag.text
+        referee = referee.replace("\xa0", " ").replace(" (Referee)", "")
+        return_dict["Referee"] = referee
+
+    ar1_tag = officials_tag.find(string=re.compile("AR1"))
+    if ar1_tag:
+        ar1 = ar1_tag.text
+        ar1 = ar1.replace("\xa0", " ").replace(" (AR1)", "")
+        return_dict["AR1"] = ar1
+
+    ar2_tag = officials_tag.find(string=re.compile("AR2"))
+    if ar2_tag:
+        ar2 = ar2_tag.text
+        ar2 = ar2.replace("\xa0", " ").replace(" (AR2)", "")
+        return_dict["AR2"] = ar2
+
+    fourth_tag = officials_tag.find(string=re.compile("4th"))
+    if fourth_tag:
+        fourth = fourth_tag.text
+        fourth = fourth.replace("\xa0", " ").replace(" (4th)", "")
+        return_dict["4th"] = fourth
+
+    var_tag = officials_tag.find(string=re.compile("VAR"))
+    if var_tag:
+        var = var_tag.text
+        var = var.replace("\xa0", " ").replace(" (VAR)", "")
+        return_dict["VAR"] = var
+
+    return return_dict
