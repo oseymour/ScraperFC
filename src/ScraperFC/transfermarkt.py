@@ -301,3 +301,155 @@ class Transfermarkt():
         player["Transfer history"] = transfer_history
 
         return player.to_frame().T
+
+    # ==============================================================================================
+    def scrape_trainer_history(self, trainer_link: str) -> pd.DataFrame:
+        """
+        Scrape the career history table from a trainer profile.
+
+        Parameters
+
+        trainer_link : str
+
+        Returns
+
+        pandas.DataFrame
+        """
+        headers = {"User-Agent": "Mozilla/5.0"}
+        r = requests.get(trainer_link, headers=headers, timeout=30)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "lxml")
+
+        table = soup.find("table", class_="items")
+        if table is None:
+            return pd.DataFrame()
+
+        # parse header cells
+        columns = []
+        for th in table.find("thead").find_all("th"):
+            # prefer title attr (Matches, PPM), fallback to text
+            col = th.get("title") or th.get_text(strip=True)
+            columns.append(col)
+
+        # parse body rows
+        rows = []
+        for tr in table.find("tbody").find_all("tr"):
+            tds = tr.find_all("td")
+            if not tds:
+                continue
+            row = [td.get_text(strip=True) for td in tds]
+            # align with header
+            if len(row) < len(columns):
+                row += [None] * (len(columns) - len(row))
+            rows.append(row)
+
+        df = pd.DataFrame(rows, columns=columns)
+
+        # add context
+        trainer_name = soup.find("h1").get_text(strip=True) if soup.find("h1") else None
+        df.insert(0, "trainer_name", trainer_name)
+        df.insert(1, "source_url", trainer_link)
+
+        return df
+
+    # ==============================================================================================
+    def scrape_trainer(self, trainer_link: str) -> pd.DataFrame:
+        """
+        Scrape a trainer profile.
+
+        Parameters
+
+        trainer_link : str
+            Transfermarkt trainer profile URL.
+
+        Returns
+
+        pandas.DataFrame
+            Single-row dataframe with normalized personal details +
+            context columns: ['trainer_name', 'source_url', ...].
+        """
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            )
+        }
+        r = requests.get(trainer_link, headers=headers, timeout=30)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "lxml")
+
+        # helpers
+        def squash(s: str) -> str:
+            return " ".join((s or "").split())
+
+        def norm_key(raw: str) -> str:
+            """
+            Normalize visible header labels to stable snake_case,
+            then apply a small mapping to unify common variants.
+            """
+            k = (raw or "").lower().strip()
+            k = k.replace(":", "").replace("/", " ")
+            k = " ".join(k.split())
+            k = k.replace(" ", "_")
+            mapping = {
+                "name_in_home_country": "full_name_native",
+                "full_name": "full_name_native",
+                "date_of_birth_age": "date_of_birth_age",
+                "date_of_birth": "date_of_birth_age",
+                "place_of_birth": "place_of_birth",
+                "citizenship": "citizenship",
+                "avg._term_as_trainer": "avg_term_as_trainer",
+                "avg_term_as_trainer": "avg_term_as_trainer",
+                "trainering_licence": "trainering_licence",
+                "preferred_formation": "preferred_formation",
+            }
+            return mapping.get(k, k)
+
+        # context: trainer name from <h1>
+        trainer_name = None
+        h1 = soup.find("h1")
+        if h1:
+            trainer_name = squash(h1.get_text())
+
+        # collect from all .data-header__details blocks (desktop/mobile variants)
+        data = {}
+        for details in soup.select(".data-header__details"):
+            # inside, each row is typically a <li> where:
+            #   - direct text node (before <span>) is the key label
+            #   - <span class="data-header__content"> contains the value
+            for li in details.find_all("li", class_="data-header__label"):
+                # direct text of <li> (not including nested <span>)
+                key_text = li.find(text=True, recursive=False)
+                if not key_text:
+                    # fallback: use first stripped string up to colon
+                    key_text = li.get_text(separator=" ", strip=True).split(":")[0]
+                key = norm_key(squash(key_text))
+
+                span = li.find("span", class_="data-header__content")
+                val = squash(span.get_text()) if span else None
+
+                # store last non-empty value wins
+                if val:
+                    data[key] = val
+
+        # build final row (keep values as-is, no extra parsing)
+        row = {
+            "trainer_name": trainer_name,
+            "source_url": trainer_link,
+            # commonly present fields; safe .get() if some keys absent
+            "full_name_native": data.get("full_name_native"),
+            "date_of_birth_age": data.get("date_of_birth_age"),
+            "place_of_birth": data.get("place_of_birth"),
+            "citizenship": data.get("citizenship"),
+            "avg_term_as_trainer": data.get("avg_term_as_trainer"),
+            "trainering_licence": data.get("trainering_licence"),
+            "preferred_formation": data.get("preferred_formation"),
+        }
+
+        # also include any additional normalized keys that appeared in the header
+        # but weren't in the predefined list
+        for k, v in data.items():
+            if k not in row:
+                row[k] = v
+
+        return pd.DataFrame([row])

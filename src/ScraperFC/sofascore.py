@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Union, Sequence
+from typing import Union, Sequence, Any, Dict, Optional
 import warnings
 from tqdm import tqdm
 
@@ -521,3 +521,58 @@ class Sofascore:
         )
 
         return df
+
+    # ==============================================================================================
+    def scrape_manager_details(self, manager_id: int) -> pd.DataFrame:
+        """
+        Fetch manager info from SofaScore.
+
+        Parameters
+        ----------
+        manager_id : int
+            SofaScore manager ID, e.g. 789851
+
+        Returns
+        -------
+        pd.DataFrame
+            One-row DataFrame with normalized manager info
+        """
+        profile: Dict[str, Any] = {}
+        career_json: Optional[dict] = None
+
+
+        for url in (
+            f"https://api.sofascore.com/api/v1/manager/{manager_id}",
+            f"https://www.sofascore.com/api/v1/manager/{manager_id}",
+        ):
+            j = botasaurus_browser_get_json(url)
+            if isinstance(j, dict):
+                profile = j.get("manager", j)
+                break
+
+
+        country_block = profile.get("country") or {}
+        if isinstance(country_block, str):
+            country_block = {"name": country_block}
+
+        current_team = None
+        t = profile.get("team") or profile.get("currentTeam")
+        if isinstance(t, dict):
+            current_team = {
+                "id": t.get("id"),
+                "name": t.get("name"),
+                "slug": t.get("slug"),
+            }
+
+        result = {
+            "id": profile.get("id") or manager_id,
+            "name": profile.get("name") or profile.get("shortName") or profile.get("fullName"),
+            "slug": profile.get("slug") or profile.get("seoSlug"),
+            "country_name": country_block.get("name"),
+            "country_alpha2": country_block.get("alpha2") or country_block.get("code"),
+            "current_team": current_team["name"] if current_team else None,
+            "preferredFormation": profile.get("preferredFormation") or (profile.get("attributes") or {}).get("preferredFormation"),
+            "height": profile.get("height") if isinstance(profile.get("height"), int) else None
+        }
+
+        return pd.DataFrame([result])
