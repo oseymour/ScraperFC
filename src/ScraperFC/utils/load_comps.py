@@ -1,7 +1,7 @@
 import yaml
-from rootutils import find_root
+from importlib import resources
 
 def load_comps() -> dict:
-    with open(find_root() / "src" / "ScraperFC" / "comps.yaml", "r") as f:
-        comps = yaml.safe_load(f)
+    data = resources.files("ScraperFC").joinpath("comps.yaml").read_text()
+    comps = yaml.safe_load(data)
     return comps

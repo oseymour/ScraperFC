@@ -1,7 +1,7 @@
 [project]
 # -- Metadata --------------------------------------------------------------------------------------
 name = "ScraperFC"
-version = "4.0.0"
+version = "4.0.1"
 description = "Package for scraping soccer data from a variety of sources."
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -9,7 +9,7 @@ requires-python = ">= 3.10"
 keywords = [
     "webscraping", "scraping", "soccer", "football", "soccer data", "football data",
     "English Premier League", "La Liga", "Bundesliga", "Serie A", "Ligue 1", "Champions League",
-    "World Cup"
+    "World Cup", "FBref", "Sofascore", "ClubElo", "Capology", "Understat", "Transfermarkt",
 ]
 authors = [
     {email = "osmour043@gmail.com"},
@@ -80,6 +80,9 @@ documentation = "https://scraperfc.readthedocs.io/en/latest/"
 [build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.package-data]
+"ScraperFC" = ["comps.yaml"]
 
 # -- Typechecking ----------------------------------------------------------------------------------
 [tool.mypy]

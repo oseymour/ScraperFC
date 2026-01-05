@@ -20,23 +20,12 @@ def _():
 
     sys.path.append(str(find_root() / "src"))
     import ScraperFC as sfc
-    from ScraperFC.fbref import stats_categories
     return (sfc,)
 
 
 @app.cell
 def _(sfc):
-    fb = sfc.FBref()
-
-    match_link = "https://fbref.com/en/matches/ba5dd68e/Alaves-Barcelona-October-6-2024-La-Liga"
-
-    match = fb.scrape_match(match_link)
-    return (match,)
-
-
-@app.cell
-def _(match):
-    match.__dict__
+    sfc.utils.get_module_comps("CAPOLOGY")
     return
 
 
