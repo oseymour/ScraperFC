@@ -12,14 +12,8 @@ def get_proxy() -> str:
     https://stackoverflow.com/questions/59409418/how-to-rotate-selenium-webrowser-ip-address.
     Randomly chooses one proxy.
 
-    Parameters
-    ----------
-    None
-
-    Returns
-    -------
-    proxy : str
-        In the form <IP address>:<port>
+    :return: proxy, in the form <IP address>:<port>
+    :rtype: str
     """
     r = requests.get("https://sslproxies.org/")
     soup = BeautifulSoup(r.content, "html.parser")

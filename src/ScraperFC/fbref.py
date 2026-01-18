@@ -1,7 +1,6 @@
 import re
 import time
 from io import StringIO
-from typing import Sequence
 import pandas as pd
 from bs4 import BeautifulSoup
 from tqdm import tqdm
@@ -62,10 +61,12 @@ class FBref:
     def get_valid_seasons(self, league: str) -> dict:
         """Finds all of the valid years and their URLs for a given competition
 
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
         :return: dict(year: url, ...), URLs need to be appended to "https://fbref.com" to be a
             complete URL.
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises InvalidLeagueException: If the league is not a valid league for this module.
         :rtype: dict
         """
         if not isinstance(league, str):
@@ -86,14 +87,18 @@ class FBref:
         return valid_seasons
 
     # ==============================================================================================
-    def get_match_links(self, year: str, league: str) -> Sequence[str]:
+    def get_match_links(self, year: str, league: str) -> list[str]:
         """Gets all match links for the chosen league season.
 
-        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: FBref links to all matches for the chosen league season
-        :rtype: List[str]
+        :param year: .. include:: ./arg_docstrings/year_fbref.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises InvalidYearException: If the year is not a valid year for the chosen league.
+        :raises NoMatchLinksException: If there are no match links for the chosen league season.
+        :return: FBref links to all matches for the chosen league season
+        :rtype: list[str]
         """
         valid_seasons = self.get_valid_seasons(league)
         if not isinstance(year, str):
@@ -125,16 +130,19 @@ class FBref:
         return match_urls
 
     # ==============================================================================================
-    def scrape_league_table(self, year: str, league: str) -> Sequence[pd.DataFrame]:
+    def scrape_league_table(self, year: str, league: str) -> list[pd.DataFrame]:
         """Scrapes the league table of the chosen league season
 
-        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: Returns a list of all position tables from the league's homepage on
+        :param year: .. include:: ./arg_docstrings/year_fbref.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises InvalidYearException: If the year is not valid for the league.
+        :return: Returns a list of all position tables from the league's homepage on
             FBref. The first table will be the league table, all tables after that
             vary by competition.
-        :rtype: List[pandas.DataFrame]
+        :rtype: list[pd.DataFrame]
         """
         if not isinstance(year, str):
             raise TypeError("`year` must be a string.")
@@ -160,12 +168,10 @@ class FBref:
     def scrape_match(self, link: str) -> FBrefMatch:
         """Scrapes an FBref match page.
 
-        :param year: .. include:: ./arg_docstrings/year_fbref.rst
-        :type year: str
-        :param league: .. include:: ./arg_docstrings/league.rst
-        :type league: str
-
-        :returns: Match data
+        :param link: URL to an FBref match.
+        :type link: str
+        :raises TypeError: If ``link`` is not a string.
+        :return: Match data
         :rtype: FBrefMatch
         """
         if not isinstance(link, str):
@@ -201,8 +207,7 @@ class FBref:
         :type year: str
         :param league: .. include:: ./arg_docstrings/league.rst
         :type league: str
-
-        :returns: List of match datas
+        :return: List of match datas
         :rtype: list[FBrefMatch]
         """
         matches = list()
@@ -225,13 +230,18 @@ class FBref:
 
         Adds team and player ID columns to the stats tables
 
-        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-        :param str stat_category: The stat category to scrape.
-
-        :returns: (squad_stats, opponent_stats, player_stats). Tuple elements will be None if the
+        :param year: .. include:: ./arg_docstrings/year_fbref.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :param stat_category: The stat category to scrape.
+        :type stat_category: str
+        :raises TypeError: If any of the parmaters are the wrong type.
+        :raises InvalidYearException: If the year is not valid for the chosen league.
+        :raises ValueError: If the stat category is not valid.
+        :return: (squad_stats, opponent_stats, player_stats). Tuple elements will be None if the
             squad stats category does not contain data for the given `year` and `league`.
-        :rtype: tuple[pd.DataFrame | None]
+        :rtype: dict[str, pd.DataFrame]
         """
         valid_seasons = self.get_valid_seasons(league)
         if not isinstance(year, str):
@@ -262,10 +272,11 @@ class FBref:
         Runs scrape_stats() for each stats category on dumps the returned tuple
         of dataframes into a dict.
 
-        :param str year: .. include:: ./arg_docstrings/year_fbref.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: {stat category: tuple of DataFrame, ...}, Tuple is (squad_stats, opponent_stats,
+        :param year: .. include:: ./arg_docstrings/year_fbref.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :return: {stat category: tuple of DataFrame, ...}, Tuple is (squad_stats, opponent_stats,
             player_stats)
         :rtype: dict
         """

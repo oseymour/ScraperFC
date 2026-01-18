@@ -14,3 +14,4 @@ API Documentation
    transfermarkt.rst
    understat.rst
    utils.rst
+   exceptions.rst

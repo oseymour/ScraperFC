@@ -13,7 +13,7 @@ class ClubElo:
 
         :param url: ClubElo API URL to query
         :type url: str
-
+        :raises TypeError: If ``url`` is not a string.
         :rtype: pd.DataFrame
         """
         if not isinstance(url, str):
@@ -29,7 +29,6 @@ class ClubElo:
 
         :param date: Date to check
         :type date: str
-
         :rtype: bool
         """
         try:
@@ -44,7 +43,8 @@ class ClubElo:
 
         :param team: Team name to scrape data for.
         :type team: str
-
+        :raises TypeError: If ``team`` is not a string.
+        :raises Exception: If no data is found for the team.
         :rtype: pd.DataFrame
         """
         if not isinstance(team, str):
@@ -61,7 +61,8 @@ class ClubElo:
 
         :param date: Date to scrape data for. Date should be in YYYY-MM-DD format.
         :type date: str
-
+        :raises TypeError: If ``date`` is not a string.
+        :raises ValueError: If ``date`` is not a valid date in YYYY-MM-DD format.
         :rtype: pd.DataFrame
         """
         if not isinstance(date, str):
@@ -88,7 +89,9 @@ class ClubElo:
         :type team: str
         :param date: Date to scrape data for. Date should be in YYYY-MM-DD format.
         :type date: str
-
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises ValueError: If the date is not a valid date in YYYY-MM-DD format.
+        :raises Exception: If no data is found for the team on the specified date.
         :rtype: float
         """
         if not isinstance(team, str):

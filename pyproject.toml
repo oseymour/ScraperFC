@@ -57,7 +57,7 @@ build = [
 ]
 publish = ["publish>=0.3.6",]
 dev = [
-    "marimo>=0.18.4",
+    "marimo>=0.19.4",
     "tox>=4.24.1",
 ]
 typecheck = [
@@ -70,7 +70,10 @@ typecheck = [
     "types-pyyaml>=6.0.12.20250516",
     "mypy>=1.14.1",
 ]
-lint = ["ruff>=0.11.10",]
+lint = [
+    "ruff>=0.11.10",
+    "pydoclint>=0.8.3"
+]
 
 [project.urls]
 repository = "https://github.com/oseymour/ScraperFC/"

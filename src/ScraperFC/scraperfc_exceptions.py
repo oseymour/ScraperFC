@@ -41,7 +41,7 @@ class NoMatchLinksException(Exception):
 
 
 class ClubEloInvalidTeamException(Exception):
-    """ Raised when an invalid team is used
+    """ Raised when an invalid team is used in the ClubElo module.
     """
     def __init__(self, team: str) -> None:
         super().__init__()

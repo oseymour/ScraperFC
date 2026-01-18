@@ -8,7 +8,6 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 from io import StringIO
-from typing import Sequence
 
 from ScraperFC.scraperfc_exceptions import InvalidCurrencyException, InvalidLeagueException, \
     InvalidYearException
@@ -44,9 +43,11 @@ class Capology():
     def get_league_url(self, league: str) -> str:
         """ Returns the URL for the requested league
 
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: League URL
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If the league is not a string.
+        :raises InvalidLeagueException: If the league is not valid for this module.
+        :return: League URL
         :rtype: str
         """
         if not isinstance(league, str):
@@ -57,13 +58,15 @@ class Capology():
         return f'https://www.capology.com/{comps[league]["CAPOLOGY"]}/salaries/'
 
     # ==============================================================================================
-    def get_valid_seasons(self, league: str) -> Sequence[str]:
+    def get_valid_seasons(self, league: str) -> list[str]:
         """ Returns valid season strings for the chosen league
 
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: List of valid year strings for this league
-        :rtype: List[str]
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises InvalidLeagueException: If the league is not valid for this module.
+        :return: List of valid year strings for this league
+        :rtype: list[str]
         """
         if not isinstance(league, str):
             raise TypeError('`league` must be a string.')
@@ -81,10 +84,13 @@ class Capology():
     def get_season_url(self, year: str, league: str) -> str:
         """ Gets URL to chosen year of league
 
-        :param str year: .. include:: ./arg_docstrings/year_capology.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: Season URL
+        :param year: .. include:: ./arg_docstrings/year_capology.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises InvalidYearException: If the year is not valid for the league.
+        :return: Season URL
         :rtype: str
         """
         if not isinstance(year, str):
@@ -104,13 +110,17 @@ class Capology():
     def scrape_salaries(self, year: str, league: str, currency: str) -> pd.DataFrame:
         """ Scrapes player salaries for the given league season.
 
-        :param str year: .. include:: ./arg_docstrings/year_capology.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-        :param str currency: The currency for the returned salaries. Options are "eur" for Euro,
+        :param year: .. include:: ./arg_docstrings/year_capology.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :param currency: The currency for the returned salaries. Options are "eur" for Euro,
             "gbp" for British Pound, and "USD" for US Dollar
-
-        :returns: The salaries of all players in the given league season
-        :rtype: pandas.DataFrame
+        :type currency: str
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises InvalidCurrencyException: If ``currency`` is not a valid choice.
+        :return: The salaries of all players in the given league season
+        :rtype: pd.DataFrame
         """
         if not isinstance(currency, str):
             raise TypeError('`currency` must be a string.')

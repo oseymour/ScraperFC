@@ -13,7 +13,9 @@ def botasaurus_request_get_json(url: str, delay: int = 0) -> dict:
     :type url: str
     :param delay: Seconds to wait after the request (default: 0)
     :type delay: int
-
+    :raises TypeError: If any of the parameters are the wrong type
+    :raises ValueError: If ``delay`` is negative
+    :return: JSON data
     :rtype: dict
     """
     if not isinstance(url, str):
@@ -49,7 +51,9 @@ def botasaurus_browser_get_json(
     :type wait_for_complete_page_load: bool
     :param delay: Seconds to wait after the request (default: 0)
     :type delay: int
-
+    :raises TypeError: If any of the parameters are the wrong type
+    :raises ValueError: If ``delay`` is negative
+    :return: JSON data
     :rtype: dict
     """
     if not isinstance(url, str):
@@ -86,8 +90,10 @@ def botasaurus_request_get_soup(url: str, delay: int = 0) -> BeautifulSoup:
     :type url: str
     :param delay: Seconds to wait after the request (default: 0)
     :type delay: int
-
-    :rtype: bs4.BeautifulSoup
+    :raises TypeError: If any of the parameters are the wrong type
+    :raises ValueError: If ``delay`` is negative
+    :return: BeautifulSoup object
+    :rtype: BeautifulSoup
     """
     if not isinstance(url, str):
         raise TypeError("`url` must be a string.")
@@ -123,8 +129,10 @@ def botasaurus_browser_get_soup(
     :type wait_for_complete_page_load: bool
     :param delay: Seconds to wait after the request (default: 0)
     :type delay: int
-
-    :rtype: bs4.BeautifulSoup
+    :raises TypeError: If any of the parameters are the wrong type
+    :raises ValueError: If ``delay`` is negative
+    :return: BeautifulSoup object
+    :rtype: BeautifulSoup
     """
     if not isinstance(url, str):
         raise TypeError("`url` must be a string.")

@@ -25,7 +25,19 @@ def _():
 
 @app.cell
 def _(sfc):
-    sfc.utils.get_module_comps("CAPOLOGY")
+    fb = sfc.FBref()
+    return (fb,)
+
+
+@app.cell
+def _(fb):
+    stats = fb.scrape_all_stats(league="Portugal Primeira Liga", year="2024-2025")
+    return (stats,)
+
+
+@app.cell
+def _(stats):
+    [stats[k]['player'].shape for k in stats]
     return
 
 

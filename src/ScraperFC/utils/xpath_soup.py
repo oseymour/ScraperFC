@@ -1,20 +1,10 @@
 from bs4.element import Tag, NavigableString
-from typing import Union
 
 
-def xpath_soup(element: Union[Tag, NavigableString]) -> str:
+def xpath_soup(element: Tag | NavigableString) -> str:
     """ Generate xpath from BeautifulSoup4 element.
 
     I shamelessly stole this from https://gist.github.com/ergoithz/6cf043e3fdedd1b94fcf.
-
-    Parameters
-    ----------
-    element : bs4.element.Tag or bs4.element.NavigableString
-        BeautifulSoup4 element.
-
-    Returns
-    -------
-    xpath : str
 
     Example
     -------
@@ -31,6 +21,11 @@ def xpath_soup(element: Union[Tag, NavigableString]) -> str:
     >>> soup = bs4.BeautifulSoup(xml, "lxml-xml")
     >>> xpath_soup(soup.doc.elm.next_sibling)
     "/doc/elm[2]"
+
+    :param element: BeautifulSoup4 element.
+    :type element: Tag | NavigableString
+    :return: xpath
+    :rtype: str
     """
     components = []
     child = element if element.name else element.parent  # type: ignore

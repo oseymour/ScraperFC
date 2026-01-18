@@ -3,7 +3,6 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 import cloudscraper
-from typing import Sequence
 import warnings
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from ScraperFC.utils import get_module_comps, botasaurus_request_get_soup
@@ -19,9 +18,11 @@ class Transfermarkt():
     def get_valid_seasons(self, league: str) -> dict:
         """ Return valid seasons for the chosen league
 
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: year str is key, ID is value
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If ``league`` is not a string
+        :raises InvalidLeagueException: If ``league`` is not a valid league for this module.
+        :return: year str is key, ID is value
         :rtype: dict
         """
         if not isinstance(league, str):
@@ -38,14 +39,17 @@ class Transfermarkt():
         return valid_seasons
 
     # ==============================================================================================
-    def get_club_links(self, year: str, league: str) -> Sequence[str]:
+    def get_club_links(self, year: str, league: str) -> list[str]:
         """ Gathers all Transfermarkt club URL"s for the chosen league season.
 
-        :param str year: .. include:: ./arg_docstrings/year_transfermarkt.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: List of club URLs
-        :rtype: List[str]
+        :param year: .. include:: ./arg_docstrings/year_transfermarkt.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If any parameters are the wrong type
+        :raises InvalidYearException: If ``year`` is not a valid year for the league.
+        :return: List of club URLs
+        :rtype: list[str]
         """
         if not isinstance(year, str):
             raise TypeError("`year` must be a string.")
@@ -73,14 +77,15 @@ class Transfermarkt():
             scraper.close()
 
     # ==============================================================================================
-    def get_player_links(self, year: str, league: str) -> Sequence[str]:
+    def get_player_links(self, year: str, league: str) -> list[str]:
         """ Gathers all Transfermarkt player URL"s for the chosen league season.
 
-        :param str year: .. include:: ./arg_docstrings/year_transfermarkt.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: List of player URLs
-        :rtype: List[str]
+        :param year: .. include:: ./arg_docstrings/year_transfermarkt.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :return: List of player URLs
+        :rtype: list[str]
         """
         player_links = list()
         scraper = cloudscraper.CloudScraper()
@@ -101,14 +106,15 @@ class Transfermarkt():
             scraper.close()
 
     # ==============================================================================================
-    def get_match_links(self, year: str, league: str) -> Sequence[str]:
+    def get_match_links(self, year: str, league: str) -> list[str]:
         """ Returns all match links for a given competition season.
 
-        :param str year: .. include:: ./arg_docstrings/year_transfermarkt.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: List of match URLs
-        :rtype: List[str]
+        :param year: .. include:: ./arg_docstrings/year_transfermarkt.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :return: List of match URLs
+        :rtype: list[str]
         """
         valid_seasons = self.get_valid_seasons(league)
         fixtures_url = f"{comps[league]['TRANSFERMARKT'].replace('startseite', 'gesamtspielplan')}/saison_id/{valid_seasons[year]}"
@@ -125,11 +131,12 @@ class Transfermarkt():
     def scrape_players(self, year: str, league: str) -> pd.DataFrame:
         """ Gathers all player info for the chosen league season.
 
-        :param str year: .. include:: ./arg_docstrings/year_transfermarkt.rst
-        :param str league: .. include:: ./arg_docstrings/league.rst
-
-        :returns: Each row is a player and contains some of the information from their Transfermarkt
-        :rtype: pandas.DataFrame
+        :param year: .. include:: ./arg_docstrings/year_transfermarkt.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :return: Each row is a player and contains some of the information from their Transfermarkt
+        :rtype: pd.DataFrame
         """
         player_links = self.get_player_links(year, league)
         df = pd.DataFrame()
@@ -143,10 +150,10 @@ class Transfermarkt():
     def scrape_player(self, player_link: str) -> pd.DataFrame:
         """ Scrape a single player Transfermarkt link
 
-        :param str player_link: Valid player Transfermarkt URL
-
-        :returns: 1-row dataframe with all of the player details
-        :rtype: pandas.DataFrame
+        :param player_link: Valid player Transfermarkt URL
+        :type player_link: str
+        :return: 1-row dataframe with all of the player details
+        :rtype: pd.DataFrame
         """
         r = requests.get(
             player_link,
