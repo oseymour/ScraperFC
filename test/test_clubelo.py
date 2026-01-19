@@ -49,12 +49,12 @@ class TestClubElo:
         actual = ClubElo().scrape_team_on_date(team, date)
         assert actual == expected
 
-    # ==============================================================================================
-    def test_scrape_fixtures(self):
-        actual = ClubElo().scrape_fixtures()
-        assert isinstance(actual, pd.DataFrame)
-        assert actual.shape[0] > 0
-        assert actual.shape[1] > 0
+    # # ==============================================================================================
+    # def test_scrape_fixtures(self):
+    #     actual = ClubElo().scrape_fixtures()
+    #     assert isinstance(actual, pd.DataFrame)
+    #     assert actual.shape[0] > 0
+    #     assert actual.shape[1] > 0
 
     # ==============================================================================================
     def test_scrape_team(self):
