@@ -22,7 +22,7 @@ def _():
     import ScraperFC as sfc
     from ScraperFC.fbref_helpers import _get_player_id_from_url, _get_team_id_from_url, _find_commented_out_tables
     from ScraperFC.fbref_scrape_stats_helpers import _get_stats_table_tag
-    return re, sfc
+    return (sfc,)
 
 
 @app.cell
@@ -40,34 +40,17 @@ def _():
         "playing time": {"url": "playingtime", "html": "playing_time"},
         "misc": {"url": "misc", "html": "misc"},
     }
-    return (stats_categories,)
+    return
 
 
 @app.cell
 def _(sfc):
     fb = sfc.FBref()
 
-    url = "https://fbref.com/en/comps/10/2024-2025/stats/2024-2025-Championship-Stats"
+    year = "1966"
+    league = "FIFA World Cup"
 
-    soup = fb._get_soup(url)
-    return (soup,)
-
-
-@app.cell
-def _(re, soup, stats_categories):
-    stat_category = "standard"
-
-    squad_table_tag = _get_stats_table_tag(
-        soup,
-        {"name": "table", "attrs": {"id": re.compile(f"{stats_categories[stat_category]['html']}_for")}}
-    )
-
-    team_els = squad_table_tag.find_all("tr")
-    [
-        el.find("a")["href"]
-        for el in team_els
-        if el.find("a")
-    ]
+    matches = fb.scrape_matches(year, league)
     return
 
 

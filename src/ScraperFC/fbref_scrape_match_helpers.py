@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from io import StringIO
 import re
 import pandas as pd
+from .fbref_helpers import _get_ids_from_table
 
 # ==================================================================================================
 def _get_date(soup: BeautifulSoup) -> str:
@@ -66,6 +67,9 @@ def _get_player_stats(soup: BeautifulSoup) -> dict[str, dict[str, pd.DataFrame]]
     for table in home_tables:
         key = table["id"].replace(f"stats_{home_id}", "").strip("_")
         df = pd.read_html(StringIO(str(table)))[0]
+        ids = _get_ids_from_table(table, "player")
+        not_nan_mask = ~df.xs("Age", level=1, axis=1).isna().to_numpy().squeeze()
+        df.loc[not_nan_mask, "Player ID"] = ids
         home_player_stats[key] = df
 
     away_tables = soup.find_all("table", {"id": re.compile(f"stats_{away_id}")})
@@ -73,6 +77,9 @@ def _get_player_stats(soup: BeautifulSoup) -> dict[str, dict[str, pd.DataFrame]]
     for table in away_tables:
         key = table["id"].replace(f"stats_{away_id}", "").strip("_")
         df = pd.read_html(StringIO(str(table)))[0]
+        ids = _get_ids_from_table(table, "player")
+        not_nan_mask = ~df.xs("Age", level=1, axis=1).isna().to_numpy().squeeze()
+        df.loc[not_nan_mask, "Player ID"] = ids
         away_player_stats[key] = df
 
     return {"home": home_player_stats, "away": away_player_stats}

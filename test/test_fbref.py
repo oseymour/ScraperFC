@@ -125,12 +125,12 @@ class TestFBref:
             "https://fbref.com/en/matches/2bc716a2/Columbus-Crew-LA-Galaxy-May-17-1998-Major-League-Soccer",  # Only has GK stats for 1 team, has scorebox_meta tag
             "https://fbref.com/en/matches/38293f32/Manchester-United-Aston-Villa-March-7-2021-Womens-Super-League",  # only has shots data for 1 team
             "https://fbref.com/en/matches/40e49e72/North-West-Derby-Liverpool-Manchester-United-May-5-2024-Womens-Super-League",  # No scorebox_meta tag
-            "https://fbref.com/en/matches/bdbe67a7/Lanus-Chapecoense-May-17-2017-Copa-Libertadores",  # was awarded to one team
+            "https://fbref.com/en/matches/bdbe67a7/Lanus-Chapecoense-May-17-2017-Copa-Libertadores",  # was awarded to one team, "*" in scoreline
             "https://fbref.com/en/matches/ec86d292/Standard-Liege-Anderlecht-April-12-2019-Belgian-First-Division-A",  # was awarded to one team
             "https://fbref.com/en/matches/b787871d/Empoli-Hellas-Verona-August-19-2023-Serie-A",  # failed for someone on Discord, didn't find match date el
         ]
     )
-    def test_specific_scrape_matches(self, link):
+    def test_scrape_specific_matches(self, link):
         fbref = FBref()
         _ = fbref.scrape_match(link)
 
