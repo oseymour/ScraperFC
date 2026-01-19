@@ -130,7 +130,7 @@ class TestFBref:
             "https://fbref.com/en/matches/b787871d/Empoli-Hellas-Verona-August-19-2023-Serie-A",  # failed for someone on Discord, didn't find match date el
         ]
     )
-    def test_scrape_specific_matches(self, link):
+    def test_specific_scrape_matches(self, link):
         fbref = FBref()
         _ = fbref.scrape_match(link)
 
@@ -160,7 +160,7 @@ class TestFBref:
             fbref.scrape_stats(year, league, stat_category)
 
     # ==============================================================================================
-    def test_scrape_all_stats(self):
+    def test_random_scrape_all_stats(self):
         fbref = FBref()
         league = random.sample(sorted(comps), 1)[0]
         year = random.sample(sorted(fbref.get_valid_seasons(league)), 1)[0]
@@ -183,11 +183,12 @@ class TestFBref:
         "year, league",
         [
             ("1954-1955", "England Premier League"),  # doesn't have any stat categories data
-            ("2024-2025", "UEFA Champions League"),  # should be "normal"
-            ("2024-2025", "FBref Big 5 Combined"),  # cuz it's different
+            ("2024-2025", "Spain La Liga"),  # should be normal
+            ("2024-2025", "UEFA Champions League"),  # player stats table are commented out when page loads
+            ("2024-2025", "FBref Big 5 Combined"),  # to test big 5 combined
         ]
     )
-    def test_scrape_specific_all_stats(self, year, league):
+    def test_specific_scrape_all_stats(self, year, league):
         fbref = FBref()
         stats = fbref.scrape_all_stats(year, league)
         assert type(stats) is dict
