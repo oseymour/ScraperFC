@@ -2,9 +2,12 @@ import pandas as pd
 import numpy as np
 import warnings
 from tqdm import tqdm
+from datetime import datetime, timezone, timedelta
 
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from .utils import botasaurus_browser_get_json, get_module_comps
+from .sofascore_player import SofascorePlayer
+from .sofascore_helpers import _get_player_career_stats_df
 
 """ These are the status codes for Sofascore events. Found in event['status'] key.
 {100: {'code': 100, 'description': 'Ended', 'type': 'finished'},
@@ -194,7 +197,7 @@ class Sofascore:
         return '~'.join(abbreviations)
 
     # ==============================================================================================
-    def get_player_ids(self, match_id: str | int) -> dict:
+    def get_match_player_ids(self, match_id: str | int) -> dict:
         """ Get the player IDs for a match
 
         :param match_id: Sofascore match URL or match ID
@@ -220,6 +223,30 @@ class Sofascore:
                 f" {url}. Returning empty dict."
             )
             player_ids = dict()
+
+        return player_ids
+
+    # ==============================================================================================
+    def get_league_player_ids(self, year: str, league: str) -> list[int]:
+        """ Returns list of player ids for all players in a given year and league
+
+        :param year: .. include:: ./arg_docstrings/year_sofascore.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :raises TypeError: If any of the parameters are the wrong type.
+        :raises InvalidYearException: If the year is not valid for the league.
+        :rtype: list[int]
+        """
+        if not isinstance(year, str):
+            raise TypeError("`year` must be a string")
+        valid_seasons = self.get_valid_seasons(league)
+        if year not in valid_seasons.keys():
+            raise InvalidYearException(year, league, list(valid_seasons.keys()))
+
+        url = f"{API_PREFIX}/unique-tournament/{comps[league]['SOFASCORE']}/season/{valid_seasons[year]}/players"
+        response = botasaurus_browser_get_json(url)
+        player_ids = [x["playerId"] for x in response["players"]]
 
         return player_ids
 
@@ -438,7 +465,7 @@ class Sofascore:
         :rtype: dict
         """
         match_id = self._check_and_convert_match_id(match_id)
-        players = self.get_player_ids(match_id)
+        players = self.get_match_player_ids(match_id)
         for player in players:
             player_id = players[player]
             url = f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap'
@@ -538,3 +565,81 @@ class Sofascore:
         )
 
         return df
+
+    # ==============================================================================================
+    def scrape_player_details(self, year: str, league: str) -> list[SofascorePlayer]:
+        """ Scrape details for all players in a given year and league. Details are things like
+        name, DOB, position, heigh, weight, contract expiration, etc.
+
+        Please note, the player's team is their current team, not necessarily their team in the
+        given year and league.
+
+        :param year: .. include:: ./arg_docstrings/year_sofascore.rst
+        :type year: str
+        :param league: .. include:: ./arg_docstrings/league.rst
+        :type league: str
+        :rtype: list[SofascorePlayer]
+        """
+        player_ids = self.get_league_player_ids(year, league)
+        if len(player_ids) == 0:
+            print(f"WARNING: No players found for {year} {league}.")
+
+        player_details = list()
+        pbar = tqdm(player_ids, ncols=100)
+        for player_id in pbar:
+            pbar.set_description(f"{year} {league}, player ID {player_id}")
+
+            url = f"{API_PREFIX}/player/{player_id}"
+            response = botasaurus_browser_get_json(url)
+            player_dict = response["player"]
+
+            player_name = player_dict["name"]
+            team_name = player_dict["team"]["name"]
+            team_id = player_dict["team"]["id"]
+            position = player_dict["position"] if "position" in player_dict else None
+            positions_detailed = (
+                player_dict["positionsDetailed"] if "positionsDetailed" in player_dict else None
+            )
+            weight = player_dict["weight"] if "weight" in player_dict else None
+            height = player_dict["height"] if "height" in player_dict else None
+            # Need to do UNIX time=0 then plus DOB timestamp because sometimes Windows is dumb with
+            # negative UNIX timestamps I guess. This should work on all platforms.
+            dob = (
+                datetime.fromtimestamp(0, timezone.utc)
+                + timedelta(seconds=player_dict["dateOfBirthTimestamp"])
+                if "dateOfBirthTimestamp" in player_dict else None
+            )
+            preferred_foot = (
+                player_dict["preferredFoot"] if "preferredFoot" in player_dict else None
+            )
+            country = (
+                player_dict["country"]["name"] if "country" in player_dict
+                and "name" in player_dict["country"] else None
+            )
+            contract_until = (
+                datetime.fromtimestamp(0, timezone.utc)
+                + timedelta(seconds=player_dict["contractUntilTimestamp"])
+                if "contractUntilTimestamp" in player_dict else None
+            )
+            market_value = (
+                player_dict["proposedMarketValueRaw"]["value"]
+                if "proposedMarketValueRaw" in player_dict
+                and "value" in player_dict["proposedMarketValueRaw"] else None
+            )
+            market_value_currency = (
+                player_dict["proposedMarketValueRaw"]["currency"]
+                if "proposedMarketValueRaw" in player_dict
+                and "currency" in player_dict["proposedMarketValueRaw"] else None
+            )
+            career_stats = _get_player_career_stats_df(player_id, API_PREFIX)
+
+            player = SofascorePlayer(
+                id=player_id, name=player_name, team_name=team_name, team_id=team_id,
+                position=position, positions_detailed=positions_detailed, weight=weight,
+                height=height, dob=dob, preferred_foot=preferred_foot, country=country,
+                contract_until=contract_until, market_value=market_value,
+                market_value_currency=market_value_currency, career_stats=career_stats
+            )
+            player_details.append(player)
+
+        return player_details

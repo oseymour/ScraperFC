@@ -54,6 +54,8 @@ nitpick_ignore = [
     ("py:class", "botasaurus_driver.driver.Driver"),
     ("py:class", "FBrefMatch"),
     ("py:class", "ScraperFC.fbref_match.FBrefMatch"),
+    ("py:class", "SofascorePlayer"),
+    ("py:class", "ScraperFC.sofascore_player.SofascorePlayer"),
 ]
 
 # HTML theme

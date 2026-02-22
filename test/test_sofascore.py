@@ -9,6 +9,7 @@ sys.path.append('./src/')
 from ScraperFC import Sofascore
 from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from ScraperFC.utils import get_module_comps
+from ScraperFC.sofascore_player import SofascorePlayer
 
 comps = get_module_comps("SOFASCORE")
 
@@ -35,7 +36,7 @@ class TestSofascore:
         with expected:
             ss.get_team_names(match)
         with expected:
-            ss.get_player_ids(match)
+            ss.get_match_player_ids(match)
         with expected:
             ss.scrape_match_momentum(match)
         with expected:
@@ -66,6 +67,8 @@ class TestSofascore:
             ss.scrape_player_league_stats(year, league)
         with expected:
             ss.scrape_team_league_stats(year, league)
+        with expected:
+            ss.scrape_player_details(year, league)
 
     # ==============================================================================================
     @pytest.mark.parametrize(
@@ -84,6 +87,8 @@ class TestSofascore:
             ss.scrape_player_league_stats(year, league)
         with expected:
             ss.scrape_team_league_stats(year, league)
+        with expected:
+            ss.scrape_player_details(year, league)
 
     # ==============================================================================================
     def test_get_match_dicts(self):
@@ -191,18 +196,12 @@ class TestSofascore:
         match_dicts = ss.get_match_dicts(year, league)
         match_id = random.sample(match_dicts, 1)[0]['id']
         heatmaps = ss.scrape_heatmaps(match_id)
-        # Output is dict
-        assert isinstance(heatmaps, dict)
-        # Values are dict
-        assert np.all([isinstance(x, dict) for x in heatmaps.values()])
-        # Player ID is in all player dicts
-        assert np.all(['id' in x.keys() for x in heatmaps.values()])
-        # Player ID is an int
-        assert np.all([isinstance(x['id'], int) for x in heatmaps.values()])
-        # Heatmap coords are in all player dicts
-        assert np.all(['heatmap' in x.keys() for x in heatmaps.values()])
-        # Heatmap coords are a list
-        assert np.all([isinstance(x['heatmap'], list) for x in heatmaps.values()])
+        assert isinstance(heatmaps, dict)  # Output is dict
+        assert np.all([isinstance(x, dict) for x in heatmaps.values()])  # Values are dict
+        assert np.all(['id' in x.keys() for x in heatmaps.values()])  # Player ID is in all player dicts
+        assert np.all([isinstance(x['id'], int) for x in heatmaps.values()])  # Player ID is an int
+        assert np.all(['heatmap' in x.keys() for x in heatmaps.values()])  # Heatmap coords are in all player dicts
+        assert np.all([isinstance(x['heatmap'], list) for x in heatmaps.values()])  # Heatmap coords are a list
 
     # ==============================================================================================
     def test_scrape_match_shots(self):
@@ -229,3 +228,18 @@ class TestSofascore:
         team_stats = ss.scrape_team_league_stats(year, league)
         assert isinstance(team_stats, pd.DataFrame)
         assert ((team_stats.shape[0] > 0) and (team_stats.shape[1] > 0)) or (team_stats.shape == (0,0))
+
+    # ==============================================================================================
+    def test_scrape_player_details(self):
+        ss = Sofascore()
+        while 1:
+            league = random.sample(list(comps.keys()), 1)[0]
+            year = random.sample(list(ss.get_valid_seasons(league).keys()), 1)[0]
+            player_ids = ss.get_league_player_ids(year, league)
+            if len(player_ids) > 0:
+                break
+
+        player_details = ss.scrape_player_details(year, league)
+        assert len(player_ids) == len(player_details)
+        assert isinstance(player_details, list)
+        assert all(isinstance(player, SofascorePlayer) for player in player_details)
