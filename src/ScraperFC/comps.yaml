@@ -136,6 +136,10 @@ Mexico Liga MX:
   FBREF:
     history url: https://fbref.com/en/comps/31/history/Liga-MX-Seasons
     finders: [Primera-Division, Liga-MX]
+Mexico Liga MX Apertura:
+  SOFASCORE: 11621
+Mexico Liga MX Clausura:
+  SOFASCORE: 11620
 Netherlands Eredivisie:
   CAPOLOGY: ne/eredivisie
   FBREF:
@@ -151,6 +155,7 @@ Portugal Primeira Liga:
     history url: https://fbref.com/en/comps/32/history/Primeira-Liga-Seasons
     finders: [Primeira-Liga]
   TRANSFERMARKT: https://www.transfermarkt.us/liga-nos/startseite/wettbewerb/PO1
+  SOFASCORE: 238
 Russia Premier League:
   TRANSFERMARKT: https://www.transfermarkt.us/premier-liga/startseite/wettbewerb/RU1
   UNDERSTAT: https://understat.com/league/RFPL
