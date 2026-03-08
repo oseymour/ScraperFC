@@ -27,19 +27,6 @@ def _():
     from ScraperFC.sofascore_player import SofascorePlayer
     from ScraperFC.sofascore_helpers import _get_player_career_stats_df
 
-    return (sfc,)
-
-
-@app.cell
-def _(sfc):
-    ss = sfc.Sofascore()
-    player_details = ss.scrape_player_details(league="France Ligue 1", year="21/22")
-    return (player_details,)
-
-
-@app.cell
-def _(player_details):
-    player_details[0].career_stats
     return
 
 

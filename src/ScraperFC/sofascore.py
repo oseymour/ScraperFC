@@ -22,7 +22,7 @@ from .sofascore_helpers import _get_player_career_stats_df
  0: {'code': 0, 'description': 'Not started', 'type': 'notstarted'}}
 """
 
-API_PREFIX = 'https://api.sofascore.com/api/v1'
+API_PREFIX = "https://api.sofascore.com/api/v1"
 
 comps = get_module_comps("SOFASCORE")
 
@@ -31,22 +31,40 @@ class Sofascore:
 
     # ==============================================================================================
     def __init__(self) -> None:
-        self.league_stats_fields = [
-            'goals', 'yellowCards', 'redCards', 'groundDuelsWon', 'groundDuelsWonPercentage',
-            'aerialDuelsWon', 'aerialDuelsWonPercentage', 'successfulDribbles',
-            'successfulDribblesPercentage', 'tackles', 'assists', 'accuratePassesPercentage',
-            'totalDuelsWon', 'totalDuelsWonPercentage', 'minutesPlayed', 'wasFouled', 'fouls',
-            'dispossessed', 'possesionLost', 'appearances', 'started', 'saves', 'cleanSheets',
-            'savedShotsFromInsideTheBox', 'savedShotsFromOutsideTheBox',
-            'goalsConcededInsideTheBox', 'goalsConcededOutsideTheBox', 'highClaims',
-            'successfulRunsOut', 'punches', 'runsOut', 'accurateFinalThirdPasses',
-            'bigChancesCreated', 'accuratePasses', 'keyPasses', 'accurateCrosses',
-            'accurateCrossesPercentage', 'accurateLongBalls', 'accurateLongBallsPercentage',
-            'interceptions', 'clearances', 'dribbledPast', 'bigChancesMissed', 'totalShots',
-            'shotsOnTarget', 'blockedShots', 'goalConversionPercentage', 'hitWoodwork', 'offsides',
-            'expectedGoals', 'errorLeadToGoal', 'errorLeadToShot', 'passToAssist'
+        # To get these, query a player's season's stats (e.g.,
+        # https://www.sofascore.com/api/v1/player/843665/unique-tournament/35/season/77333/statistics/overall)
+        # and get all of the keys from the "statistics" dict. Make sure to sample both outfield
+        # players and goalkeepers. Some names need to be removed: "id", "type", "statisticsType"
+        self.stat_names = [
+            'accurateChippedPasses', 'accurateCrosses', 'accurateCrossesPercentage',
+            'accurateFinalThirdPasses', 'accurateLongBalls', 'accurateLongBallsPercentage',
+            'accurateOppositionHalfPasses', 'accurateOwnHalfPasses', 'accuratePasses',
+            'accuratePassesPercentage', 'aerialDuelsWon', 'aerialDuelsWonPercentage', 'aerialLost',
+            'appearances', 'assists', 'attemptPenaltyMiss', 'attemptPenaltyPost',
+            'attemptPenaltyTarget', 'ballRecovery', 'bigChancesCreated', 'bigChancesMissed',
+            'blockedShots', 'cleanSheet', 'clearances', 'countRating', 'crossesNotClaimed',
+            'directRedCards', 'dispossessed', 'dribbledPast', 'duelLost', 'errorLeadToGoal',
+            'errorLeadToShot', 'expectedAssists', 'expectedGoals', 'fouls', 'freeKickGoal',
+            'goalConversionPercentage', 'goalKicks', 'goals', 'goalsAssistsSum', 'goalsConceded',
+            'goalsConcededInsideTheBox', 'goalsConcededOutsideTheBox', 'goalsFromInsideTheBox',
+            'goalsFromOutsideTheBox', 'goalsPrevented', 'groundDuelsWon',
+            'groundDuelsWonPercentage', 'headedGoals', 'highClaims', 'hitWoodwork',
+            'inaccuratePasses', 'interceptions', 'keyPasses', 'leftFootGoals', 'matchesStarted',
+            'minutesPlayed', 'offsides', 'outfielderBlocks', 'ownGoals', 'passToAssist',
+            'penaltiesTaken', 'penaltyConceded', 'penaltyConversion', 'penaltyFaced',
+            'penaltyGoals', 'penaltySave', 'penaltyWon', 'possessionLost', 'possessionWonAttThird',
+            'punches', 'rating', 'redCards', 'rightFootGoals', 'runsOut',
+            'savedShotsFromInsideTheBox', 'savedShotsFromOutsideTheBox', 'saves', 'savesCaught',
+            'savesParried', 'scoringFrequency', 'setPieceConversion', 'shotFromSetPiece',
+            'shotsFromInsideTheBox', 'shotsFromOutsideTheBox', 'shotsOffTarget', 'shotsOnTarget',
+            'successfulDribbles', 'successfulDribblesPercentage', 'successfulRunsOut', 'tackles',
+            'tacklesWon', 'tacklesWonPercentage', 'totalAttemptAssist', 'totalChippedPasses',
+            'totalContest', 'totalCross', 'totalDuelsWon', 'totalDuelsWonPercentage',
+            'totalLongBalls', 'totalOppositionHalfPasses', 'totalOwnHalfPasses', 'totalPasses',
+            'totalRating', 'totalShots', 'totwAppearances', 'touches', 'wasFouled', 'yellowCards',
+            'yellowRedCards',
         ]
-        self.concatenated_fields = '%2C'.join(self.league_stats_fields)
+        self.concatenated_stat_names = "%2C".join(self.stat_names)
 
     # ==============================================================================================
     def _check_and_convert_match_id(self, match: str | int) -> int:
@@ -74,13 +92,13 @@ class Sofascore:
         :rtype: dict
         """
         if not isinstance(league, str):
-            raise TypeError('`league` must be a string.')
+            raise TypeError("`league` must be a string.")
         if league not in comps.keys():
-            raise InvalidLeagueException(league, 'Sofascore', list(comps.keys()))
+            raise InvalidLeagueException(league, "Sofascore", list(comps.keys()))
 
-        url = f'{API_PREFIX}/unique-tournament/{comps[league]["SOFASCORE"]}/seasons/'
+        url = f"{API_PREFIX}/unique-tournament/{comps[league]['SOFASCORE']}/seasons/"
         response = botasaurus_browser_get_json(url)
-        seasons = dict([(x['year'], x['id']) for x in response['seasons']])
+        seasons = dict([(x["year"], x["id"]) for x in response["seasons"]])
         return seasons
 
     # ==============================================================================================
@@ -97,7 +115,7 @@ class Sofascore:
         :rtype: list[dict]
         """
         if not isinstance(year, str):
-            raise TypeError('`year` must be a string.')
+            raise TypeError("`year` must be a string.")
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons.keys():
             raise InvalidYearException(year, league, list(valid_seasons.keys()))
@@ -106,12 +124,12 @@ class Sofascore:
         i = 0
         while 1:
             response = botasaurus_browser_get_json(
-                f'{API_PREFIX}/unique-tournament/{comps[league]["SOFASCORE"]}/' +
-                f'season/{valid_seasons[year]}/events/last/{i}'
+                f"{API_PREFIX}/unique-tournament/{comps[league]['SOFASCORE']}/"
+                f"season/{valid_seasons[year]}/events/last/{i}"
             )
-            if 'events' not in response:
+            if "events" not in response:
                 break
-            matches += response['events']
+            matches += response["events"]
             i += 1
 
         return matches
@@ -129,7 +147,7 @@ class Sofascore:
         :rtype: int
         """
         if not isinstance(match_url, str):
-            raise TypeError('`match_url` must be a string.')
+            raise TypeError("`match_url` must be a string.")
         match_id = int(match_url.split('#id:')[-1])
         return match_id
 
@@ -155,8 +173,8 @@ class Sofascore:
         :rtype: dict
         """
         match_id = self._check_and_convert_match_id(match_id)
-        response = botasaurus_browser_get_json(f'{API_PREFIX}/event/{match_id}')
-        data = response['event']
+        response = botasaurus_browser_get_json(f"{API_PREFIX}/event/{match_id}")
+        data = response["event"]
         return data
 
     # ==============================================================================================
@@ -169,8 +187,8 @@ class Sofascore:
         :rtype: tuple[str, str]
         """
         data = self.get_match_dict(match_id)
-        home_team = data['homeTeam']['name']
-        away_team = data['awayTeam']['name']
+        home_team = data["homeTeam"]["name"]
+        away_team = data["awayTeam"]["name"]
         return home_team, away_team
 
     # ==============================================================================================
@@ -185,13 +203,13 @@ class Sofascore:
         :return: Joined abbreviations for the chosen positions
         :rtype: str
         """
-        positions = {'Goalkeepers': 'G', 'Defenders': 'D', 'Midfielders': 'M', 'Forwards': 'F'}
+        positions = {"Goalkeepers": "G", "Defenders": "D", "Midfielders": "M", "Forwards": "F"}
         if not isinstance(selected_positions, list):
-            raise TypeError('`selected_positions` must be a list.')
+            raise TypeError("`selected_positions` must be a list.")
         if not np.all([isinstance(x, str) for x in selected_positions]):
-            raise TypeError('All items in `selected_positions` must be strings.')
+            raise TypeError("All items in `selected_positions` must be strings.")
         if not np.isin(selected_positions, list(positions.keys())).all():
-            raise ValueError(f'All items in `selected_positions` must be in {positions.keys()}')
+            raise ValueError("All items in `selected_positions` must be in {positions.keys()}")
 
         abbreviations = [positions[position] for position in selected_positions]
         return '~'.join(abbreviations)
@@ -209,18 +227,18 @@ class Sofascore:
         url = f"{API_PREFIX}/event/{match_id}/lineups"
         response = botasaurus_browser_get_json(url)
 
-        if 'error' not in response:
-            teams = ['home', 'away']
+        if "error" not in response:
+            teams = ["home", "away"]
             player_ids = dict()
             for team in teams:
-                data = response[team]['players']
+                data = response[team]["players"]
                 for item in data:
-                    player_data = item['player']
-                    player_ids[player_data['name']] = player_data['id']
+                    player_data = item["player"]
+                    player_ids[player_data["name"]] = player_data["id"]
         else:
             warnings.warn(
-                f"Encountered {response['error']['code']}: {response['error']['message']} from"
-                f" {url}. Returning empty dict."
+                f"Encountered {response['error']['code']}: {response['error']['message']} from "
+                f"{url}. Returning empty dict."
             )
             player_ids = dict()
 
@@ -254,7 +272,7 @@ class Sofascore:
     def scrape_player_league_stats(
             self, year: str, league: str, accumulation: str='total',
             selected_positions: list[str]=[
-                'Goalkeepers', 'Defenders', 'Midfielders', 'Forwards'
+                "Goalkeepers", "Defenders", "Midfielders", "Forwards"
             ]
         ) -> pd.DataFrame:
         """ Get every player statistic that can be asked in league pages on Sofascore.
@@ -275,15 +293,15 @@ class Sofascore:
         :rtype: pd.DataFrame
         """
         if not isinstance(year, str):
-            raise TypeError('`year` must be a string.')
+            raise TypeError("`year` must be a string.")
         valid_seasons = self.get_valid_seasons(league)
         if year not in valid_seasons.keys():
             raise InvalidYearException(year, league, list(valid_seasons.keys()))
         if not isinstance(accumulation, str):
-            raise TypeError('`accumulation` must be a string.')
+            raise TypeError("`accumulation` must be a string.")
         valid_accumulations = ['total', 'per90', 'perMatch']
         if accumulation not in valid_accumulations:
-            raise ValueError(f'`accumulation` must be one of {valid_accumulations}')
+            raise ValueError(f"`accumulation` must be one of {valid_accumulations}")
 
         positions = self.get_positions(selected_positions)
         season_id = valid_seasons[year]
@@ -293,16 +311,15 @@ class Sofascore:
         offset = 0
         results = list()
         while 1:
-            request_url = 'https://api.sofascore.com/api/v1' +\
-                f'/unique-tournament/{league_id}/season/{season_id}/statistics' +\
-                f'?limit=100&offset={offset}' +\
-                f'&accumulation={accumulation}' +\
-                f'&fields={self.concatenated_fields}' +\
-                f'&filters=position.in.{positions}'
+            request_url = "https://api.sofascore.com/api/v1" +\
+                f"/unique-tournament/{league_id}/season/{season_id}/statistics" +\
+                f"?limit=100&offset={offset}" +\
+                f"&accumulation={accumulation}" +\
+                f"&fields={self.concatenated_stat_names}" +\
+                f"&filters=position.in.{positions}"
             response = botasaurus_browser_get_json(request_url)
-            results += response['results']
-            if (response['page'] == response['pages']) or\
-                    (response['pages'] == 0):
+            results += response["results"]
+            if (response["page"] == response["pages"]) or (response["pages"] == 0):
                 break
             offset += 100
 
@@ -312,10 +329,10 @@ class Sofascore:
             df = pd.DataFrame()
         else:
             df = pd.DataFrame.from_dict(results)  # type: ignore
-            df['player id'] = df['player'].apply(pd.Series)['id']
-            df['player'] = df['player'].apply(pd.Series)['name']
-            df['team id'] = df['team'].apply(pd.Series)['id']
-            df['team'] = df['team'].apply(pd.Series)['name']
+            df["player id"] = df["player"].apply(pd.Series)["id"]
+            df["player"] = df["player"].apply(pd.Series)["name"]
+            df["team id"] = df["team"].apply(pd.Series)["id"]
+            df["team"] = df["team"].apply(pd.Series)["name"]
 
         return df
 
@@ -330,15 +347,15 @@ class Sofascore:
         :rtype: pd.DataFrame
         """
         match_id = self._check_and_convert_match_id(match_id)
-        url = f'{API_PREFIX}/event/{match_id}/graph'
+        url = f"{API_PREFIX}/event/{match_id}/graph"
         response = botasaurus_browser_get_json(url)
 
         if "error" not in response:
-            match_momentum_df = pd.DataFrame(response['graphPoints'])
+            match_momentum_df = pd.DataFrame(response["graphPoints"])
         else:
             warnings.warn(
-                f"Encountered {response['error']['code']}: {response['error']['message']} from"
-                f" {url}. Returning empty dataframe."
+                f"Encountered {response['error']['code']}: {response['error']['message']} from "
+                f"{url}. Returning empty dataframe."
             )
             match_momentum_df = pd.DataFrame()
 
@@ -353,23 +370,23 @@ class Sofascore:
         :rtype: pd.DataFrame
         """
         match_id = self._check_and_convert_match_id(match_id)
-        url = f'{API_PREFIX}/event/{match_id}/statistics'
+        url = f"{API_PREFIX}/event/{match_id}/statistics"
         response = botasaurus_browser_get_json(url)
 
         if "error" not in response:
             df = pd.DataFrame()
-            for period in response['statistics']:
-                period_name = period['period']
-                for group in period['groups']:
-                    group_name = group['groupName']
-                    temp = pd.DataFrame.from_dict(group['statisticsItems'])
-                    temp['period'] = [period_name,] * temp.shape[0]
-                    temp['group'] = [group_name,] * temp.shape[0]
+            for period in response["statistics"]:
+                period_name = period["period"]
+                for group in period["groups"]:
+                    group_name = group["groupName"]
+                    temp = pd.DataFrame.from_dict(group["statisticsItems"])
+                    temp["period"] = [period_name,] * temp.shape[0]
+                    temp["group"] = [group_name,] * temp.shape[0]
                     df = pd.concat([df, temp], ignore_index=True)
         else:
             warnings.warn(
-                f"Encountered {response['error']['code']}: {response['error']['message']} from"
-                f" {url}. Returning empty dataframe."
+                f"Encountered {response['error']['code']}: {response['error']['message']} from "
+                f"{url}. Returning empty dataframe."
             )
             df = pd.DataFrame()
 
@@ -385,12 +402,12 @@ class Sofascore:
         """
         match_id = self._check_and_convert_match_id(match_id)
         match_dict = self.get_match_dict(match_id)  # used to get home and away team names and IDs
-        url = f'{API_PREFIX}/event/{match_id}/lineups'
+        url = f"{API_PREFIX}/event/{match_id}/lineups"
         response = botasaurus_browser_get_json(url)
 
         if "error" not in response:
-            home_players = response['home']['players']
-            away_players = response['away']['players']
+            home_players = response["home"]["players"]
+            away_players = response["away"]["players"]
             for p in home_players:
                 p["teamId"] = match_dict["homeTeam"]["id"]
                 p["teamName"] = match_dict["homeTeam"]["name"]
@@ -411,8 +428,8 @@ class Sofascore:
             df = pd.concat(columns, axis=1)
         else:
             warnings.warn(
-                f"Encountered {response['error']['code']}: {response['error']['message']} from"
-                f" {url}. Returning empty dataframe."
+                f"Encountered {response['error']['code']}: {response['error']['message']} from "
+                f"{url}. Returning empty dataframe."
             )
             df = pd.DataFrame()
 
@@ -430,23 +447,23 @@ class Sofascore:
         """
         match_id = self._check_and_convert_match_id(match_id)
         home_name, away_name = self.get_team_names(match_id)
-        url = f'{API_PREFIX}/event/{match_id}/average-positions'
+        url = f"{API_PREFIX}/event/{match_id}/average-positions"
         response = botasaurus_browser_get_json(url)
 
         if "error" not in response:
             df = pd.DataFrame()
-            for key, name in [('home', home_name), ('away', away_name)]:
+            for key, name in [("home", home_name), ("away", away_name)]:
                 temp = pd.DataFrame(response[key])
-                temp['team'] = [name,] * temp.shape[0]
+                temp["team"] = [name,] * temp.shape[0]
                 temp = pd.concat(
-                    [temp['player'].apply(pd.Series), temp.drop(columns=['player'])],
+                    [temp["player"].apply(pd.Series), temp.drop(columns=["player"])],
                     axis=1
                 )
                 df = pd.concat([df, temp], axis=0, ignore_index=True)
         else:
             warnings.warn(
-                f"Encountered {response['error']['code']}: {response['error']['message']} from"
-                f" {url}. Returning empty dataframe."
+                f"Encountered {response['error']['code']}: {response['error']['message']} from "
+                f"{url}. Returning empty dataframe."
             )
             df = pd.DataFrame()
 
@@ -468,18 +485,18 @@ class Sofascore:
         players = self.get_match_player_ids(match_id)
         for player in players:
             player_id = players[player]
-            url = f'{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap'
+            url = f"{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap"
 
             response = botasaurus_browser_get_json(url)
 
             if "error" not in response:
-                heatmap = [(z['x'], z['y']) for z in response['heatmap']]
+                heatmap = [(z["x"], z["y"]) for z in response["heatmap"]]
             else:
                 # Players that didn't play have empty heatmaps. Don't print warning because there
                 # would be a lot of them.
                 heatmap = list()
 
-            players[player] = {'id': player_id, 'heatmap': heatmap}
+            players[player] = {"id": player_id, "heatmap": heatmap}
 
         return players
 
@@ -498,8 +515,8 @@ class Sofascore:
             df = pd.DataFrame.from_dict(response["shotmap"])
         else:
             warnings.warn(
-                f"Encountered {response['error']['code']}: {response['error']['message']} from"
-                f" {url}. Returning empty dataframe."
+                f"Encountered {response['error']['code']}: {response['error']['message']} from "
+                f"{url}. Returning empty dataframe."
             )
             df = pd.DataFrame()
 
@@ -518,7 +535,7 @@ class Sofascore:
         :rtype: pd.DataFrame
         """
         if not isinstance(year, str):
-            raise TypeError('`year` must be a string.')
+            raise TypeError("`year` must be a string.")
 
         # Verify year is valid
         valid_seasons = self.get_valid_seasons(league)
@@ -535,8 +552,9 @@ class Sofascore:
 
         # Iterate over teams and build dataframe of stats
         df = pd.DataFrame()
-        for team in tqdm(teams_list, desc=f"{year} {league} team stats", ncols=100):
+        for team in (pbar := tqdm(teams_list, ncols=100)):
             team_id = team["id"]
+            pbar.set_description(f"{year} {league}, team ID {team_id}")
             result = botasaurus_browser_get_json(
                 f"{API_PREFIX}/team/{team_id}/unique-tournament/{league_id}/season/{year_id}/"
                 "statistics/overall"
