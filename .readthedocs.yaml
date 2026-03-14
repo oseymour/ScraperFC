@@ -14,7 +14,7 @@ sphinx:
 # Only build the HTML docs
 formats:
   - htmlzip
-  
+
 # Optional but recommended, declare the Python requirements required to build your documentation
 python:
   install:

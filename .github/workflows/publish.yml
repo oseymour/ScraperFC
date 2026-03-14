@@ -25,10 +25,10 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/')
     needs: build
     runs-on: ubuntu-latest
-    environment: 
+    environment:
       name: pypi
       url: https://pypi.org/project/ScraperFC/
-    steps: 
+    steps:
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
