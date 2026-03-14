@@ -7,6 +7,6 @@ assignees: ''
 
 ---
 
-Module (e.g. FBRef, Understat, etc.): 
+Module (e.g. FBRef, Understat, etc.):
 
 Feature request:

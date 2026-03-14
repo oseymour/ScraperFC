@@ -7,7 +7,7 @@ assignees: ''
 
 ---
 
-Module (e.g. FBRef, Understat, etc.): 
+Module (e.g. FBRef, Understat, etc.):
 
 Description of problem:
 

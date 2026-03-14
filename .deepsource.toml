@@ -13,7 +13,7 @@ dependency_file_paths = ["pyproject.toml", ]
   runtime_version = "3.x.x"
   max_line_length = 100
   type_checker = "mypy"
-  
+
 [[analyzers]]
 name = "test-coverage"
 enabled = true
