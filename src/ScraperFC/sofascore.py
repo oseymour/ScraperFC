@@ -98,7 +98,7 @@ class Sofascore:
 
         url = f"{API_PREFIX}/unique-tournament/{comps[league]['SOFASCORE']}/seasons/"
         response = botasaurus_browser_get_json(url)
-        seasons = dict([(x["year"], x["id"]) for x in response["seasons"]])
+        seasons = {x["year"]: x["id"] for x in response["seasons"]}
         return seasons
 
     # ==============================================================================================

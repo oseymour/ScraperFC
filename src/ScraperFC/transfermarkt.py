@@ -35,7 +35,7 @@ class Transfermarkt():
             soup = botasaurus_request_get_soup(comps[league]["TRANSFERMARKT"])
             season_select_tag = soup.find("select", {"name": "saison_id"})
         season_tags = season_select_tag.find_all("option")  # type: ignore
-        valid_seasons = dict([(x.text, x["value"]) for x in season_tags])
+        valid_seasons = {x.text: x["value"] for x in season_tags}
         return valid_seasons
 
     # ==============================================================================================
@@ -152,6 +152,7 @@ class Transfermarkt():
 
         :param player_link: Valid player Transfermarkt URL
         :type player_link: str
+        :raises ValueError: If more than 1 element exists for some HTML elements.
         :return: 1-row dataframe with all of the player details
         :rtype: pd.DataFrame
         """
@@ -211,7 +212,7 @@ class Transfermarkt():
             flag_el for el in citizenship_els
             for flag_el in el.find_all("img", {"class": "flaggenrahmen"})
         ]
-        citizenship = list(set([el["title"] for el in flag_els]))
+        citizenship = list(set(el["title"] for el in flag_els))
 
         # Position
         position_el = soup.find("dd", {"class": "detail-position__position"})
@@ -240,27 +241,31 @@ class Transfermarkt():
             x.text.split(":")[-1].strip() for x in data_headers_labels
             if "last club" in x.text.lower()
         ]
-        assert len(last_club) < 2
+        if len(last_club) >= 2:
+            raise ValueError("More than one last club found")
         last_club = None if len(last_club) == 0 else last_club[0]  # type: ignore
         # "Since" date
         since_date = [
             x.text.split(":")[-1].strip() for x in data_headers_labels
             if "since" in x.text.lower()
         ]
-        assert len(since_date) < 2
+        if len(since_date) >= 2:
+            raise ValueError("More than one since date found")
         since_date = None if len(since_date) == 0 else since_date[0]  # type: ignore
         # "Joined" date
         joined_date = [
             x.text.split(":")[-1].strip() for x in data_headers_labels if "joined" in x.text.lower()
         ]
-        assert len(joined_date) < 2
+        if len(joined_date) >= 2:
+            raise ValueError("More than one joined date found")
         joined_date = None if len(joined_date) == 0 else joined_date[0]  # type: ignore
         # Contract expiration date
         contract_expiration = [
             x.text.split(":")[-1].strip() for x in data_headers_labels
             if "contract expires" in x.text.lower()
         ]
-        assert len(contract_expiration) < 2
+        if len(contract_expiration) >= 2:
+            raise ValueError("More than one contract expiration date found")
         contract_expiration = None if len(contract_expiration) == 0 else contract_expiration[0]  # type: ignore
 
         # Market value history

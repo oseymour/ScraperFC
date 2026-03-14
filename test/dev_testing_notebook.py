@@ -27,6 +27,19 @@ def _():
     from ScraperFC.sofascore_player import SofascorePlayer
     from ScraperFC.sofascore_helpers import _get_player_career_stats_df
 
+    return (sfc,)
+
+
+@app.cell
+def _(sfc):
+    cap = sfc.Capology()
+    salaries = cap.scrape_salaries(year="2024-25", league="Spain La Liga", currency="eur")
+    return (salaries,)
+
+
+@app.cell
+def _(salaries):
+    salaries
     return
 
 

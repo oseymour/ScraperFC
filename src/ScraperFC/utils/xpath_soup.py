@@ -32,7 +32,7 @@ def xpath_soup(element: Tag | NavigableString) -> str:
     for parent in child.parents:  # type: ignore
         siblings = parent.find_all(child.name, recursive=False)  # type: ignore
         components.append(
-            child.name if 1 == len(siblings) else "%s[%d]" % (  # type: ignore
+            child.name if len(siblings) == 1 else "%s[%d]" % (  # type: ignore
                 child.name,  # type: ignore
                 next(i for i, s in enumerate(siblings, 1) if s is child)
             )
