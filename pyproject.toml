@@ -40,7 +40,7 @@ dependencies = [
 ]
 
 # LEAVE AS OPTIONAL DEPENDENCIES, NOT DEPENDENCY GROUPS
-# readthedocs needs docs to be optional dependency group, so just leave the others as them also
+# readthedocs needs docs to be optional dependency group, so just leave the others also
 [project.optional-dependencies]
 test = [
     "pytest>=8.3.4",
@@ -60,6 +60,7 @@ publish = ["publish>=0.3.6",]
 dev = [
     "marimo>=0.19.4",
     "tox>=4.24.1",
+    "prek>=0.3.5",
 ]
 typecheck = [
     "pandas-stubs>=2.2.2.240807",
@@ -73,7 +74,8 @@ typecheck = [
 ]
 lint = [
     "ruff>=0.11.10",
-    "pydoclint>=0.8.3"
+    "pydoclint>=0.8.3",
+    "sphinx-lint>=1.0.2",
 ]
 
 [project.urls]

@@ -3,7 +3,7 @@ The `year` Parameter
 ====================
 
 Starting in ScraperFC v3.0, the `year` parameter is slightly different for each module. This page
-details what the parameter needs to be and how to find valid options for the modules that use this 
+details what the parameter needs to be and how to find valid options for the modules that use this
 argument.
 
 Regardless of module, if you enter an invalid year argument, the InvalidYearException will be raised
@@ -23,7 +23,7 @@ Capology
 FBref
 -----
 - Type: `str`
-- Format: This should match the years as seen on the "Competition History" page of the league on 
+- Format: This should match the years as seen on the "Competition History" page of the league on
   the FBref website.
 - `get_valid_seasons()`: Will return a dict with valid years as the keys.
 
