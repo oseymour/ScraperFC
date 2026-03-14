@@ -38,3 +38,10 @@ rev = "98bb10c"
 hooks = [
     { id = "pydoclint", args = ["--config=./pydoclint.toml"] }
 ]
+
+[[repos]]
+repo = "https://github.com/sphinx-contrib/sphinx-lint"
+rev = "v1.0.2"
+hooks = [
+    { id = "sphinx-lint" }
+]
