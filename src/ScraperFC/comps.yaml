@@ -47,6 +47,7 @@ England EFL Championship:
   FBREF:
     history url: https://fbref.com/en/comps/10/history/Championship-Seasons
     finders: [First-Division, Championship]
+  SOFASCORE: 18
   TRANSFERMARKT: https://www.transfermarkt.us/championship/startseite/wettbewerb/GB2
 England EFL League 1:
   TRANSFERMARKT: https://www.transfermarkt.us/league-one/startseite/wettbewerb/GB3
@@ -83,6 +84,7 @@ France Ligue 2:
   FBREF:
     history url: https://fbref.com/en/comps/60/history/Ligue-2-Seasons
     finders: ['Ligue-2']
+  SOFASCORE: 182
   TRANSFERMARKT: https://www.transfermarkt.us/ligue-2/startseite/wettbewerb/FR2
 France Premiere Ligue:
   FBREF:
@@ -101,6 +103,7 @@ Germany 2.Bundesliga:
   FBREF:
     history url: https://fbref.com/en/comps/33/history/2-Bundesliga-Seasons
     finders: ['2-Bundesliga']
+  SOFASCORE: 44
   TRANSFERMARKT: https://www.transfermarkt.us/2-bundesliga/startseite/wettbewerb/L2
 Germany Womens Bundesliga:
   FBREF:
@@ -119,6 +122,7 @@ Italy Serie B:
   FBREF:
     history url: https://fbref.com/en/comps/18/history/Serie-B-Seasons
     finders: ['Serie-B']
+  SOFASCORE: 53
   TRANSFERMARKT: https://www.transfermarkt.us/serie-b/startseite/wettbewerb/IT2
 Italy Primavera 1:
   TRANSFERMARKT: https://www.transfermarkt.us/primavera-1/startseite/wettbewerb/IJ1
@@ -156,6 +160,8 @@ Portugal Primeira Liga:
     finders: [Primeira-Liga]
   TRANSFERMARKT: https://www.transfermarkt.us/liga-nos/startseite/wettbewerb/PO1
   SOFASCORE: 238
+Portugal Liga Portugal 2:
+  SOFASCORE: 239
 Russia Premier League:
   TRANSFERMARKT: https://www.transfermarkt.us/premier-liga/startseite/wettbewerb/RU1
   UNDERSTAT: https://understat.com/league/RFPL
@@ -180,6 +186,7 @@ Spain La Liga 2:
   FBREF:
     history url: https://fbref.com/en/comps/17/history/Segunda-Division-Seasons
     finders: ['Segunda-Division']
+  SOFASCORE: 54
   TRANSFERMARKT: https://www.transfermarkt.us/laliga2/startseite/wettbewerb/ES2
 Spain Liga F:
   FBREF:
