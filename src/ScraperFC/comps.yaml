@@ -57,6 +57,9 @@ England WSL:
   FBREF:
     history url: https://fbref.com/en/comps/189/history/Womens-Super-League-Seasons
     finders: ['Womens-Super-League']
+  SOFASCORE: 1044
+England WSL 2:
+  SOFASCORE: 10553
 FBref Big 5 Combined:
   FBREF:
     history url: https://fbref.com/en/comps/Big5/history/Big-5-European-Leagues-Seasons
