@@ -86,6 +86,9 @@ France Ligue 2:
     finders: ['Ligue-2']
   SOFASCORE: 182
   TRANSFERMARKT: https://www.transfermarkt.us/ligue-2/startseite/wettbewerb/FR2
+France National 1:
+  SOFASCORE: 183
+  TRANSFERMARKT: https://www.transfermarkt.us/national/startseite/wettbewerb/FR3
 France Premiere Ligue:
   FBREF:
     history url: https://fbref.com/en/comps/193/history/Division-1-Feminine-Seasons
