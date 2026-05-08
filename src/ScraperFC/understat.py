@@ -251,8 +251,7 @@ class Understat:
                 warnings.warn(f"404 error for {link}. Returning empty dicts/DataFrames.")
                 if as_df:
                     return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()  # type: ignore
-                else:
-                    return dict(), dict(), dict()  # type: ignore
+                return {}, {}, {}  # type: ignore
             raise
 
         shots_data = data['shots']    # dict with 'h' and 'a' shot lists
