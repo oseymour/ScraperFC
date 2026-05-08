@@ -9,6 +9,34 @@ from ScraperFC.utils import get_module_comps
 
 comps = get_module_comps("UNDERSTAT")
 
+# Understat moved season/league data from embedded <script> tags to AJAX endpoints.
+# These headers mimic a browser XHR request, which Understat requires.
+_AJAX_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+}
+
+
+def _ajax_get(url: str, referer: str) -> dict:
+    """GET an Understat AJAX endpoint with browser-like headers.
+
+    :param url: Full URL of the AJAX endpoint
+    :type url: str
+    :param referer: The page URL to send as the HTTP Referer header
+    :type referer: str
+    :return: Parsed JSON response
+    :rtype: dict
+    """
+    headers = {**_AJAX_HEADERS, "Referer": referer}
+    r = requests.get(url, headers=headers, timeout=30)
+    r.raise_for_status()
+    return r.json()
+
+
 def _json_from_script(text: str) -> dict:
     data_str = text.split('JSON.parse(\'')[1].split('\')')[0].encode('utf-8').decode('unicode_escape')
     data_dict = json.loads(data_str)
@@ -93,7 +121,7 @@ class Understat:
         ]
 
     # ==============================================================================================
-    def scrape_season_data(self, year: str, league: str) -> tuple[dict, dict, dict]:
+    def scrape_season_data(self, year: str, league: str) -> tuple[list, dict, list]:
         """ Scrapes data for chosen Understat league season.
 
         :param year: .. include:: ./arg_docstrings/year_understat.rst
@@ -101,19 +129,23 @@ class Understat:
         :param league: .. include:: ./arg_docstrings/league.rst
         :type league: str
         :return: Tuple of (matches_data, teams_data, players_data)
-        :rtype: tuple[dict, dict, dict]
+        :rtype: tuple[list, dict, list]
         """
         season_link = self.get_season_link(year, league)
-        soup = BeautifulSoup(requests.get(season_link).content, 'html.parser')
 
-        scripts = soup.find_all('script')
-        dates_data_tag = [x for x in scripts if 'datesData' in x.text][0]
-        teams_data_tag = [x for x in scripts if 'teamsData' in x.text][0]
-        players_data_tag = [x for x in scripts if 'playersData' in x.text][0]
+        # Understat previously embedded datesData/teamsData/playersData directly
+        # in <script> tags on the league page. They now serve this data via an
+        # AJAX endpoint. The league code lives at the end of the season URL
+        # (e.g. "EPL" from "https://understat.com/league/EPL/2024").
+        league_code = season_link.split('/')[-2]
+        season_year = year.split('/')[0]
+        ajax_url = f'https://understat.com/getLeagueData/{league_code}/{season_year}'
 
-        matches_data = _json_from_script(dates_data_tag.text)
-        teams_data = _json_from_script(teams_data_tag.text)
-        players_data = _json_from_script(players_data_tag.text)
+        data = _ajax_get(ajax_url, referer=season_link)
+
+        matches_data = data['dates']    # list of match dicts (formerly datesData)
+        teams_data   = data['teams']    # dict of team dicts  (formerly teamsData)
+        players_data = data['players']  # list of player dicts (formerly playersData)
 
         return matches_data, teams_data, players_data
 
@@ -209,34 +241,42 @@ class Understat:
         if not isinstance(as_df, bool):
             raise TypeError('`as_df` must be a boolean.')
 
-        r = requests.get(link)
-        if r.status_code == 404:
-            warnings.warn(f"404 error for {link}. Returning empty dicts/DataFrames.")
-            if as_df:
-                shots_data, match_info, rosters_data = pd.DataFrame(), pd.DataFrame(), \
-                    pd.DataFrame()  # type: ignore
-            else:
-                shots_data, match_info, rosters_data = dict(), dict(), dict()   # type: ignore
+        match_id = link.rstrip('/').split('/')[-1]
+        ajax_url = f'https://understat.com/getMatchData/{match_id}'
+
+        try:
+            data = _ajax_get(ajax_url, referer=link)
+        except requests.HTTPError as exc:
+            if exc.response is not None and exc.response.status_code == 404:
+                warnings.warn(f"404 error for {link}. Returning empty dicts/DataFrames.")
+                if as_df:
+                    return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()  # type: ignore
+                else:
+                    return dict(), dict(), dict()  # type: ignore
+            raise
+
+        shots_data = data['shots']    # dict with 'h' and 'a' shot lists
+        rosters_data = data['rosters']  # dict with 'h' and 'a' player dicts
+
+        # Reconstruct match_info from shot records — each shot carries team names,
+        # scores, and date, so any shot gives us the full match context.
+        all_shots = shots_data.get('h', []) + shots_data.get('a', [])
+        if all_shots:
+            s = all_shots[0]
+            match_info: dict = {
+                'h_team': s.get('h_team'), 'a_team': s.get('a_team'),
+                'h_goals': s.get('h_goals'), 'a_goals': s.get('a_goals'),
+                'date': s.get('date'), 'match_id': s.get('match_id'),
+            }
         else:
-            soup = BeautifulSoup(r.content, 'html.parser')
+            match_info = {}
 
-            scripts = soup.find_all('script')
-            shots_data_tag = [x for x in scripts if 'shotsData' in x.text][0]
-            # 2024-06-20 Match info is actually in the shots data tag but have this line separate
-            # in case that changes in the future.
-            match_info_tag = [x for x in scripts if 'match_info' in x.text][0]
-            rosters_data_tag = [x for x in scripts if 'rostersData' in x.text][0]
-
-            shots_data = _json_from_script(shots_data_tag.text.split('match_info')[0])  # type: ignore
-            match_info = _json_from_script(match_info_tag.text.split('match_info')[1])  # type: ignore
-            rosters_data = _json_from_script(rosters_data_tag.text)  # type: ignore
-
-            if as_df:
-                shots_data = pd.DataFrame.from_dict(shots_data['h'] + shots_data['a'])   # type: ignore
-                match_info = pd.Series(match_info).to_frame().T     # type: ignore
-                rosters_data = pd.DataFrame.from_dict(
-                    list(rosters_data['h'].values()) + list(rosters_data['a'].values())    # type: ignore
-                )   # type: ignore
+        if as_df:
+            shots_data = pd.DataFrame(all_shots)  # type: ignore
+            match_info = pd.Series(match_info).to_frame().T  # type: ignore
+            rosters_data = pd.DataFrame(  # type: ignore
+                list(rosters_data.get('h', {}).values()) + list(rosters_data.get('a', {}).values())
+            )
 
         return shots_data, match_info, rosters_data
 
@@ -287,15 +327,16 @@ class Understat:
         if not isinstance(as_df, bool):
             raise TypeError('`as_df` must be a boolean.')
 
-        scripts = BeautifulSoup(requests.get(team_link).content, 'html.parser').find_all('script')
+        # Team URL format: https://understat.com/team/{TeamName}/{year}
+        parts = team_link.rstrip('/').split('/')
+        team_name, season_year = parts[-2], parts[-1]
+        ajax_url = f'https://understat.com/getTeamData/{team_name}/{season_year}'
 
-        dates_data_tag = [x for x in scripts if 'datesData' in x.text][0]
-        stats_data_tag = [x for x in scripts if 'statisticsData' in x.text][0]
-        player_data_tag = [x for x in scripts if 'playersData' in x.text][0]
+        data = _ajax_get(ajax_url, referer=team_link)
 
-        matches_data = _json_from_script(dates_data_tag.text)
-        team_data = _json_from_script(stats_data_tag.text)
-        player_data = _json_from_script(player_data_tag.text)
+        matches_data = data['dates']       # list of match dicts (formerly datesData)
+        team_data    = data['statistics']  # dict of stat categories (formerly statisticsData)
+        player_data  = data['players']     # list of player dicts (formerly playersData)
 
         if as_df:
             matches_data = pd.DataFrame.from_dict(matches_data)  # type: ignore
