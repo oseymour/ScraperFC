@@ -9,6 +9,17 @@ from ScraperFC.utils import get_module_comps, botasaurus_request_get_soup
 
 TRANSFERMARKT_ROOT = "https://www.transfermarkt.us"
 
+# Headers for Transfermarkt AJAX / ceapi endpoints.  The site returns JSON for
+# these endpoints only when the request looks like an in-page XHR.
+_TM_AJAX_HEADERS = {
+    "user-agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "accept": "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+}
+
 comps = get_module_comps("TRANSFERMARKT")
 
 
@@ -269,32 +280,61 @@ class Transfermarkt():
         contract_expiration = None if len(contract_expiration) == 0 else contract_expiration[0]  # type: ignore
 
         # Market value history
+        # Transfermarkt moved the chart data out of an inline Highcharts script into a
+        # dedicated JSON endpoint.  We query it directly instead of parsing script tags.
+        player_id = player_link.split("/")[-1]
         try:
-            script = [
-                s for s in soup.find_all("script", {"type": "text/javascript"})
-                if "var chart = new Highcharts.Chart" in str(s)
-            ][0]
-            values = [int(s.split(",")[0]) for s in str(script).split("y\":")[2:-2]]
-            dates = [
-                s.split("datum_mw\":")[-1].split(",\"x")[0].replace("\\x20", " ").replace("\"", "")
-                for s in str(script).split("y\":")[2:-2]
-            ]
-            market_value_history = pd.DataFrame({"date": dates, "value": values})
-        except IndexError:
+            mv_r = requests.get(
+                f"{TRANSFERMARKT_ROOT}/ceapi/marketValueDevelopment/graph/{player_id}",
+                headers=_TM_AJAX_HEADERS,
+            )
+            mv_r.raise_for_status()
+            mv_data = mv_r.json().get("list", [])
+            market_value_history = (
+                pd.DataFrame({
+                    "date": [e["datum_mw"] for e in mv_data],
+                    "value": [e["y"] for e in mv_data],
+                })
+                if mv_data else None
+            )
+        except (requests.HTTPError, ValueError, KeyError):
             market_value_history = None
 
         # Transfer History
-        rows = soup.find_all("div", {"class": "grid tm-player-transfer-history-grid"})
-        transfer_history = pd.DataFrame(
-            data=[[s.strip() for s in row.getText().split("\n\n") if s != ""] for row in rows],
-            columns=["Season", "Date", "Left", "Joined", "MV", "Fee", ""]
-        ).drop(
-            columns=[""]
-        )
+        # Transfer rows are now loaded via XHR rather than being embedded in the HTML.
+        # player_id already extracted above for the market-value call.
+        _TH_COLS = ["Season", "Date", "Left", "Joined", "MV", "Fee"]
+        try:
+            th_r = requests.get(
+                f"{TRANSFERMARKT_ROOT}/ceapi/transferHistory/list/{player_id}",
+                headers=_TM_AJAX_HEADERS,
+            )
+            th_r.raise_for_status()
+            transfers = th_r.json().get("transfers", [])
+            transfer_history = (
+                pd.DataFrame(
+                    data=[
+                        {
+                            "Season": t.get("season", ""),
+                            "Date": t.get("date", ""),
+                            "Left": t.get("from", {}).get("clubName", ""),
+                            "Joined": t.get("to", {}).get("clubName", ""),
+                            "MV": t.get("marketValue", ""),
+                            "Fee": t.get("fee", ""),
+                        }
+                        for t in transfers
+                    ],
+                    columns=_TH_COLS,
+                )
+                if transfers
+                else pd.DataFrame(columns=_TH_COLS)
+            )
+        except (requests.HTTPError, ValueError, KeyError):
+            transfer_history = pd.DataFrame(columns=_TH_COLS)
 
         player = pd.Series(dtype=object)
         player["Name"] = name
-        player["ID"] = player_link.split("/")[-1]
+        player["ID"] = player_id
         player["Value"] = value
         player["Value last updated"] = value_last_updated
         player["DOB"] = dob
