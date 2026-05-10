@@ -178,6 +178,63 @@ class Sofascore:
         return data
 
     # ==============================================================================================
+    def get_match_referee(self, match_id: str | int) -> dict | None:
+        """ Get the referee dict for a single match
+
+        :param match_id: Sofascore match URL or match ID
+        :type match_id: str | int
+        :return: Referee dict for the match, or None if the match does not have a referee field.
+        :rtype: dict | None
+        """
+        match_dict = self.get_match_dict(match_id)
+        return match_dict["referee"] if "referee" in match_dict else None
+
+    # ==============================================================================================
+    def get_referee(self, referee_id: str | int) -> dict:
+        """ Get a referee dict from a referee ID
+
+        :param referee_id: Sofascore referee ID
+        :type referee_id: str | int
+        :raises TypeError: If ``referee_id`` is not a string or int.
+        :rtype: dict
+        """
+        if not isinstance(referee_id, int) and not isinstance(referee_id, str):
+            raise TypeError("`referee_id` must be a string or int.")
+
+        response = botasaurus_browser_get_json(f"{API_PREFIX}/referee/{int(referee_id)}")
+        return response["referee"]
+
+    # ==============================================================================================
+    def get_referee_matches(self, referee_id: str | int, max_pages: int=10) -> list[dict]:
+        """ Get recent match dicts for a referee
+
+        :param referee_id: Sofascore referee ID
+        :type referee_id: str | int
+        :param max_pages: Maximum number of pages to request. Defaults to 10.
+        :type max_pages: int
+        :raises TypeError: If ``referee_id`` is not a string or int.
+        :raises TypeError: If ``max_pages`` is not an int.
+        :return: Flat list of event dicts for the referee's recent matches.
+        :rtype: list[dict]
+        """
+        if not isinstance(referee_id, int) and not isinstance(referee_id, str):
+            raise TypeError("`referee_id` must be a string or int.")
+        if not isinstance(max_pages, int):
+            raise TypeError("`max_pages` must be an int.")
+
+        matches = list()
+        referee_id = int(referee_id)
+        for page in range(max_pages):
+            response = botasaurus_browser_get_json(
+                f"{API_PREFIX}/referee/{referee_id}/events/last/{page}"
+            )
+            if "events" not in response or len(response["events"]) == 0:
+                break
+            matches += response["events"]
+
+        return matches
+
+    # ==============================================================================================
     def get_team_names(self, match_id: str | int) -> tuple[str, str]:
         """ Get the team names for the home and away teams
 
