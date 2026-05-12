@@ -287,6 +287,7 @@ class Transfermarkt():
             mv_r = requests.get(
                 f"{TRANSFERMARKT_ROOT}/ceapi/marketValueDevelopment/graph/{player_id}",
                 headers=_TM_AJAX_HEADERS,
+                timeout=30,
             )
             mv_r.raise_for_status()
             mv_data = mv_r.json().get("list", [])
@@ -308,6 +309,7 @@ class Transfermarkt():
             th_r = requests.get(
                 f"{TRANSFERMARKT_ROOT}/ceapi/transferHistory/list/{player_id}",
                 headers=_TM_AJAX_HEADERS,
+                timeout=30,
             )
             th_r.raise_for_status()
             transfers = th_r.json().get("transfers", [])
