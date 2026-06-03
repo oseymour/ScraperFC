@@ -571,10 +571,10 @@ class Sofascore:
             # Insert team name and ID into series and convert to DataFrame row
             team_row["teamId"] = team_id
             team_row["teamName"] = team["name"]
-            team_row = team_row.to_frame().T
+            team_row_df = team_row.to_frame().T
 
             # Append the team row to the main DataFrame
-            df = pd.concat([df, team_row], axis=0, ignore_index=True)
+            df = pd.concat([df, team_row_df], axis=0, ignore_index=True)
 
         # Reorder columns so that team name and ID are first
         df = pd.concat(
