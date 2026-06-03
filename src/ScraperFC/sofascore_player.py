@@ -18,7 +18,7 @@ class SofascorePlayer:
     contract_until: datetime | None
     market_value: int | None
     market_value_currency: str | None
-    career_stats: pd.DataFrame
+    career_stats: pd.DataFrame | None
 
     def __repr__(self) -> str:
         return f"SofascorePlayer(id={self.id}, name={self.name})"

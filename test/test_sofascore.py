@@ -243,3 +243,8 @@ class TestSofascore:
         assert len(player_ids) == len(player_details)
         assert isinstance(player_details, list)
         assert all(isinstance(player, SofascorePlayer) for player in player_details)
+        assert all(isinstance(player.career_stats, pd.DataFrame) for player in player_details)
+
+        player_details_no_stats = ss.scrape_player_details(year, league, include_career_stats=False)
+        assert len(player_ids) == len(player_details_no_stats)
+        assert all(player.career_stats is None for player in player_details_no_stats)
