@@ -571,10 +571,10 @@ class Sofascore:
             # Insert team name and ID into series and convert to DataFrame row
             team_row["teamId"] = team_id
             team_row["teamName"] = team["name"]
-            team_row = team_row.to_frame().T
+            team_row_df = team_row.to_frame().T
 
             # Append the team row to the main DataFrame
-            df = pd.concat([df, team_row], axis=0, ignore_index=True)
+            df = pd.concat([df, team_row_df], axis=0, ignore_index=True)
 
         # Reorder columns so that team name and ID are first
         df = pd.concat(
@@ -585,7 +585,9 @@ class Sofascore:
         return df
 
     # ==============================================================================================
-    def scrape_player_details(self, year: str, league: str) -> list[SofascorePlayer]:
+    def scrape_player_details(
+        self, year: str, league: str, include_career_stats: bool = True
+    ) -> list[SofascorePlayer]:
         """ Scrape details for all players in a given year and league. Details are things like
         name, DOB, position, heigh, weight, contract expiration, etc.
 
@@ -596,6 +598,10 @@ class Sofascore:
         :type year: str
         :param league: .. include:: ./arg_docstrings/league.rst
         :type league: str
+        :param include_career_stats: If True (default), fetch career statistics for each player
+            via an additional API call. Set to False to skip this call when career stats are not
+            needed, reducing scrape time.
+        :type include_career_stats: bool
         :rtype: list[SofascorePlayer]
         """
         player_ids = self.get_league_player_ids(year, league)
@@ -649,7 +655,9 @@ class Sofascore:
                 if "proposedMarketValueRaw" in player_dict
                 and "currency" in player_dict["proposedMarketValueRaw"] else None
             )
-            career_stats = _get_player_career_stats_df(player_id, API_PREFIX)
+            career_stats = (
+                _get_player_career_stats_df(player_id, API_PREFIX) if include_career_stats else None
+            )
 
             player = SofascorePlayer(
                 id=player_id, name=player_name, team_name=team_name, team_id=team_id,

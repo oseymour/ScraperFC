@@ -38,6 +38,7 @@ exclude_patterns = ["*.ipynb_checkpoints"]
 # Ignore warnings for some types not being found
 nitpick_ignore = [
     ("py:class", "pd.DataFrame"),
+    ("py:class", "pandas.DataFrame"),
     ("py:class", "pandas.core.frame.DataFrame"),
     ("py:class", "optional"),
     ("py:class", "default True"),
