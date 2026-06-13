@@ -44,7 +44,8 @@ def _validate_browser_get_json_args(
         wait_for_complete_page_load: bool, delay: int,
         via_xhr: bool, warm_url: str | None, add_arguments: list[str] | None,
 ) -> None:
-    """Validate arguments for :func:`botasaurus_browser_get_json`.
+    """
+    Validate arguments for :func:`botasaurus_browser_get_json`.
 
     :raises TypeError: If any argument is the wrong type.
     :raises ValueError: If ``delay`` is negative, or ``via_xhr=True`` without ``warm_url``.
@@ -78,7 +79,8 @@ def botasaurus_browser_get_json(
         via_xhr: bool = False, warm_url: str | None = None,
         add_arguments: list[str] | None = None,
 ) -> dict:
-    """Use Botasaurus BROWSER module to get JSON from a page.
+    """
+    Use Botasaurus BROWSER module to get JSON from a page.
 
     Two modes:
 
@@ -155,7 +157,8 @@ def botasaurus_browser_get_json_via_xhr(
         block_images_and_css: bool = True,
         add_arguments: list[str] | None = None,
 ) -> dict:
-    """Fetch a JSON API endpoint that sits behind a browser/bot challenge.
+    """
+    Fetch a JSON API endpoint that sits behind a browser/bot challenge.
 
     Warms a browser session on ``warm_url`` then issues an in-page XHR to ``url``.
     Generic: any challenge-blocked source can use it by passing its own origin as

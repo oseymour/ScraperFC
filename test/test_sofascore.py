@@ -251,6 +251,7 @@ from ScraperFC.utils import (
 
 
 class TestViaXhrMode:
+
     """Tests for the via_xhr mode and warm-session XHR helper."""
 
     @staticmethod
