@@ -147,7 +147,7 @@ def botasaurus_browser_get_json(
             time.sleep(delay)
         return json.loads(driver.page_text)
 
-    return _get_json({"url": url, "warm_url": warm_url, "via_xhr": via_xhr})
+    return _get_json({"url": url, "warm_url": warm_url, "via_xhr": via_xhr})  # type: ignore[call-arg]
 
 
 # ==================================================================================================
