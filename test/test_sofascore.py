@@ -287,5 +287,5 @@ class TestViaXhrMode:
             "https://api.sofascore.com/api/v1/unique-tournament/17/seasons",
             warm_url="https://www.sofascore.com/",
         )
-        assert "seasons" in result  # noqa: S101
-        assert len(result["seasons"]) > 0  # noqa: S101
+        assert "seasons" in result
+        assert len(result["seasons"]) > 0

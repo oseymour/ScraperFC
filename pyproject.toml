@@ -90,6 +90,11 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.package-data]
 "ScraperFC" = ["comps.yaml"]
 
+# -- Security linting ------------------------------------------------------------------------------
+[tool.bandit]
+exclude_dirs = ["test"]
+skips = ["B101"]
+
 # -- Typechecking ----------------------------------------------------------------------------------
 [tool.mypy]
 ignore_missing_imports = true

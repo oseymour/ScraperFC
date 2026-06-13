@@ -127,13 +127,12 @@ def botasaurus_browser_get_json(
         _browser_kwargs["add_arguments"] = add_arguments
 
     @browser(**_browser_kwargs)
-    def _get_json(driver, data):  # type: ignore
-        """Fetch JSON from ``data['url']``, optionally via warm-session XHR."""
-        target = data["url"]
-        if data["via_xhr"]:
-            driver.get(data["warm_url"])    # load origin page to set session cookies
+    def _get_json(driver, target):  # type: ignore
+        """Fetch JSON from ``target``, optionally via warm-session XHR."""
+        if via_xhr:
+            driver.get(warm_url)    # load origin page to set session cookies
             if delay > 0:
-                time.sleep(delay)           # wait for the challenge to resolve
+                time.sleep(delay)   # wait for the challenge to resolve
             js = f"""
             var xhr = new XMLHttpRequest();
             xhr.open('GET', {json.dumps(target)}, false);
@@ -147,7 +146,7 @@ def botasaurus_browser_get_json(
             time.sleep(delay)
         return json.loads(driver.page_text)
 
-    return _get_json({"url": url, "warm_url": warm_url, "via_xhr": via_xhr})  # type: ignore[call-arg]
+    return _get_json(url)
 
 
 # ==================================================================================================
