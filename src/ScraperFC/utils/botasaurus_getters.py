@@ -1,8 +1,12 @@
 from botasaurus.request import request
 from botasaurus.browser import browser
 import json
+import sys
 from bs4 import BeautifulSoup
 import time
+
+# Chrome flags required when running as root (e.g. inside a Docker container on Linux)
+_LINUX_CHROME_ARGS = ["--no-sandbox", "--disable-dev-shm-usage"]
 
 
 # ==================================================================================================
@@ -39,6 +43,7 @@ def botasaurus_browser_get_json(
         url: str, headless: bool = True, block_images_and_css: bool = True,
         wait_for_complete_page_load: bool = True, delay: int = 0,
         via_xhr: bool = False, warm_url: str | None = None,
+        add_arguments: list[str] | None = None,
 ) -> dict:
     """Use Botasaurus BROWSER module to get JSON from a page.
 
@@ -93,12 +98,18 @@ def botasaurus_browser_get_json(
         raise TypeError("`warm_url` must be a string or None.")
     if via_xhr and warm_url is None:
         raise ValueError("`warm_url` is required when `via_xhr=True`.")
+    if add_arguments is not None and not isinstance(add_arguments, list):
+        raise TypeError("`add_arguments` must be a list of strings or None.")
 
-    @browser(
+    _browser_kwargs: dict = dict(
         headless=headless, block_images_and_css=block_images_and_css,
         wait_for_complete_page_load=wait_for_complete_page_load,
-        output=None, create_error_logs=False
+        output=None, create_error_logs=False,
     )
+    if add_arguments:
+        _browser_kwargs["add_arguments"] = add_arguments
+
+    @browser(**_browser_kwargs)
     def _get_json(driver, data):  # type: ignore
         target = data["url"]
         if data["via_xhr"]:
@@ -124,6 +135,7 @@ def botasaurus_browser_get_json(
 def botasaurus_browser_get_json_via_xhr(
         url: str, warm_url: str, headless: bool = True, delay: int = 6,
         block_images_and_css: bool = True,
+        add_arguments: list[str] | None = None,
 ) -> dict:
     """Fetch a JSON API endpoint that sits behind a browser/bot challenge.
 
@@ -135,6 +147,9 @@ def botasaurus_browser_get_json_via_xhr(
     time during the warm-up, allowing the challenge to resolve before the browser
     times out.
 
+    On Linux (e.g. inside a Docker container), ``--no-sandbox`` and
+    ``--disable-dev-shm-usage`` are added automatically so Chrome can run as root.
+
     :param url: API endpoint to fetch.
     :type url: str
     :param warm_url: Origin page to load first to acquire session cookies.
@@ -145,12 +160,20 @@ def botasaurus_browser_get_json_via_xhr(
     :type delay: int
     :param block_images_and_css: Whether to block images and CSS (default: True).
     :type block_images_and_css: bool
+    :param add_arguments: Extra Chrome command-line flags (default: None).
+    :type add_arguments: list[str] | None
     :return: JSON data.
     :rtype: dict
     """
+    args = list(add_arguments) if add_arguments else []
+    if sys.platform == "linux":
+        for flag in _LINUX_CHROME_ARGS:
+            if flag not in args:
+                args.append(flag)
     return botasaurus_browser_get_json(
         url, via_xhr=True, warm_url=warm_url,
         headless=headless, delay=delay, block_images_and_css=block_images_and_css,
+        add_arguments=args or None,
     )
 
 # ==================================================================================================
