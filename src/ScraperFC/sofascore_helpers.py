@@ -1,12 +1,15 @@
 import pandas as pd
-from .utils.botasaurus_getters import botasaurus_browser_get_json
+from .utils.botasaurus_getters import botasaurus_browser_get_json_via_xhr
 
 # ==================================================================================================
 def _get_player_career_stats_df(player_id: int, api_prefix: str) -> pd.DataFrame:
     if not isinstance(player_id, int):
         raise TypeError("player_id must be an integer.")
 
-    response = botasaurus_browser_get_json(f"{api_prefix}/player/{player_id}/statistics")
+    response = botasaurus_browser_get_json_via_xhr(
+        f"{api_prefix}/player/{player_id}/statistics",
+        "https://www.sofascore.com/",
+    )
 
     if "seasons" not in response:
         return pd.DataFrame()
