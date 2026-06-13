@@ -44,6 +44,11 @@ def _validate_browser_get_json_args(
         wait_for_complete_page_load: bool, delay: int,
         via_xhr: bool, warm_url: str | None, add_arguments: list[str] | None,
 ) -> None:
+    """Validate arguments for :func:`botasaurus_browser_get_json`.
+
+    :raises TypeError: If any argument is the wrong type.
+    :raises ValueError: If ``delay`` is negative, or ``via_xhr=True`` without ``warm_url``.
+    """
     if not isinstance(url, str):
         raise TypeError("`url` must be a string.")
     if not isinstance(headless, bool):
