@@ -37,23 +37,42 @@ def botasaurus_request_get_json(url: str, delay: int = 0) -> dict:
 # ==================================================================================================
 def botasaurus_browser_get_json(
         url: str, headless: bool = True, block_images_and_css: bool = True,
-        wait_for_complete_page_load: bool = True, delay: int = 0
+        wait_for_complete_page_load: bool = True, delay: int = 0,
+        via_xhr: bool = False, warm_url: str | None = None,
 ) -> dict:
-    """Use Botasaurus BROWSER module to get JSON from page
+    """Use Botasaurus BROWSER module to get JSON from a page.
 
-    :param url: The URL to scrape
+    Two modes:
+
+    * **Direct navigation** (default): navigate to ``url`` and parse the page text
+      as JSON.
+    * **In-page XHR** (``via_xhr=True``): navigate to ``warm_url`` first to
+      establish a session and pass any anti-bot challenge, then issue a
+      synchronous ``XMLHttpRequest`` to ``url`` from that page, sending the
+      ``X-Requested-With: XMLHttpRequest`` header that single-page-app backends
+      expect. ``warm_url`` is required in this mode and ``headless`` must be
+      ``False`` for the challenge to resolve. ``delay`` is the post-warm-up wait.
+
+    :param url: The URL to scrape.
     :type url: str
-    :param headless: Whether to run the browser in headless mode
+    :param headless: Whether to run the browser in headless mode.
     :type headless: bool
-    :param block_images_and_css: Whether to block images and CSS
+    :param block_images_and_css: Whether to block images and CSS.
     :type block_images_and_css: bool
-    :param wait_for_complete_page_load: Whether to wait for the page to load completely
+    :param wait_for_complete_page_load: Whether to wait for the page to load completely.
     :type wait_for_complete_page_load: bool
-    :param delay: Seconds to wait after the request (default: 0)
+    :param delay: Seconds to wait after navigation (default: 0). In ``via_xhr``
+        mode this is the wait between loading ``warm_url`` and issuing the XHR.
     :type delay: int
-    :raises TypeError: If any of the parameters are the wrong type
-    :raises ValueError: If ``delay`` is negative
-    :return: JSON data
+    :param via_xhr: Fetch ``url`` as an in-page XHR from ``warm_url`` instead of
+        navigating to it directly.
+    :type via_xhr: bool
+    :param warm_url: Origin page to load before the XHR. Required when
+        ``via_xhr=True``; ignored otherwise.
+    :type warm_url: str | None
+    :raises TypeError: If any of the parameters are the wrong type.
+    :raises ValueError: If ``delay`` is negative, or ``via_xhr=True`` without ``warm_url``.
+    :return: JSON data.
     :rtype: dict
     """
     if not isinstance(url, str):
@@ -68,19 +87,67 @@ def botasaurus_browser_get_json(
         raise TypeError("`delay` must be an int.")
     if delay < 0:
         raise ValueError("`delay` must be non-negative.")
+    if not isinstance(via_xhr, bool):
+        raise TypeError("`via_xhr` must be a bool.")
+    if warm_url is not None and not isinstance(warm_url, str):
+        raise TypeError("`warm_url` must be a string or None.")
+    if via_xhr and warm_url is None:
+        raise ValueError("`warm_url` is required when `via_xhr=True`.")
 
     @browser(
         headless=headless, block_images_and_css=block_images_and_css,
         wait_for_complete_page_load=wait_for_complete_page_load,
         output=None, create_error_logs=False
     )
-    def _get_json(driver, url):  # type: ignore
-        driver.get(url)
+    def _get_json(driver, data):  # type: ignore
+        target = data["url"]
+        if data["via_xhr"]:
+            driver.get(data["warm_url"])    # load origin page to set session cookies
+            if delay > 0:
+                time.sleep(delay)           # wait for the challenge to resolve
+            js = f"""
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', {json.dumps(target)}, false);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            xhr.send();
+            return JSON.parse(xhr.responseText);
+            """
+            return driver.run_js(js)
+        driver.get(target)
         if delay > 0:
             time.sleep(delay)
         return json.loads(driver.page_text)
 
-    return _get_json(url)
+    return _get_json({"url": url, "warm_url": warm_url, "via_xhr": via_xhr})
+
+# ==================================================================================================
+def botasaurus_browser_get_json_via_xhr(
+        url: str, warm_url: str, headless: bool = False, delay: int = 6,
+        block_images_and_css: bool = True,
+) -> dict:
+    """Fetch a JSON API endpoint that sits behind a browser/bot challenge.
+
+    Warms a browser session on ``warm_url`` then issues an in-page XHR to ``url``.
+    Generic: any challenge-blocked source can use it by passing its own origin as
+    ``warm_url`` (e.g. ``"https://fbref.com/"``).
+
+    :param url: API endpoint to fetch.
+    :type url: str
+    :param warm_url: Origin page to load first to acquire session cookies.
+    :type warm_url: str
+    :param headless: Must be ``False`` for the challenge to resolve (default: False).
+    :type headless: bool
+    :param delay: Seconds to wait after warming before the XHR (default: 6).
+    :type delay: int
+    :param block_images_and_css: Whether to block images and CSS.
+    :type block_images_and_css: bool
+    :return: JSON data.
+    :rtype: dict
+    """
+    return botasaurus_browser_get_json(
+        url, via_xhr=True, warm_url=warm_url,
+        headless=headless, delay=delay, block_images_and_css=block_images_and_css,
+    )
 
 # ==================================================================================================
 def botasaurus_request_get_soup(url: str, delay: int = 0) -> BeautifulSoup:
