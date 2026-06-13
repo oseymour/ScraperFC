@@ -277,7 +277,7 @@ class TestViaXhrMode:
             )
 
     def test_via_xhr_helper_returns_data(self):
-        """The convenience helper returns valid Sofascore seasons data."""
+        """The convenience helper returns valid Sofascore seasons data (headless)."""
         result = botasaurus_browser_get_json_via_xhr(
             "https://api.sofascore.com/api/v1/unique-tournament/17/seasons",
             warm_url="https://www.sofascore.com/",

@@ -122,7 +122,7 @@ def botasaurus_browser_get_json(
 
 # ==================================================================================================
 def botasaurus_browser_get_json_via_xhr(
-        url: str, warm_url: str, headless: bool = False, delay: int = 6,
+        url: str, warm_url: str, headless: bool = True, delay: int = 6,
         block_images_and_css: bool = True,
 ) -> dict:
     """Fetch a JSON API endpoint that sits behind a browser/bot challenge.
@@ -131,15 +131,19 @@ def botasaurus_browser_get_json_via_xhr(
     Generic: any challenge-blocked source can use it by passing its own origin as
     ``warm_url`` (e.g. ``"https://fbref.com/"``).
 
+    ``block_images_and_css=True`` (the default) is recommended: it reduces page-load
+    time during the warm-up, allowing the challenge to resolve before the browser
+    times out.
+
     :param url: API endpoint to fetch.
     :type url: str
     :param warm_url: Origin page to load first to acquire session cookies.
     :type warm_url: str
-    :param headless: Must be ``False`` for the challenge to resolve (default: False).
+    :param headless: Whether to run the browser in headless mode (default: True).
     :type headless: bool
     :param delay: Seconds to wait after warming before the XHR (default: 6).
     :type delay: int
-    :param block_images_and_css: Whether to block images and CSS.
+    :param block_images_and_css: Whether to block images and CSS (default: True).
     :type block_images_and_css: bool
     :return: JSON data.
     :rtype: dict
