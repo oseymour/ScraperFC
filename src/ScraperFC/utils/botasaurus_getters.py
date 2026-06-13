@@ -39,6 +39,34 @@ def botasaurus_request_get_json(url: str, delay: int = 0) -> dict:
     return _get_json(url)
 
 # ==================================================================================================
+def _validate_browser_get_json_args(
+        url: str, headless: bool, block_images_and_css: bool,
+        wait_for_complete_page_load: bool, delay: int,
+        via_xhr: bool, warm_url: str | None, add_arguments: list[str] | None,
+) -> None:
+    if not isinstance(url, str):
+        raise TypeError("`url` must be a string.")
+    if not isinstance(headless, bool):
+        raise TypeError("`headless` must be a bool.")
+    if not isinstance(block_images_and_css, bool):
+        raise TypeError("`block_images_and_css` must be a bool.")
+    if not isinstance(wait_for_complete_page_load, bool):
+        raise TypeError("`wait_for_complete_page_load` must be a bool.")
+    if not isinstance(delay, int):
+        raise TypeError("`delay` must be an int.")
+    if delay < 0:
+        raise ValueError("`delay` must be non-negative.")
+    if not isinstance(via_xhr, bool):
+        raise TypeError("`via_xhr` must be a bool.")
+    if warm_url is not None and not isinstance(warm_url, str):
+        raise TypeError("`warm_url` must be a string or None.")
+    if via_xhr and warm_url is None:
+        raise ValueError("`warm_url` is required when `via_xhr=True`.")
+    if add_arguments is not None and not isinstance(add_arguments, list):
+        raise TypeError("`add_arguments` must be a list of strings or None.")
+
+
+# ==================================================================================================
 def botasaurus_browser_get_json(
         url: str, headless: bool = True, block_images_and_css: bool = True,
         wait_for_complete_page_load: bool = True, delay: int = 0,
@@ -80,26 +108,10 @@ def botasaurus_browser_get_json(
     :return: JSON data.
     :rtype: dict
     """
-    if not isinstance(url, str):
-        raise TypeError("`url` must be a string.")
-    if not isinstance(headless, bool):
-        raise TypeError("`headless` must be a bool.")
-    if not isinstance(block_images_and_css, bool):
-        raise TypeError("`block_images_and_css` must be a bool.")
-    if not isinstance(wait_for_complete_page_load, bool):
-        raise TypeError("`wait_for_complete_page_load` must be a bool.")
-    if not isinstance(delay, int):
-        raise TypeError("`delay` must be an int.")
-    if delay < 0:
-        raise ValueError("`delay` must be non-negative.")
-    if not isinstance(via_xhr, bool):
-        raise TypeError("`via_xhr` must be a bool.")
-    if warm_url is not None and not isinstance(warm_url, str):
-        raise TypeError("`warm_url` must be a string or None.")
-    if via_xhr and warm_url is None:
-        raise ValueError("`warm_url` is required when `via_xhr=True`.")
-    if add_arguments is not None and not isinstance(add_arguments, list):
-        raise TypeError("`add_arguments` must be a list of strings or None.")
+    _validate_browser_get_json_args(
+        url, headless, block_images_and_css, wait_for_complete_page_load,
+        delay, via_xhr, warm_url, add_arguments,
+    )
 
     _browser_kwargs: dict = dict(
         headless=headless, block_images_and_css=block_images_and_css,
@@ -111,6 +123,7 @@ def botasaurus_browser_get_json(
 
     @browser(**_browser_kwargs)
     def _get_json(driver, data):  # type: ignore
+        """Fetch JSON from ``data['url']``, optionally via warm-session XHR."""
         target = data["url"]
         if data["via_xhr"]:
             driver.get(data["warm_url"])    # load origin page to set session cookies
@@ -130,6 +143,7 @@ def botasaurus_browser_get_json(
         return json.loads(driver.page_text)
 
     return _get_json({"url": url, "warm_url": warm_url, "via_xhr": via_xhr})
+
 
 # ==================================================================================================
 def botasaurus_browser_get_json_via_xhr(

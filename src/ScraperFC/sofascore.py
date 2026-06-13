@@ -175,7 +175,9 @@ class Sofascore:
         :rtype: dict
         """
         match_id = self._check_and_convert_match_id(match_id)
-        response = botasaurus_browser_get_json_via_xhr(f"{API_PREFIX}/event/{match_id}", _SOFASCORE_HOME)
+        response = botasaurus_browser_get_json_via_xhr(
+            f"{API_PREFIX}/event/{match_id}", _SOFASCORE_HOME
+        )
         data = response["event"]
         return data
 

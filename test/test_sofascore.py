@@ -251,8 +251,10 @@ from ScraperFC.utils import (
 
 
 class TestViaXhrMode:
+    """Tests for the via_xhr mode and warm-session XHR helper."""
 
-    def test_via_xhr_type_error(self):
+    @staticmethod
+    def test_via_xhr_type_error():
         """via_xhr must be a bool."""
         with pytest.raises(TypeError, match="`via_xhr` must be a bool"):
             botasaurus_browser_get_json(
@@ -260,7 +262,8 @@ class TestViaXhrMode:
                 via_xhr="yes",
             )
 
-    def test_warm_url_type_error(self):
+    @staticmethod
+    def test_warm_url_type_error():
         """warm_url must be a string or None."""
         with pytest.raises(TypeError, match="`warm_url` must be a string or None"):
             botasaurus_browser_get_json(
@@ -268,7 +271,8 @@ class TestViaXhrMode:
                 warm_url=123,
             )
 
-    def test_via_xhr_requires_warm_url(self):
+    @staticmethod
+    def test_via_xhr_requires_warm_url():
         """via_xhr=True without warm_url raises ValueError."""
         with pytest.raises(ValueError, match="`warm_url` is required"):
             botasaurus_browser_get_json(
@@ -276,7 +280,8 @@ class TestViaXhrMode:
                 via_xhr=True,
             )
 
-    def test_via_xhr_helper_returns_data(self):
+    @staticmethod
+    def test_via_xhr_helper_returns_data():
         """The convenience helper returns valid Sofascore seasons data (headless)."""
         result = botasaurus_browser_get_json_via_xhr(
             "https://api.sofascore.com/api/v1/unique-tournament/17/seasons",
