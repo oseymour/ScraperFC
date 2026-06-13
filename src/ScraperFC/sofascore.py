@@ -5,7 +5,7 @@ from tqdm import tqdm
 from datetime import datetime, timezone, timedelta
 
 from .scraperfc_exceptions import InvalidLeagueException, InvalidYearException
-from .utils import botasaurus_browser_get_json, get_module_comps
+from .utils import botasaurus_browser_get_json_via_xhr, get_module_comps
 from .sofascore_player import SofascorePlayer
 from .sofascore_helpers import _get_player_career_stats_df
 
@@ -23,6 +23,7 @@ from .sofascore_helpers import _get_player_career_stats_df
 """
 
 API_PREFIX = "https://api.sofascore.com/api/v1"
+_SOFASCORE_HOME = "https://www.sofascore.com/"
 
 comps = get_module_comps("SOFASCORE")
 
@@ -97,7 +98,7 @@ class Sofascore:
             raise InvalidLeagueException(league, "Sofascore", list(comps.keys()))
 
         url = f"{API_PREFIX}/unique-tournament/{comps[league]['SOFASCORE']}/seasons/"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
         seasons = {x["year"]: x["id"] for x in response["seasons"]}
         return seasons
 
@@ -123,9 +124,10 @@ class Sofascore:
         matches = list()
         i = 0
         while 1:
-            response = botasaurus_browser_get_json(
+            response = botasaurus_browser_get_json_via_xhr(
                 f"{API_PREFIX}/unique-tournament/{comps[league]['SOFASCORE']}/"
-                f"season/{valid_seasons[year]}/events/last/{i}"
+                f"season/{valid_seasons[year]}/events/last/{i}",
+                _SOFASCORE_HOME,
             )
             if "events" not in response:
                 break
@@ -173,7 +175,7 @@ class Sofascore:
         :rtype: dict
         """
         match_id = self._check_and_convert_match_id(match_id)
-        response = botasaurus_browser_get_json(f"{API_PREFIX}/event/{match_id}")
+        response = botasaurus_browser_get_json_via_xhr(f"{API_PREFIX}/event/{match_id}", _SOFASCORE_HOME)
         data = response["event"]
         return data
 
@@ -225,7 +227,7 @@ class Sofascore:
         """
         match_id = self._check_and_convert_match_id(match_id)
         url = f"{API_PREFIX}/event/{match_id}/lineups"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
 
         if "error" not in response:
             teams = ["home", "away"]
@@ -263,7 +265,7 @@ class Sofascore:
             raise InvalidYearException(year, league, list(valid_seasons.keys()))
 
         url = f"{API_PREFIX}/unique-tournament/{comps[league]['SOFASCORE']}/season/{valid_seasons[year]}/players"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
         player_ids = [x["playerId"] for x in response["players"]]
 
         return player_ids
@@ -317,7 +319,7 @@ class Sofascore:
                 f"&accumulation={accumulation}" +\
                 f"&fields={self.concatenated_stat_names}" +\
                 f"&filters=position.in.{positions}"
-            response = botasaurus_browser_get_json(request_url)
+            response = botasaurus_browser_get_json_via_xhr(request_url, _SOFASCORE_HOME)
             results += response["results"]
             if (response["page"] == response["pages"]) or (response["pages"] == 0):
                 break
@@ -348,7 +350,7 @@ class Sofascore:
         """
         match_id = self._check_and_convert_match_id(match_id)
         url = f"{API_PREFIX}/event/{match_id}/graph"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
 
         if "error" not in response:
             match_momentum_df = pd.DataFrame(response["graphPoints"])
@@ -371,7 +373,7 @@ class Sofascore:
         """
         match_id = self._check_and_convert_match_id(match_id)
         url = f"{API_PREFIX}/event/{match_id}/statistics"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
 
         if "error" not in response:
             df = pd.DataFrame()
@@ -403,7 +405,7 @@ class Sofascore:
         match_id = self._check_and_convert_match_id(match_id)
         match_dict = self.get_match_dict(match_id)  # used to get home and away team names and IDs
         url = f"{API_PREFIX}/event/{match_id}/lineups"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
 
         if "error" not in response:
             home_players = response["home"]["players"]
@@ -448,7 +450,7 @@ class Sofascore:
         match_id = self._check_and_convert_match_id(match_id)
         home_name, away_name = self.get_team_names(match_id)
         url = f"{API_PREFIX}/event/{match_id}/average-positions"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
 
         if "error" not in response:
             df = pd.DataFrame()
@@ -487,7 +489,7 @@ class Sofascore:
             player_id = players[player]
             url = f"{API_PREFIX}/event/{match_id}/player/{player_id}/heatmap"
 
-            response = botasaurus_browser_get_json(url)
+            response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
 
             if "error" not in response:
                 heatmap = [(z["x"], z["y"]) for z in response["heatmap"]]
@@ -510,7 +512,7 @@ class Sofascore:
         """
         match_id = self._check_and_convert_match_id(match_id)
         url = f"{API_PREFIX}/event/{match_id}/shotmap"
-        response = botasaurus_browser_get_json(url)
+        response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
         if "error" not in response:
             df = pd.DataFrame.from_dict(response["shotmap"])
         else:
@@ -546,8 +548,9 @@ class Sofascore:
         year_id = valid_seasons[year]
 
         # Find all teams in the league that season
-        teams_list = botasaurus_browser_get_json(
-            f"{API_PREFIX}/unique-tournament/{league_id}/season/{year_id}/teams"
+        teams_list = botasaurus_browser_get_json_via_xhr(
+            f"{API_PREFIX}/unique-tournament/{league_id}/season/{year_id}/teams",
+            _SOFASCORE_HOME,
         )["teams"]
 
         # Iterate over teams and build dataframe of stats
@@ -555,9 +558,10 @@ class Sofascore:
         for team in (pbar := tqdm(teams_list, ncols=100)):
             team_id = team["id"]
             pbar.set_description(f"{year} {league}, team ID {team_id}")
-            result = botasaurus_browser_get_json(
+            result = botasaurus_browser_get_json_via_xhr(
                 f"{API_PREFIX}/team/{team_id}/unique-tournament/{league_id}/season/{year_id}/"
-                "statistics/overall"
+                "statistics/overall",
+                _SOFASCORE_HOME,
             )
 
             if "statistics" in result:
@@ -608,7 +612,7 @@ class Sofascore:
             pbar.set_description(f"{year} {league}, player ID {player_id}")
 
             url = f"{API_PREFIX}/player/{player_id}"
-            response = botasaurus_browser_get_json(url)
+            response = botasaurus_browser_get_json_via_xhr(url, _SOFASCORE_HOME)
             player_dict = response["player"]
 
             player_name = player_dict["name"]
