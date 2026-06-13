@@ -243,3 +243,44 @@ class TestSofascore:
         assert len(player_ids) == len(player_details)
         assert isinstance(player_details, list)
         assert all(isinstance(player, SofascorePlayer) for player in player_details)
+
+
+from ScraperFC.utils import (
+    botasaurus_browser_get_json, botasaurus_browser_get_json_via_xhr,
+)
+
+
+class TestViaXhrMode:
+
+    def test_via_xhr_type_error(self):
+        """via_xhr must be a bool."""
+        with pytest.raises(TypeError, match="`via_xhr` must be a bool"):
+            botasaurus_browser_get_json(
+                "https://api.sofascore.com/api/v1/unique-tournament/17/seasons",
+                via_xhr="yes",
+            )
+
+    def test_warm_url_type_error(self):
+        """warm_url must be a string or None."""
+        with pytest.raises(TypeError, match="`warm_url` must be a string or None"):
+            botasaurus_browser_get_json(
+                "https://api.sofascore.com/api/v1/unique-tournament/17/seasons",
+                warm_url=123,
+            )
+
+    def test_via_xhr_requires_warm_url(self):
+        """via_xhr=True without warm_url raises ValueError."""
+        with pytest.raises(ValueError, match="`warm_url` is required"):
+            botasaurus_browser_get_json(
+                "https://api.sofascore.com/api/v1/unique-tournament/17/seasons",
+                via_xhr=True,
+            )
+
+    def test_via_xhr_helper_returns_data(self):
+        """The convenience helper returns valid Sofascore seasons data."""
+        result = botasaurus_browser_get_json_via_xhr(
+            "https://api.sofascore.com/api/v1/unique-tournament/17/seasons",
+            warm_url="https://www.sofascore.com/",
+        )
+        assert "seasons" in result
+        assert len(result["seasons"]) > 0
