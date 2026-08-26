@@ -76,3 +76,13 @@ class TestTransfermarkt:
     )
     def test_parse_height(self, height_str, expected):
         assert parse_height(height_str) == expected
+
+    # ==============================================================================================
+    def test_scrape_market_value_history(self):
+        tm = Transfermarkt()
+        player = tm.scrape_player("https://www.transfermarkt.us/pedro-neto/profil/spieler/487465")
+        mvh = player["Market value history"].iloc[0]
+        assert type(mvh) is pd.DataFrame
+        assert mvh.shape[0] > 0
+        assert list(mvh.columns) == ["date", "value"]
+        assert mvh["value"].map(lambda x: type(x) is int).all()

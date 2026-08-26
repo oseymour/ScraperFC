@@ -41,6 +41,39 @@ def parse_height(height_str: str):
     return None
 
 
+def scrape_market_value_history(player_id: str):
+    """ Scrape a player's market value history
+
+    Transfermarkt serves the market value chart from a JSON endpoint, not from the player page
+    HTML.
+
+    :param player_id: Transfermarkt player ID, the last part of a player URL
+    :type player_id: str
+    :return: Dataframe of the player's market value history, or None if the player doesn't have
+        one
+    :rtype: pd.DataFrame or None
+    """
+    r = requests.get(
+        f"{TRANSFERMARKT_ROOT}/ceapi/marketValueDevelopment/graph/{player_id}",
+        headers={
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +\
+                "(KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"
+        }
+    )
+    if r.status_code != 200:
+        return None
+    try:
+        entries = r.json()["list"]
+    except (ValueError, KeyError, TypeError):
+        return None
+    if len(entries) == 0:
+        return None
+    return pd.DataFrame({
+        "date": [entry["datum_mw"] for entry in entries],
+        "value": [int(entry["y"]) for entry in entries]
+    })
+
+
 class Transfermarkt():
 
     # ==============================================================================================
@@ -294,19 +327,7 @@ class Transfermarkt():
         contract_expiration = None if len(contract_expiration) == 0 else contract_expiration[0]  # type: ignore
 
         # Market value history
-        try:
-            script = [
-                s for s in soup.find_all("script", {"type": "text/javascript"})
-                if "var chart = new Highcharts.Chart" in str(s)
-            ][0]
-            values = [int(s.split(",")[0]) for s in str(script).split("y\":")[2:-2]]
-            dates = [
-                s.split("datum_mw\":")[-1].split(",\"x")[0].replace("\\x20", " ").replace("\"", "")
-                for s in str(script).split("y\":")[2:-2]
-            ]
-            market_value_history = pd.DataFrame({"date": dates, "value": values})
-        except IndexError:
-            market_value_history = None
+        market_value_history = scrape_market_value_history(player_link.split("/")[-1])
 
         # Transfer History
         rows = soup.find_all("div", {"class": "grid tm-player-transfer-history-grid"})
