@@ -1,4 +1,5 @@
 from tqdm import tqdm
+import re
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -10,6 +11,34 @@ from ScraperFC.utils import get_module_comps, botasaurus_request_get_soup
 TRANSFERMARKT_ROOT = "https://www.transfermarkt.us"
 
 comps = get_module_comps("TRANSFERMARKT")
+
+
+def parse_height(height_str: str):
+    """ Parse a Transfermarkt height string into metres
+
+    Transfermarkt serves metric ("1,91 m") or imperial ("6 ft 6 in") heights,
+    depending on the domain and locale of the request.
+
+    :param height_str: Height string from a player page
+    :type height_str: str
+    :return: Height in metres, or None if the page doesn't have one
+    :rtype: float or None
+    """
+    height_str = height_str.strip()
+
+    imperial_match = re.match(
+        r"^(\d+)\s*ft(?:\s*(\d+)\s*in)?$", height_str, flags=re.IGNORECASE
+    )
+    if imperial_match is not None:
+        feet = int(imperial_match.group(1))
+        inches = int(imperial_match.group(2) or 0)
+        return round((feet * 12 + inches) * 0.0254, 2)
+
+    metric_match = re.match(r"^(\d+)[,.](\d+)\s*m$", height_str, flags=re.IGNORECASE)
+    if metric_match is not None:
+        return float(f"{metric_match.group(1)}.{metric_match.group(2)}")
+
+    return None
 
 
 class Transfermarkt():
@@ -192,11 +221,7 @@ class Transfermarkt():
         if height_tag is None:
             height = None
         else:
-            height_str = height_tag.text.strip()
-            if height_str in ["N/A", "- m"]:
-                height = None
-            else:
-                height = float(height_str.replace(" m", "").replace(",", "."))
+            height = parse_height(height_tag.text)
 
         # Nationality and citizenships
         nationality_el = soup.find("span", {"itemprop": "nationality"})

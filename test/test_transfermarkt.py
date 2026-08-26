@@ -7,7 +7,7 @@ from rootutils import find_root
 
 sys.path.append(str(find_root() / 'src'))
 from ScraperFC import Transfermarkt
-from ScraperFC.transfermarkt import comps
+from ScraperFC.transfermarkt import comps, parse_height
 from ScraperFC.scraperfc_exceptions import InvalidLeagueException, InvalidYearException
 from ScraperFC.utils import get_module_comps
 
@@ -67,3 +67,12 @@ class TestTransfermarkt:
         assert type(players) is pd.DataFrame
         assert players.shape[0] > 0
         assert players.shape[1] > 0
+
+    # ==============================================================================================
+    @pytest.mark.parametrize(
+        "height_str, expected",
+        [("1,91 m", 1.91), ("1.91 m", 1.91), ("6 ft 6 in", 1.98), ("6 ft", 1.83),
+         ("6ft6in", 1.98), ("N/A", None), ("- m", None), ("", None)]
+    )
+    def test_parse_height(self, height_str, expected):
+        assert parse_height(height_str) == expected
