@@ -86,3 +86,13 @@ class TestTransfermarkt:
         assert mvh.shape[0] > 0
         assert list(mvh.columns) == ["date", "value"]
         assert mvh["value"].map(lambda x: type(x) is int).all()
+
+    # ==============================================================================================
+    def test_scrape_transfer_history(self):
+        tm = Transfermarkt()
+        player = tm.scrape_player("https://www.transfermarkt.us/erling-haaland/profil/spieler/418560")
+        th = player["Transfer history"].iloc[0]
+        assert type(th) is pd.DataFrame
+        assert th.shape[0] > 0
+        assert list(th.columns) == ["Season", "Date", "Left", "Joined", "MV", "Fee"]
+        assert "Man City" in th["Joined"].values

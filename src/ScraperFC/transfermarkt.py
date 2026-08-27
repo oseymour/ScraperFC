@@ -74,6 +74,42 @@ def scrape_market_value_history(player_id: str):
     })
 
 
+def scrape_transfer_history(player_id: str):
+    """ Scrape a player's transfer history
+
+    Transfermarkt serves the transfer history table from a JSON endpoint, not from the player page
+    HTML.
+
+    :param player_id: Transfermarkt player ID, the last part of a player URL
+    :type player_id: str
+    :return: Dataframe of the player's transfer history, or None if the player doesn't have one
+    :rtype: pd.DataFrame or None
+    """
+    r = requests.get(
+        f"{TRANSFERMARKT_ROOT}/ceapi/transferHistory/list/{player_id}",
+        headers={
+            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +\
+                "(KHTML, like Gecko) Chrome/55.0.2883.87 Safari/537.36"
+        }
+    )
+    if r.status_code != 200:
+        return None
+    try:
+        transfers = r.json()["transfers"]
+    except (ValueError, KeyError, TypeError):
+        return None
+    if len(transfers) == 0:
+        return None
+    return pd.DataFrame({
+        "Season": [t.get("season") for t in transfers],
+        "Date": [t.get("date") for t in transfers],
+        "Left": [t.get("from", {}).get("clubName") for t in transfers],
+        "Joined": [t.get("to", {}).get("clubName") for t in transfers],
+        "MV": [t.get("marketValue") for t in transfers],
+        "Fee": [t.get("fee") for t in transfers]
+    })
+
+
 class Transfermarkt():
 
     # ==============================================================================================
@@ -330,13 +366,7 @@ class Transfermarkt():
         market_value_history = scrape_market_value_history(player_link.split("/")[-1])
 
         # Transfer History
-        rows = soup.find_all("div", {"class": "grid tm-player-transfer-history-grid"})
-        transfer_history = pd.DataFrame(
-            data=[[s.strip() for s in row.getText().split("\n\n") if s != ""] for row in rows],
-            columns=["Season", "Date", "Left", "Joined", "MV", "Fee", ""]
-        ).drop(
-            columns=[""]
-        )
+        transfer_history = scrape_transfer_history(player_link.split("/")[-1])
 
         player = pd.Series(dtype=object)
         player["Name"] = name
