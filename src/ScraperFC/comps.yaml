@@ -115,6 +115,13 @@ Germany Womens Bundesliga:
   FBREF:
     history url: https://fbref.com/en/comps/183/history/Frauen-Bundesliga-Seasons
     finders: ['Frauen-Bundesliga']
+Greek Super League 1:
+  CAPOLOGY: gr/super-league-greece
+  FBREF:
+    history url: https://fbref.com/en/comps/27/history/Super-League-Greece-Seasons
+    finders: ['Super-League-Greece']
+  SOFASCORE: 185
+  TRANSFERMARKT: https://www.transfermarkt.us/super-league-1/startseite/wettbewerb/GR1
 Italy Serie A:
   CAPOLOGY: it/serie-a
   FBREF:
