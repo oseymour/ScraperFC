@@ -15,3 +15,6 @@ For example, the scrape all of their historical club matches you can do:
 
    import pandas as pd
    df = pd.read_csv("https://projects.fivethirtyeight.com/soccer-api/club/spi_matches.csv")
+
+.. note::
+   Following ABC News's shutdown of FiveThirtyEight, the ``projects.fivethirtyeight.com/soccer-api/club/spi_matches.csv`` URL now redirects to ``abcnews.com/politics`` (and the GitHub archive is frozen at June 2023). For an active, daily-updated replacement providing club attack/defence ratings, Dixon–Coles match probabilities, and 10,000-simulation league projections across 93 leagues via a free keyless JSON API and CC-BY-4.0 dataset, see `Football Charts <https://www.football-charts.com/developers>`_.
